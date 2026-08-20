@@ -1,0 +1,19 @@
+.work/
+.tmp_gdd_render/
+.tmp_gdd_work/
+~$*.docx
+
+# Dependencies and generated output (all projects)
+**/node_modules/
+**/.next/
+**/.vinext/
+**/dist/
+**/coverage/
+**/.wrangler/
+
+# Local credentials and editor files
+**/.env*
+!**/.env.example
+.DS_Store
+Thumbs.db
+*.log
