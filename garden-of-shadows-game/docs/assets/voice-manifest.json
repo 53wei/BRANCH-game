@@ -1,0 +1,42 @@
+[
+  {
+    "id": "voice-profile-zhaoying-v1",
+    "speakerId": "zhaoying",
+    "provider": "azure-speech",
+    "voiceId": "zh-CN-Xiaochen:DragonHDLatestNeural",
+    "locale": "zh-CN",
+    "ssmlPath": "docs/assets/voice/zhaoying.ssml",
+    "licenseRecord": "Azure paid-tier prebuilt neural voice; no voice cloning; commercial terms review required at release",
+    "status": "credentials-required"
+  },
+  {
+    "id": "voice-profile-steward-v1",
+    "speakerId": "steward",
+    "provider": "azure-speech",
+    "voiceId": "zh-CN-YunyangNeural",
+    "locale": "zh-CN",
+    "ssmlPath": "docs/assets/voice/steward.ssml",
+    "licenseRecord": "Azure paid-tier prebuilt neural voice; no voice cloning; commercial terms review required at release",
+    "status": "credentials-required"
+  },
+  {
+    "id": "voice-profile-wife-v1",
+    "speakerId": "wife",
+    "provider": "azure-speech",
+    "voiceId": "zh-CN-XiaoyiNeural",
+    "locale": "zh-CN",
+    "ssmlPath": "docs/assets/voice/wife.ssml",
+    "licenseRecord": "Azure paid-tier prebuilt neural voice; no voice cloning; commercial terms review required at release",
+    "status": "credentials-required"
+  },
+  {
+    "id": "voice-profile-gardener-v1",
+    "speakerId": "gardener",
+    "provider": "azure-speech",
+    "voiceId": "zh-CN-YunjianNeural",
+    "locale": "zh-CN",
+    "ssmlPath": "docs/assets/voice/gardener.ssml",
+    "licenseRecord": "Azure paid-tier prebuilt neural voice; no voice cloning; commercial terms review required at release",
+    "status": "credentials-required"
+  }
+]

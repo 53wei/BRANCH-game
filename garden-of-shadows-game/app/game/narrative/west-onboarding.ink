@@ -1,0 +1,72 @@
+=== opening ===
+雨从听雨轩的瓦当坠下来。你还没有跨进门，门内那盏纸灯先亮了。 # speaker:narrator # line:opening.001
+你比信上约定的时辰早了一刻。 # speaker:steward # portrait:courteous # line:opening.002 # voice:west.steward.001
+信上没有落款。这里也不像有人等我。 # speaker:zhaoying # portrait:guarded # line:opening.003 # voice:west.zhaoying.001
+等你的不是活人，是四份不肯合拢的证词。七年前，园主沈砚堂死在反锁的水榭里。 # speaker:steward # portrait:knowing # line:opening.004 # voice:west.steward.002
+四名在场者都改过当夜的一件事。他们记得同一座园子，门、水路和回廊却各不相同。 # speaker:steward # portrait:courteous # line:opening.005 # voice:west.steward.003
+所以你要我判断谁在说谎？ # speaker:zhaoying # portrait:guarded # line:opening.006 # voice:west.zhaoying.002
+不。一处说辞不能判错。同一个地方，至少要有两份独立证词互相抵触，才算一笔勘误。 # speaker:steward # portrait:knowing # line:opening.007 # voice:west.steward.004
+他把一本潮湿的线装簿递来。封面没有题字，纸背却透出五个人的墨迹。 # speaker:narrator # line:opening.008
+* [为什么偏偏找我？]
+    因为这园子不记得你。一个从未到过这里的人，脚下不该有回声。 # speaker:steward # portrait:threatening # line:opening.009a # voice:west.steward.005
+    我听见西廊的铜铃了。 # speaker:zhaoying # portrait:alarmed # line:opening.010a # voice:west.zhaoying.003
+    -> appointed
+* [先从水路查起。]
+    很好。夫人说水渠整夜干涸，园丁却说水逆着地势流向水榭。先去看同一块青砖。 # speaker:steward # portrait:courteous # line:opening.009b # voice:west.steward.006
+    -> appointed
+= appointed
+从现在起，你是听雨轩的勘验人。记住：不是找物，是核对同地异景。 # speaker:steward # portrait:knowing # line:opening.011 # voice:west.steward.007 # flag:set:prologue.examiner-appointed # objective:start:west-arrival:follow-lantern
+跟着灯走。到了西廊，顾夫人会告诉你她看见了什么。 # speaker:steward # portrait:courteous # line:opening.012 # voice:west.steward.008
+-> END
+
+=== wife_arrival ===
+西廊入口的灯影里，顾蘅秋像一幅被雨打湿又重新裱过的画。 # speaker:narrator # line:wife.001
+沈先生死前，西廊的水渠早就干了。那夜我从这里经过，鞋底连泥都没有沾。 # speaker:wife # portrait:restrained # line:wife.002 # voice:west.wife.001
+但渠边有一张被水泡过的名帖。 # speaker:zhaoying # portrait:guarded # line:wife.003 # voice:west.zhaoying.004
+那不是水。是雨。你若要写进簿子，就先亲眼看看。 # speaker:wife # portrait:guarded # line:wife.004 # voice:west.wife.002 # objective:start:west-waterline:inspect-wife
+-> END
+
+=== gardener_arrival ===
+铜铃一响，冷金色的西廊褪成湿苔。水从干渠里浮出来，逆着坡度流向水榭。 # speaker:narrator # line:gardener.001
+水从来没有顺着园主的意思走。那夜也是。 # speaker:gardener # portrait:taciturn # line:gardener.002 # voice:west.gardener.001
+夫人说这里是干的。 # speaker:zhaoying # portrait:guarded # line:gardener.003 # voice:west.zhaoying.005
+夫人没撒谎。她只是没看我后来把水放回去。你要判错，就看脚下，别看我的脸。 # speaker:gardener # portrait:guilty # line:gardener.004 # voice:west.gardener.002 # objective:step:inspect-gardener
+-> END
+
+=== waterline_confirmed ===
+同一条渠，在夫人证词里干涸，在园丁证词里逆流。两份独立观察，第一笔勘误成立。 # speaker:zhaoying # portrait:guarded # line:waterline.001 # voice:west.zhaoying.006
+别急着写“谁杀了他”。先去第七扇漏窗。两个人都说自己没走到那里。 # speaker:steward # portrait:knowing # line:waterline.002 # voice:west.steward.009 # objective:start:west-loop:inspect-seventh-window
+-> END
+
+=== loop_first_observation ===
+第七扇漏窗后还是第七扇漏窗。可一份证词，只能证明一个人记错了路。 # speaker:zhaoying # portrait:guarded # line:loop.001 # voice:west.zhaoying.007
+换到另一份证词，在同一位置再看一次。 # speaker:steward # portrait:courteous # line:loop.002 # voice:west.steward.010 # objective:step:cross-check-window
+-> END
+
+=== trust ===
+我改了水路。若不让水倒灌，还魂局就会把她留在水榭里。 # speaker:gardener # portrait:guilty # line:trust.001 # voice:west.gardener.003
+他知道水会流进反锁的房间，却没有告诉我。 # speaker:wife # portrait:guarded # line:trust.002 # voice:west.wife.003
+你们说的是同一件事：园主溺死了。可你们给它安排了不同的动机。 # speaker:zhaoying # portrait:guarded # line:trust.003 # voice:west.zhaoying.008
+* [他改水是为了破坏仪式，不是为了杀人。]
+    善意不等于无责。但我会把“保护”写在“改水”后面。 # speaker:zhaoying # portrait:calm # line:trust.004a # voice:west.zhaoying.009 # trust:set:west-water-motive:protect:west.trust.protective-sabotage
+    -> trust_end
+* [他明知水榭反锁，仍然放水。]
+    结果不能抹去选择。我会把“明知”写在“改水”前面。 # speaker:zhaoying # portrait:guarded # line:trust.004b # voice:west.zhaoying.010 # trust:set:west-water-motive:accuse:west.trust.reckless-sabotage
+    -> trust_end
+= trust_end
+纸页刚吃进墨，所有漏窗同时暗了。 # speaker:narrator # line:trust.005
+-> END
+
+=== chase_intro ===
+漏窗外站着一个没有脸的人。他没有问你发现了什么，只朝你伸手。 # speaker:narrator # line:chase.001
+把名字还给我。 # speaker:steward # portrait:threatening # line:chase.002 # voice:west.steward.011
+那不是管家的声音。 # speaker:zhaoying # portrait:alarmed # line:chase.003 # voice:west.zhaoying.011
+切到夫人的证词。她记忆里的月洞门还没有消失。 # speaker:steward # portrait:threatening # line:chase.004 # voice:west.steward.012 # objective:start:west-escape:reach-moon-gate
+-> END
+
+=== completion ===
+门外没有你的脚印。身后的回廊折成一张湿透的供词。 # speaker:narrator # line:complete.001
+园丁改过水路，夫人调换过一张写着“照”字的名帖。他们是在合谋杀我，还是在用四种错误救下第五个人？ # speaker:steward # portrait:knowing # line:complete.002 # voice:west.steward.013
+你说“第五个人”时，为什么一直看着我？ # speaker:zhaoying # portrait:guarded # line:complete.003 # voice:west.zhaoying.012
+北楼的账，会替我回答。前提是你还敢带着这个名字上去。 # speaker:steward # portrait:threatening # line:complete.004 # voice:west.steward.014
+-> END

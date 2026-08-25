@@ -1,0 +1,122 @@
+[
+  {
+    "id": "aigc-hero-hearing-rain-v1",
+    "title": "雨入听轩项目主视觉",
+    "sourceUrl": "internal://openai-imagegen/exec-f5b41549-e17d-4451-878f-eb303b4676a4",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/hero-hearing-rain.png",
+    "integritySha256": "57ab1f343efe80a4a470ecd6e8b60b04a9af2763fa719781e374ad7833572b27",
+    "status": "approved"
+  },
+  {
+    "id": "aigc-portrait-zhaoying-v1",
+    "title": "沈照影三表情工笔重彩立牌",
+    "sourceUrl": "internal://openai-imagegen/exec-0dc9718d-a8bb-4d6d-a12b-afcb080c91d3",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/portraits/zhaoying-{calm,guarded,alarmed}.webp",
+    "integritySha256": "2dd5af32e6b9f962b7646d03e11d4ea1e4566dac4b0658d5ce4fe82e590f56d6",
+    "status": "approved"
+  },
+  {
+    "id": "aigc-portrait-steward-v1",
+    "title": "老管家三表情工笔重彩立牌",
+    "sourceUrl": "internal://openai-imagegen/exec-8c67a9cf-0ba2-40af-a532-afd7dd4df27d",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/portraits/steward-{courteous,knowing,threatening}.webp",
+    "integritySha256": "5c7c77637fb4ab78c539637b85833e28e150ab1be686fadf4d263a7d5433aa13",
+    "status": "approved"
+  },
+  {
+    "id": "aigc-portrait-wife-v1",
+    "title": "顾蘅秋三表情工笔重彩立牌",
+    "sourceUrl": "internal://openai-imagegen/exec-7e9e47d5-2aa1-4ff7-8c90-aa772194a252",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/portraits/wife-{restrained,grieving,guarded}.webp",
+    "integritySha256": "20aa805d1f89c9d16270a0bd8d0f191c377caf11765fbb3a70346452ae4532e2",
+    "status": "approved"
+  },
+  {
+    "id": "aigc-portrait-gardener-v1",
+    "title": "周守圃三表情工笔重彩立牌",
+    "sourceUrl": "internal://openai-imagegen/exec-e1af9768-d076-49ea-8c16-6bded50e5783",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/portraits/gardener-{taciturn,guilty,alarmed}.webp",
+    "integritySha256": "7ae486c9af38790c1d6d3b408bbe8fb4b6f2777ec34cd7664e621dd02437eece",
+    "status": "approved"
+  },
+  {
+    "id": "candidate-realtime-chinese-pavilion",
+    "title": "Real-time Chinese Pavilion",
+    "sourceUrl": "https://sketchfab.com/3d-models/chinese-pavilion-cb6cee692b214886b677b3038f830da9",
+    "author": "pending author-page audit",
+    "version": "listing reviewed 2026-08-25",
+    "license": "pending exact listing license",
+    "webDistribution": "pending",
+    "aiUsage": "unknown",
+    "status": "candidate"
+  },
+  {
+    "id": "candidate-suzhou-pavilion",
+    "title": "Chinese Pavilion - Suzhou Garden",
+    "sourceUrl": "https://sketchfab.com/3d-models/chinese-pavilion-suzhou-garden-886ec2ef23ea41648aefbb856c3437bb",
+    "author": "pending author-page audit",
+    "version": "listing reviewed 2026-08-25",
+    "license": "pending exact listing license",
+    "webDistribution": "pending",
+    "aiUsage": "unknown",
+    "status": "candidate"
+  },
+  {
+    "id": "candidate-fab-classical-garden",
+    "title": "Complete Classical Garden Environment",
+    "sourceUrl": "https://www.fab.com/listings/d026d110-6925-4704-9df7-2041b7d08276",
+    "author": "pending seller-page audit",
+    "version": "listing reviewed 2026-08-25",
+    "license": "Fab Standard License candidate",
+    "webDistribution": "prerender-only",
+    "aiUsage": "unknown",
+    "status": "candidate"
+  },
+  {
+    "id": "candidate-blendkit-cc0-chinese-pavilion",
+    "title": "Blendkit Chinese Pavilion CC0 source mesh",
+    "sourceUrl": "https://www.blendkit.com/asset-gallery-detail/30a0078c-8465-43a5-82a2-66c327f30a71/",
+    "author": "see source listing",
+    "version": "listing reviewed 2026-08-25",
+    "license": "CC0; source mesh requires optimization before runtime",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "candidate"
+  },
+  {
+    "id": "candidate-polyhaven-chinese-garden-hdri",
+    "title": "Poly Haven Chinese Garden HDRI",
+    "sourceUrl": "https://polyhaven.com/a/chinese_garden",
+    "author": "Poly Haven contributors",
+    "version": "listing reviewed 2026-08-25",
+    "license": "CC0",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "candidate"
+  }
+]
