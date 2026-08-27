@@ -35,6 +35,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   } | undefined>(undefined);
   const keysRef = useRef(new Set<string>());
   const touchModeRef = useRef(false);
+  const keyboardFallbackRef = useRef(false);
   const yawRef = useRef(0);
   const pitchRef = useRef(0);
   const nearestRef = useRef<SceneInteractable | undefined>(undefined);
@@ -56,6 +57,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   const [showNotebook, setShowNotebookState] = useState(false);
   const [activeDialogue, setActiveDialogueState] = useState<DialogueSequence>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
+  const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [touchMode, setTouchMode] = useState(false);
   const [guideDistance, setGuideDistance] = useState<number>();
   const [guideAngle, setGuideAngle] = useState(0);
@@ -78,8 +80,16 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
 
   const requestPointerLock = useCallback(() => {
     if (touchModeRef.current) return;
-    const result = canvasRef.current?.requestPointerLock();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.focus();
+    keyboardFallbackRef.current = true;
+    setKeyboardFallback(true);
+    const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
+    window.setTimeout(() => {
+      if (document.pointerLockElement !== canvas) setSubtitle("当前浏览器不支持鼠标锁定：WASD 移动，方向键左右转向。");
+    }, 120);
   }, []);
 
   const commitCheckpoint = useCallback((producer: (current: CheckpointState) => CheckpointState, includePosition = true) => {
@@ -288,8 +298,11 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           previous = now;
           const activePhase = phaseRef.current;
           let pose = physics.pose();
-          if (["playing", "chase"].includes(activePhase) && (document.pointerLockElement === canvas || touchModeRef.current)) {
+          const inputReady = document.pointerLockElement === canvas || touchModeRef.current || keyboardFallbackRef.current;
+          if (["playing", "chase"].includes(activePhase) && inputReady && !notebookRef.current && !dialogueRef.current) {
             const keys = keysRef.current;
+            const turn = Number(keys.has("ArrowRight")) - Number(keys.has("ArrowLeft"));
+            yawRef.current -= turn * 1.8 * delta;
             const forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
             const strafe = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
             const speed = keys.has("ShiftLeft") ? 4.5 : 2.75;
@@ -310,7 +323,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(dx, -dz) - yawRef.current));
           }
 
-          const emittedHint = directorRef.current.tick(delta, activePhase !== "playing" || notebookRef.current || Boolean(dialogueRef.current) || (!touchModeRef.current && document.pointerLockElement !== canvas), checkpointRef.current.activeObjectiveId, checkpointRef.current.objectiveStepId);
+          const emittedHint = directorRef.current.tick(delta, activePhase !== "playing" || notebookRef.current || Boolean(dialogueRef.current) || !inputReady, checkpointRef.current.activeObjectiveId, checkpointRef.current.objectiveStepId);
           if (emittedHint && objective) {
             const key = objectiveProgressKey(objective.objective.id, objective.step.id);
             commitCheckpoint((current) => ({ ...current, hintLevels: { ...current.hintLevels, [key]: emittedHint } }));
@@ -394,6 +407,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     const onKeyDown = (event: KeyboardEvent) => {
       if (dialogueRef.current?.presentation === "stage") return;
       keysRef.current.add(event.code);
+      if (["ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
       if (event.repeat) return;
       if (event.code === "Tab") { event.preventDefault(); switchMemory(); }
       if (event.code === "KeyF") interact();
@@ -404,6 +418,11 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       }
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
+    const onWindowBlur = () => {
+      keysRef.current.clear();
+      keyboardFallbackRef.current = false;
+      setKeyboardFallback(false);
+    };
     const onMouseMove = (event: MouseEvent) => {
       if (document.pointerLockElement !== canvasRef.current) return;
       yawRef.current -= event.movementX * 0.0022;
@@ -412,7 +431,8 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     window.addEventListener("mousemove", onMouseMove);
-    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("mousemove", onMouseMove); };
+    window.addEventListener("blur", onWindowBlur);
+    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("blur", onWindowBlur); };
   }, [interact, requestPointerLock, setShowNotebook, switchMemory]);
 
   const activeObjective = resolveActiveObjective(chapter.objectives ?? [], checkpoint);
@@ -428,7 +448,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
 
   return (
     <main className={`runtime runtime-${checkpoint.memoryId}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" aria-label="西廊回环实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} />
+      <canvas ref={canvasRef} className="runtime-canvas" aria-label="西廊回环实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" onClick={onExit} className="text-button">← 章节总览</button>
@@ -443,7 +463,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       {guideDistance !== undefined && activeObjective?.step.guidance.includes("direction") && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
       {prompt && <div className="interaction-prompt">{prompt}</div>}
       {save.settings.subtitles && subtitle && !activeDialogue && <div className="bark-subtitle">{barkImage && <img src={barkImage} alt="" />}<p><b>{barkProfile?.name}</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · 鼠标观察 · Shift 快走 · Tab 换证词 · F 勘验 · M 勘误簿</div>
+      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · Shift 快走 · Tab 换证词 · F 勘验 · M 勘误簿</div>
 
       <div className="touch-controls" aria-label="移动端控制"><div className="touch-move"><button type="button" aria-label="向前" onPointerDown={() => beginTouchMove("KeyW")} onPointerUp={() => keysRef.current.delete("KeyW")} onPointerCancel={() => keysRef.current.delete("KeyW")}>↑</button><button type="button" aria-label="向左" onPointerDown={() => beginTouchMove("KeyA")} onPointerUp={() => keysRef.current.delete("KeyA")} onPointerCancel={() => keysRef.current.delete("KeyA")}>←</button><button type="button" aria-label="向后" onPointerDown={() => beginTouchMove("KeyS")} onPointerUp={() => keysRef.current.delete("KeyS")} onPointerCancel={() => keysRef.current.delete("KeyS")}>↓</button><button type="button" aria-label="向右" onPointerDown={() => beginTouchMove("KeyD")} onPointerUp={() => keysRef.current.delete("KeyD")} onPointerCancel={() => keysRef.current.delete("KeyD")}>→</button></div><div className="touch-actions"><button type="button" onClick={switchMemory}>换证词</button><button type="button" onClick={interact}>勘验</button></div></div>
 
@@ -451,7 +471,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
 
       {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
 
-      {!activeDialogue && ["playing", "chase"].includes(phase) && !hasPointerLock && !touchMode && !showNotebook && <button type="button" className="resume-control" onClick={requestPointerLock}><span>继续勘验</span><small>点击恢复第一人称视角</small></button>}
+      {!activeDialogue && ["playing", "chase"].includes(phase) && !hasPointerLock && !keyboardFallback && !touchMode && !showNotebook && <button type="button" className="resume-control" onClick={requestPointerLock}><span>开始控制</span><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
 
       {phase === "failed" && <RuntimeModal eyebrow="记忆断点" title="你的脸又被擦去一次"><p>失败不会抹去证据。你将回到追逐前，并自动切回能看见月洞门的夫人证词。</p><button type="button" className="primary-button" onClick={retryChase}>从漏窗前重试</button></RuntimeModal>}
       {phase === "complete" && !activeDialogue && <RuntimeModal eyebrow="V0.1R ONBOARDING SLICE" title="第一章完成"><p>你已完成两次独立证词交叉核对，并把动机判断写入责任链。下一条线索位于北楼墨账。</p><button type="button" className="primary-button" onClick={onExit}>返回章节总览</button></RuntimeModal>}
