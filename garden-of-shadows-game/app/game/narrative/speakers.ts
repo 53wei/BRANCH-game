@@ -68,8 +68,8 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
     themeColor: "#7398b8",
     voiceId: "zh-CN-YunxiNeural",
     portraits: {
-      composed: "/media/portraits/accountant-ledger.svg",
-      cornered: "/media/portraits/accountant-ledger.svg",
+      composed: "/media/portraits/accountant-composed.webp",
+      cornered: "/media/portraits/accountant-cornered.webp",
     },
     defaultPortrait: "composed",
   },

@@ -53,6 +53,7 @@ export interface DialogueSequence {
   participants: SpeakerId[];
   defaultRightSpeaker?: SpeakerId;
   completionFlag?: string;
+  backdrop?: string;
 }
 
 export interface SpeakerProfile {

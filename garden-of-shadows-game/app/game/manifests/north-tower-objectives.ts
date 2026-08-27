@@ -1,11 +1,14 @@
 import type { DialogueSequence, ObjectiveDefinition } from "../types";
 
 export const northDialogueSequences: DialogueSequence[] = [
-  { id: "north-opening", knotId: "north_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.opening" },
-  { id: "north-scratches", knotId: "north_scratches", presentation: "bark", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.scratches" },
-  { id: "north-passage", knotId: "north_passage", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.passage" },
-  { id: "north-trust", knotId: "north_trust", presentation: "stage", participants: ["zhaoying", "accountant", "wife", "gardener"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.trust" },
-  { id: "north-completion", knotId: "north_completion", presentation: "stage", participants: ["zhaoying", "steward"], defaultRightSpeaker: "steward", completionFlag: "north.dialogue.completion" },
+  { id: "north-opening", knotId: "north_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.opening", backdrop: "/media/cg/north-ledger-room.webp" },
+  { id: "north-window", knotId: "north_window", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.window", backdrop: "/media/cg/north-borrowed-window.webp" },
+  { id: "north-past", knotId: "north_past", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.past", backdrop: "/media/cg/north-borrowed-window.webp" },
+  { id: "north-rockery", knotId: "north_rockery", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.rockery", backdrop: "/media/cg/north-borrowed-window.webp" },
+  { id: "north-scratches", knotId: "north_scratches", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.scratches", backdrop: "/media/cg/north-borrowed-window.webp" },
+  { id: "north-passage", knotId: "north_passage", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.passage", backdrop: "/media/cg/north-secret-passage.webp" },
+  { id: "north-trust", knotId: "north_trust", presentation: "stage", participants: ["zhaoying", "accountant", "wife", "gardener"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.trust", backdrop: "/media/cg/north-secret-passage.webp" },
+  { id: "north-completion", knotId: "north_completion", presentation: "stage", participants: ["zhaoying", "steward"], defaultRightSpeaker: "steward", completionFlag: "north.dialogue.completion", backdrop: "/media/cg/north-ledger-room.webp" },
 ];
 
 const movementHints: [string, string, string] = [

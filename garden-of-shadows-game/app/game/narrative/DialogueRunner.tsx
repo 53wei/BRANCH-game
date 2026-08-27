@@ -133,6 +133,7 @@ export function DialogueRunner({ sequence, storyContent = compiledStory, setting
 
   return (
     <section className={rootClass} role="dialog" aria-modal={sequence.presentation === "stage"} aria-label="剧情对话">
+      {sequence.presentation === "stage" && sequence.backdrop && <div className="dialogue-scene" style={{ backgroundImage: `url(${sequence.backdrop})` }} aria-hidden="true" />}
       {sequence.presentation === "stage" && <div className="dialogue-curtain" aria-hidden="true" />}
       {sequence.presentation === "stage" && (
         <div className={`portrait portrait-left ${line?.speakerId === "zhaoying" ? "active" : "inactive"}`}>

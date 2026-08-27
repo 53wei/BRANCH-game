@@ -19,9 +19,11 @@ const disposeObject = (object: THREE.Object3D) => {
   const materials = new Set<THREE.Material>();
   object.traverse((child) => {
     if (child instanceof THREE.Mesh || child instanceof THREE.Points) {
-      geometries.add(child.geometry);
+      if (child.geometry) geometries.add(child.geometry);
       const childMaterials = Array.isArray(child.material) ? child.material : [child.material];
-      childMaterials.forEach((material) => materials.add(material));
+      childMaterials.forEach((material) => {
+        if (material) materials.add(material);
+      });
     }
   });
   geometries.forEach((geometry) => geometry.dispose());

@@ -93,7 +93,7 @@ export default function Home() {
           <p className="hero-logline">一座反锁的水榭，四份互相否认的证词，<br />以及一个从所有人口中被删去的名字。</p>
           <div className="hero-actions">
             <button type="button" className="primary-button" onClick={() => startOnboarding()}>{save.activeCheckpoint.earnedFlags.includes("prologue.dialogue.complete") ? "继续勘验" : "开始序章"} <span>→</span></button>
-            <button type="button" className="ghost-button" onClick={() => startNorthTower()}>直接测试第二章</button>
+            <button type="button" className="ghost-button" onClick={() => startNorthTower(true)}>从头测试第二章</button>
             <button type="button" className="ghost-button" onClick={() => startOnboarding(true)}>从序章重新开始</button>
           </div>
           <small className="hero-meta">PC WEB · 实时 3D · 叙事解谜 · 16+</small>

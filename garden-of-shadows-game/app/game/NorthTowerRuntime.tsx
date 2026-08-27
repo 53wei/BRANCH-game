@@ -172,6 +172,15 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       seenDialogueLines: current.seenDialogueLines,
       earnedFlags: sequence.completionFlag ? unique([...current.earnedFlags, sequence.completionFlag]) : current.earnedFlags,
     }));
+    if (sequence.id === "north-rockery") {
+      const next = addFlags("north.rockery.moved");
+      runtimeRef.current?.world.setTimeline("past", true);
+      setSubtitle("假山向侧面移开。这个动作已经发生在过去，现在会记住它。");
+      if (!next.earnedFlags.includes("north.present.route-open")) setPrompt("回到借景框，按 F 切回现在");
+      setPhase("playing");
+      requestPointerLock();
+      return;
+    }
     if (sequence.id === "north-passage") {
       window.setTimeout(() => startDialogueRef.current("north-trust"), 120);
       return;
@@ -188,7 +197,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     }
     setPhase("playing");
     requestPointerLock();
-  }, [changeMemory, commitCheckpoint, finishChapter, requestPointerLock, setPhase]);
+  }, [addFlags, changeMemory, commitCheckpoint, finishChapter, requestPointerLock, setPhase]);
 
   const observeEvidence = useCallback((id: "window-scratches" | "secret-passage") => {
     const contradiction = chapter.contradictions.find((item) => item.id === id);
@@ -227,17 +236,16 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       if (!checkpointRef.current.earnedFlags.includes("north.window.inspected")) {
         addFlags("north.window.inspected");
         setSubtitle("窗内假山完整，窗外雨水却已经积了七年。再触碰一次，跨过时间切口。");
+        startDialogue("north-window");
       } else {
         changeTimeline("past");
         changeZone("courtyard", [-7, 1.65, -10]);
         addFlags("north.borrowed-view.crossed");
         setSubtitle("过去。假山还没有坍塌，石缝里的泥是干的。");
+        startDialogue("north-past");
       }
     } else if (item.id === "past-rockery") {
-      const next = addFlags("north.rockery.moved");
-      runtimeRef.current?.world.setTimeline("past", true);
-      setSubtitle("假山向侧面移开。这个动作已经发生在过去，现在会记住它。");
-      if (!next.earnedFlags.includes("north.present.route-open")) setPrompt("回到借景框，按 F 切回现在");
+      if (!checkpointRef.current.earnedFlags.includes("north.dialogue.rockery")) startDialogue("north-rockery");
     } else if (item.id === "borrowed-window-return") {
       changeTimeline("present");
       addFlags("north.present.route-open");
@@ -246,7 +254,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     } else if (item.id === "window-scratches" || item.id === "secret-passage") {
       observeEvidence(item.id);
     }
-  }, [addFlags, changeTimeline, changeZone, observeEvidence]);
+  }, [addFlags, changeTimeline, changeZone, observeEvidence, startDialogue]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -356,8 +364,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("pointerlockchange", onLockChange);
-      runtimeRef.current?.renderer.dispose();
       world.dispose();
+      runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
   }, [changeMemory, chapter.id, chapter.memories, interact, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
