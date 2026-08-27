@@ -46,7 +46,11 @@ export default function Home() {
   const startNorthTower = (restart = false) => {
     if (restart || save.activeCheckpoint.chapterId !== "north-tower-ledger") {
       const checkpoint = { ...createCheckpoint("north-tower-ledger", "accountant"), anchorId: "north-tower-entry" };
-      persist({ ...save, activeCheckpoint: checkpoint });
+      persist({
+        ...save,
+        activeCheckpoint: checkpoint,
+        completedChapters: restart ? save.completedChapters.filter((id) => id !== "north-tower-ledger") : save.completedChapters,
+      });
     }
     setView("north-tower-ledger");
   };
