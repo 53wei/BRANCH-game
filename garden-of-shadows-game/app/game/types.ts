@@ -2,7 +2,7 @@ export type ChapterStatus = "playable" | "prototype" | "planned";
 export type MemoryId = "baseline" | "wife" | "gardener" | "accountant" | "painter" | "zhaoying";
 export type ContradictionKind = "geometry" | "time" | "object" | "identity" | "causality";
 export type EndingId = "truth" | "borrowed-name" | "river-lantern";
-export type SpeakerId = "narrator" | "zhaoying" | "steward" | "wife" | "gardener";
+export type SpeakerId = "narrator" | "zhaoying" | "steward" | "wife" | "gardener" | "accountant" | "painter";
 export type DialoguePresentation = "stage" | "bark";
 export type GuidanceChannel = "objective" | "direction" | "world-marker" | "outline" | "light" | "audio";
 

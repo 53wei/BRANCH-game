@@ -61,4 +61,24 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
     },
     defaultPortrait: "taciturn",
   },
+  accountant: {
+    id: "accountant",
+    name: "钱先生",
+    side: "right",
+    themeColor: "#7398b8",
+    voiceId: "zh-CN-YunxiNeural",
+    portraits: {
+      composed: "/media/portraits/accountant-ledger.svg",
+      cornered: "/media/portraits/accountant-ledger.svg",
+    },
+    defaultPortrait: "composed",
+  },
+  painter: {
+    id: "painter",
+    name: "柳生",
+    side: "right",
+    themeColor: "#9a739f",
+    portraits: {},
+    defaultPortrait: "",
+  },
 };

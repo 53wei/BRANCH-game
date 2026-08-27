@@ -6,8 +6,9 @@ import { campaignManifest, getChapter } from "./game/manifests/campaign";
 import type { CampaignSave, GameSettings } from "./game/types";
 
 const GameRuntime = lazy(() => import("./game/GameRuntime").then((module) => ({ default: module.GameRuntime })));
+const NorthTowerRuntime = lazy(() => import("./game/NorthTowerRuntime").then((module) => ({ default: module.NorthTowerRuntime })));
 
-type View = "hub" | "west-corridor-loop" | "settings";
+type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "settings";
 
 const versionForChapter = (index: number) => {
   if (index <= 1) return "V0.1";
@@ -42,12 +43,30 @@ export default function Home() {
     setView("west-corridor-loop");
   };
 
+  const startNorthTower = (restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== "north-tower-ledger") {
+      const checkpoint = { ...createCheckpoint("north-tower-ledger", "accountant"), anchorId: "north-tower-entry" };
+      persist({ ...save, activeCheckpoint: checkpoint });
+    }
+    setView("north-tower-ledger");
+  };
+
   if (view === "west-corridor-loop") {
     const chapter = getChapter("west-corridor-loop");
     if (!chapter) return null;
     return (
       <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING RUNTIME</p><strong>正在载入园林与证词…</strong></main>}>
         <GameRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      </Suspense>
+    );
+  }
+
+  if (view === "north-tower-ledger") {
+    const chapter = getChapter("north-tower-ledger");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING CHAPTER 02</p><strong>正在载入北楼与借景时间线…</strong></main>}>
+        <NorthTowerRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
       </Suspense>
     );
   }
@@ -97,20 +116,21 @@ export default function Home() {
 
       <section className="chapters-section" id="chapters">
         <div className="section-heading compact">
-          <p className="eyebrow">CAMPAIGN · PROLOGUE + 8 CHAPTERS</p>
+          <p className="eyebrow">CAMPAIGN · PROLOGUE + 4 CHAPTERS + FINALE</p>
           <h2>首案全章规划</h2>
-          <p>V1.0 将一次性交付完整案件；当前仓库已建立九章清单与统一运行时接口。</p>
+          <p>定稿结构为序章、四个正文章节与终章；当前第一、第二章均可独立进入验证。</p>
         </div>
         <div className="chapter-list">
           {campaignManifest.chapters.map((chapter) => {
             const completed = save.completedChapters.includes(chapter.id);
-            const playable = chapter.id === "west-corridor-loop";
+            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger";
             return (
               <article key={chapter.id} className={`${playable ? "playable" : ""} ${completed ? "completed" : ""}`}>
                 <b>{String(chapter.index).padStart(2, "0")}</b>
                 <div><span>{versionForChapter(chapter.index)} · {chapter.estimatedMinutes[0]}–{chapter.estimatedMinutes[1]} 分钟</span><h3>{chapter.title}</h3><p>{chapter.subtitle}</p></div>
                 <em>{completed ? "已完成" : playable ? "可游玩" : chapter.status === "prototype" ? "已接入对话" : "已规划"}</em>
-                {playable && <button type="button" onClick={() => setView("west-corridor-loop")} aria-label="进入西廊回环">→</button>}
+                {chapter.id === "west-corridor-loop" && <button type="button" onClick={() => setView("west-corridor-loop")} aria-label="进入西廊回环">→</button>}
+                {chapter.id === "north-tower-ledger" && <button type="button" onClick={() => startNorthTower()} aria-label="进入北楼暗账">→</button>}
                 {chapter.index === 0 && <button type="button" onClick={() => startOnboarding(true)} aria-label="从序章开始">→</button>}
               </article>
             );
@@ -133,7 +153,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <span>《游园惊梦：四面证词》 V0.1R ONBOARDING SLICE</span>
-        <span>{ready ? `存档：${save.completedChapters.length} / 9 章完成` : "正在读取存档…"}</span>
+        <span>{ready ? `存档：${save.completedChapters.length} / 6 段完成` : "正在读取存档…"}</span>
       </footer>
 
       {view === "settings" && (
