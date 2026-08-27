@@ -31,6 +31,7 @@ export const northObjectives: ObjectiveDefinition[] = [
     description: "从账房的窗内看见过去，再从窗外验证现在。",
     completionFlags: ["north.borrowed-view.crossed"],
     steps: [
+      { id: "inspect-ledger", instruction: "先检查钱先生声称没有离开的账桌", targetPosition: [0.8, 4.5, -12.6], targetInteractableId: "ledger-desk", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["证词从账桌开始，不应从奇怪的窗开始。", "末页墨色与前页不同，装订线还夹着蓝色纸屑。", "登上二层后先走到账房深处，在账桌前按 F。"] },
       { id: "inspect-window", instruction: "在账房视角检查借景窗", targetPosition: [-3.5, 4.5, -11], targetInteractableId: "borrowed-window", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["蓝色网格最密的地方不是墙。", "切到账房证词，寻找能看见完好假山的窗。", "按 Tab 切到账房证词，在二层左侧窗前按 F。"] },
       { id: "cross-window", instruction: "跨过借景窗，进入过去的东院", targetPosition: [-3.5, 4.5, -11], targetInteractableId: "borrowed-window", guidance: ["objective", "world-marker", "light"], hints: ["窗中景象和身后的雨声不在同一时刻。", "再触碰一次窗框，验证它是不是入口。", "在借景窗前按 F，进入过去。"] },
     ],
@@ -41,6 +42,7 @@ export const northObjectives: ObjectiveDefinition[] = [
     description: "现在的假山已经坍塌；只有过去还能改变它的位置。",
     completionFlags: ["north.rockery.moved", "north.present.route-open"],
     steps: [
+      { id: "inspect-bead-trail", instruction: "检查过去泥地里的算盘珠痕", targetPosition: [-7.5, 1.1, -11.6], targetInteractableId: "past-beads", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["账房没有来过，账房的物件为什么在泥里？", "沿窗框外侧寻找一串圆形浅印。", "进入过去后先向右侧泥地走，在蓝色珠痕前按 F。"] },
       { id: "move-rockery", instruction: "在过去推动完整假山", targetPosition: [-9, 1.4, -10], targetInteractableId: "past-rockery", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["倒下的石头不能搬，倒下之前可以。", "确认右上角显示“过去”，再靠近完整假山。", "在过去的假山前按 F。"] },
       { id: "return-present", instruction: "回到借景框，切回现在", targetPosition: [-5.5, 1.5, -10], targetInteractableId: "borrowed-window-return", guidance: ["objective", "direction", "world-marker"], hints: ["你改变的是过去，答案要在现在检查。", "回到发出蓝光的窗框。", "在庭院入口的借景框前按 F。"] },
     ],

@@ -5,13 +5,15 @@ export type NorthTimeline = "past" | "present";
 export type NorthTowerZone = "lower" | "upper" | "courtyard";
 
 export interface NorthTowerInteractable {
-  id: "north-stairs" | "borrowed-window" | "borrowed-window-return" | "past-rockery" | "window-scratches" | "secret-passage";
+  id: "north-stairs" | "ledger-desk" | "borrowed-window" | "borrowed-window-return" | "past-beads" | "past-rockery" | "window-scratches" | "secret-passage";
   label: string;
   position: THREE.Vector3;
   zones: NorthTowerZone[];
   timelines?: NorthTimeline[];
   memoryIds?: MemoryId[];
   requiresRockeryMoved?: boolean;
+  requiresFlags?: string[];
+  hidesAfterFlag?: string;
 }
 
 const disposeObject = (object: THREE.Object3D) => {
@@ -59,6 +61,7 @@ export class NorthTowerScene {
   private readonly guidanceMarker = new THREE.Group();
   private readonly rain: THREE.Points;
   private readonly borrowedFrameMaterial: THREE.MeshStandardMaterial;
+  private rockeryTargetX = -9;
   private elapsed = 0;
 
   constructor(private readonly layers: MemoryLayer[], quality: "high" | "stable" | "low") {
@@ -86,10 +89,12 @@ export class NorthTowerScene {
     this.scene.add(this.accountantLayer, this.wifeLayer, this.gardenerLayer, this.pastLayer, this.presentLayer, this.guidanceMarker, this.rain);
 
     this.interactables = [
-      { id: "north-stairs", label: "按 F 登上二层", position: new THREE.Vector3(0, 1.2, -1), zones: ["lower"] },
-      { id: "borrowed-window", label: "按 F 穿过借景窗", position: new THREE.Vector3(-3.25, 4.5, -11), zones: ["upper"], memoryIds: ["accountant"] },
+      { id: "north-stairs", label: "按 F 沿楼梯登上二层", position: new THREE.Vector3(0, 1.2, -1), zones: ["lower"] },
+      { id: "ledger-desk", label: "按 F 检查钱先生的账桌", position: new THREE.Vector3(0.8, 4.5, -12.6), zones: ["upper"], memoryIds: ["accountant"], hidesAfterFlag: "north.ledger.inspected" },
+      { id: "borrowed-window", label: "按 F 检查借景窗", position: new THREE.Vector3(-3.25, 4.5, -11), zones: ["upper"], memoryIds: ["accountant"], requiresFlags: ["north.ledger.inspected"] },
       { id: "borrowed-window-return", label: "按 F 让借景回到现在", position: new THREE.Vector3(-5.8, 1.2, -10), zones: ["courtyard"], timelines: ["past"] },
-      { id: "past-rockery", label: "按 F 推动案发前的假山", position: new THREE.Vector3(-9, 1.1, -10), zones: ["courtyard"], timelines: ["past"], memoryIds: ["accountant"] },
+      { id: "past-beads", label: "按 F 检查泥里的算盘珠痕", position: new THREE.Vector3(-7.5, 1.1, -11.6), zones: ["courtyard"], timelines: ["past"], memoryIds: ["accountant"], hidesAfterFlag: "north.past.trail-inspected" },
+      { id: "past-rockery", label: "按 F 调查案发前的假山", position: new THREE.Vector3(-9, 1.1, -10), zones: ["courtyard"], timelines: ["past"], memoryIds: ["accountant"], requiresFlags: ["north.past.trail-inspected"], hidesAfterFlag: "north.rockery.moved" },
       { id: "window-scratches", label: "按 F 勘验窗框划痕", position: new THREE.Vector3(-6.1, 1.2, -8.7), zones: ["courtyard"], timelines: ["present"], memoryIds: ["accountant", "wife"] },
       { id: "secret-passage", label: "按 F 勘验假山后的暗道", position: new THREE.Vector3(-12.4, 1.2, -10), zones: ["courtyard"], timelines: ["present"], memoryIds: ["accountant", "gardener"], requiresRockeryMoved: true },
     ];
@@ -261,9 +266,17 @@ export class NorthTowerScene {
   private buildTimelineLayers() {
     const pastStone = new THREE.MeshStandardMaterial({ color: "#69746c", roughness: 0.86 });
     const presentStone = new THREE.MeshStandardMaterial({ color: "#39423f", roughness: 0.92 });
+    const beadMaterial = new THREE.MeshStandardMaterial({ color: "#334e56", emissive: "#173c4b", emissiveIntensity: 1.4, roughness: 0.4 });
     this.pastRockery.add(this.rockCluster(pastStone, [0, 0, 0]));
     this.pastRockery.position.set(-9, 0, -10);
     this.pastLayer.add(this.pastRockery);
+
+    for (let index = 0; index < 9; index += 1) {
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), beadMaterial);
+      bead.scale.set(1.3, 0.55, 0.9);
+      bead.position.set(-6.7 - index * 0.42, 0.06, -11.25 - Math.sin(index * 0.8) * 0.22);
+      this.pastLayer.add(bead);
+    }
 
     const fallen = this.rockCluster(presentStone, [0, 0, 0]);
     fallen.rotation.z = Math.PI / 2.5;
@@ -344,7 +357,7 @@ export class NorthTowerScene {
   setTimeline(timeline: NorthTimeline, rockeryMoved: boolean) {
     this.pastLayer.visible = timeline === "past";
     this.presentLayer.visible = timeline === "present";
-    this.pastRockery.position.x = rockeryMoved ? -6.4 : -9;
+    this.rockeryTargetX = rockeryMoved ? -6.4 : -9;
     this.presentBlocker.visible = !rockeryMoved;
     this.openedPassage.visible = rockeryMoved;
   }
@@ -354,11 +367,13 @@ export class NorthTowerScene {
     if (position) this.guidanceMarker.position.set(position.x, position.y > 3 ? 3.2 : 0, position.z);
   }
 
-  availableInteractables(memory: MemoryId, timeline: NorthTimeline, zone: NorthTowerZone, rockeryMoved: boolean) {
+  availableInteractables(memory: MemoryId, timeline: NorthTimeline, zone: NorthTowerZone, rockeryMoved: boolean, earnedFlags: string[] = []) {
     return this.interactables.filter((item) => item.zones.includes(zone)
       && (!item.timelines || item.timelines.includes(timeline))
       && (!item.memoryIds || item.memoryIds.includes(memory))
-      && (!item.requiresRockeryMoved || rockeryMoved));
+      && (!item.requiresRockeryMoved || rockeryMoved)
+      && (!item.requiresFlags || item.requiresFlags.every((flag) => earnedFlags.includes(flag)))
+      && (!item.hidesAfterFlag || !earnedFlags.includes(item.hidesAfterFlag)));
   }
 
   constrain(position: THREE.Vector3, zone: NorthTowerZone) {
@@ -380,6 +395,7 @@ export class NorthTowerScene {
 
   update(delta: number) {
     this.elapsed += delta;
+    this.pastRockery.position.x = THREE.MathUtils.damp(this.pastRockery.position.x, this.rockeryTargetX, 3.8, delta);
     const positions = this.rain.geometry.getAttribute("position") as THREE.BufferAttribute;
     for (let index = 0; index < positions.count; index += 1) {
       let y = positions.getY(index) - delta * 7.2;

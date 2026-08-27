@@ -9,7 +9,22 @@ import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, D
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { NorthTowerScene, type NorthTimeline, type NorthTowerInteractable, type NorthTowerZone } from "./runtime/NorthTowerScene";
 
-type NorthPhase = "loading" | "dialogue" | "playing" | "complete" | "error";
+type NorthPhase = "loading" | "dialogue" | "transition" | "playing" | "complete" | "error";
+type NorthTransitionKind = "stairs" | "to-past" | "to-present";
+
+interface NorthTransition {
+  kind: NorthTransitionKind;
+  startedAt: number;
+  duration: number;
+  from: THREE.Vector3;
+  to: THREE.Vector3;
+  fromYaw: number;
+  toYaw: number;
+  targetZone: NorthTowerZone;
+  midpointDone: boolean;
+  onMidpoint?: () => void;
+  onComplete?: () => void;
+}
 
 interface NorthTowerRuntimeProps {
   chapter: ChapterManifest;
@@ -21,12 +36,19 @@ interface NorthTowerRuntimeProps {
 const unique = <T,>(values: T[]) => [...new Set(values)];
 const memoryOrder: MemoryId[] = ["accountant", "wife", "gardener"];
 const memoryName: Record<string, string> = { accountant: "账房证词", wife: "夫人证词", gardener: "园丁证词" };
+const transitionCopy: Record<NorthTransitionKind, { eyebrow: string; title: string; detail: string }> = {
+  stairs: { eyebrow: "北楼 · 一层至二层", title: "木梯记住了第二个人的脚步", detail: "每向上一阶，算盘声就少一颗。" },
+  "to-past": { eyebrow: "借景 · 案发当夜", title: "跨过窗框，雨停在半空", detail: "空间没有把你送到别处，只把你送回它愿意承认的时间。" },
+  "to-present": { eyebrow: "借景 · 七年以后", title: "过去已经发生，现在必须让路", detail: "雨声回来以前，假山的位置先变了。" },
+};
 
 const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
   if (!flags.includes("north.reached.upper-floor")) return { title: "登上北楼", detail: "沿一层尽头找到楼梯，按 F 进入二层账房。", targetId: "north-stairs" };
+  if (!flags.includes("north.ledger.inspected")) return { title: "先查账，再查窗", detail: "走到账房深处，检查钱先生声称整夜没有离开的账桌。", targetId: "ledger-desk" };
   if (!flags.includes("north.window.inspected")) return { title: "找到借景窗", detail: "保持账房证词，在二层左侧检查发出蓝光的窗框。", targetId: "borrowed-window" };
   if (!flags.includes("north.borrowed-view.crossed")) return { title: "跨过时间切口", detail: "再次触碰借景窗，进入案发前的东院。", targetId: "borrowed-window" };
+  if (!flags.includes("north.past.trail-inspected")) return { title: "追踪不该存在的珠痕", detail: "不要急着搬石头；先检查过去庭院泥地里的算盘珠痕。", targetId: "past-beads" };
   if (!flags.includes("north.rockery.moved")) return { title: "移动过去的假山", detail: "在“过去”靠近完整假山，按 F 改变它的位置。", targetId: "past-rockery" };
   if (!flags.includes("north.present.route-open")) return { title: "回到现在验证结果", detail: "返回庭院入口的借景框，按 F 切回现在。", targetId: "borrowed-window-return" };
   if (!flags.includes("north.contradiction.scratches")) return { title: "核对窗框划痕", detail: "先用账房证词勘验，再按 Tab 切到夫人证词复查。", targetId: "window-scratches" };
@@ -60,6 +82,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const onSaveRef = useRef(onSave);
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
   const startDialogueRef = useRef<(id: string) => void>(() => undefined);
+  const transitionRef = useRef<NorthTransition | undefined>(undefined);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const checkpointRef = useRef(checkpoint);
@@ -71,6 +94,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const [prompt, setPrompt] = useState<string>();
   const [subtitle, setSubtitle] = useState("算盘珠自己落下，像有人在黑暗里核对你的脚步。");
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
+  const [transitionKind, setTransitionKind] = useState<NorthTransitionKind>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [error, setError] = useState("");
@@ -87,9 +111,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
     window.setTimeout(() => {
-      if (document.pointerLockElement !== canvas) {
-        setSubtitle("当前浏览器不支持鼠标锁定：WASD 移动，方向键左右转向。");
-      }
+      if (document.pointerLockElement !== canvas) setHasPointerLock(false);
     }, 120);
   }, []);
 
@@ -121,11 +143,35 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     runtimeRef.current?.world.setTimeline(next, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
   }, []);
 
-  const changeZone = useCallback((next: NorthTowerZone, position: [number, number, number]) => {
-    zoneRef.current = next;
-    setZoneState(next);
-    playerRef.current.set(...position);
-  }, []);
+  const beginTransition = useCallback((options: {
+    kind: NorthTransitionKind;
+    duration: number;
+    targetZone: NorthTowerZone;
+    targetPosition: [number, number, number];
+    targetYaw?: number;
+    onMidpoint?: () => void;
+    onComplete?: () => void;
+  }) => {
+    keysRef.current.clear();
+    document.exitPointerLock?.();
+    transitionRef.current = {
+      kind: options.kind,
+      startedAt: performance.now(),
+      duration: options.duration,
+      from: playerRef.current.clone(),
+      to: new THREE.Vector3(...options.targetPosition),
+      fromYaw: yawRef.current,
+      toYaw: options.targetYaw ?? yawRef.current,
+      targetZone: options.targetZone,
+      midpointDone: false,
+      onMidpoint: options.onMidpoint,
+      onComplete: options.onComplete,
+    };
+    setTransitionKind(options.kind);
+    promptIdRef.current = "";
+    setPrompt(undefined);
+    setPhase("transition");
+  }, [setPhase]);
 
   const startDialogue = useCallback((id: string) => {
     const sequence = chapter.dialogueSequences?.find((item) => item.id === id);
@@ -173,16 +219,17 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       earnedFlags: sequence.completionFlag ? unique([...current.earnedFlags, sequence.completionFlag]) : current.earnedFlags,
     }));
     if (sequence.id === "north-rockery") {
-      const next = addFlags("north.rockery.moved");
+      addFlags("north.rockery.moved");
       runtimeRef.current?.world.setTimeline("past", true);
       setSubtitle("假山向侧面移开。这个动作已经发生在过去，现在会记住它。");
-      if (!next.earnedFlags.includes("north.present.route-open")) setPrompt("回到借景框，按 F 切回现在");
       setPhase("playing");
       requestPointerLock();
       return;
     }
     if (sequence.id === "north-passage") {
-      window.setTimeout(() => startDialogueRef.current("north-trust"), 120);
+      setSubtitle("两条矛盾已经互相咬合。先看看暗道如何变化，再在暗道口按 F 采用一份工作假设。");
+      setPhase("playing");
+      requestPointerLock();
       return;
     }
     if (sequence.id === "north-trust") {
@@ -229,32 +276,74 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     const item = nearestRef.current;
     if (!item) return;
     if (item.id === "north-stairs") {
-      changeZone("upper", [0, 4.72, -6]);
-      addFlags("north.reached.upper-floor");
-      setSubtitle("二层像一张摊开的账页。左侧窗框里，东院仍停在案发以前。");
+      beginTransition({
+        kind: "stairs",
+        duration: 2600,
+        targetZone: "upper",
+        targetPosition: [0, 4.72, -6.2],
+        targetYaw: 0,
+        onComplete: () => {
+          addFlags("north.reached.upper-floor");
+          setSubtitle("脚步声停在二层。先去账桌核对最后一笔，再相信那扇窗。");
+        },
+      });
+    } else if (item.id === "ledger-desk") {
+      const askedLedger = checkpointRef.current.earnedFlags.includes("north.inquiry.ledger");
+      addFlags("north.ledger.inspected");
+      setSubtitle(askedLedger
+        ? "你问过的子时三刻就在末页，墨色却比前几页新。钱先生在事后补过这本账。"
+        : "窗框修缮款被整页撕走，只剩装订线上的蓝色纸屑。那扇窗不是无关紧要的景。"
+      );
     } else if (item.id === "borrowed-window") {
       if (!checkpointRef.current.earnedFlags.includes("north.window.inspected")) {
         addFlags("north.window.inspected");
         setSubtitle("窗内假山完整，窗外雨水却已经积了七年。再触碰一次，跨过时间切口。");
         startDialogue("north-window");
-      } else {
-        changeTimeline("past");
-        changeZone("courtyard", [-7, 1.65, -10]);
-        addFlags("north.borrowed-view.crossed");
-        setSubtitle("过去。假山还没有坍塌，石缝里的泥是干的。");
-        startDialogue("north-past");
+      } else if (!checkpointRef.current.earnedFlags.includes("north.borrowed-view.crossed")) {
+        beginTransition({
+          kind: "to-past",
+          duration: 2100,
+          targetZone: "courtyard",
+          targetPosition: [-7.5, 1.65, -11.6],
+          targetYaw: -Math.PI / 2,
+          onMidpoint: () => changeTimeline("past"),
+          onComplete: () => {
+            addFlags("north.borrowed-view.crossed");
+            setSubtitle("雨声停了。先别碰假山——泥里有一串从北楼滚来的圆形浅痕。");
+          },
+        });
       }
+    } else if (item.id === "past-beads") {
+      addFlags("north.past.trail-inspected");
+      setSubtitle("算盘珠痕绕过假山，最后消失在墙根。账房的物件比他的证词先到了东院。");
+      startDialogue("north-past");
     } else if (item.id === "past-rockery") {
       if (!checkpointRef.current.earnedFlags.includes("north.dialogue.rockery")) startDialogue("north-rockery");
     } else if (item.id === "borrowed-window-return") {
-      changeTimeline("present");
-      addFlags("north.present.route-open");
-      runtimeRef.current?.world.setTimeline("present", true);
-      setSubtitle("现在。坍塌的石块不再堵路，墙下露出一股向内吸气的暗风。");
+      const position = playerRef.current;
+      beginTransition({
+        kind: "to-present",
+        duration: 1900,
+        targetZone: "courtyard",
+        targetPosition: [position.x, 1.65, position.z],
+        onMidpoint: () => changeTimeline("present"),
+        onComplete: () => {
+          addFlags("north.present.route-open");
+          runtimeRef.current?.world.setTimeline("present", true);
+          setSubtitle("雨重新落下。假山已经记住你的动作，墙下露出一股向内吸气的暗风。");
+        },
+      });
     } else if (item.id === "window-scratches" || item.id === "secret-passage") {
-      observeEvidence(item.id);
+      if (item.id === "secret-passage"
+        && checkpointRef.current.contradictions.includes("secret-passage")
+        && checkpointRef.current.earnedFlags.includes("north.dialogue.passage")
+        && !checkpointRef.current.earnedFlags.includes("north.dialogue.trust")) {
+        startDialogue("north-trust");
+      } else {
+        observeEvidence(item.id);
+      }
     }
-  }, [addFlags, changeTimeline, changeZone, observeEvidence, startDialogue]);
+  }, [addFlags, beginTransition, changeTimeline, observeEvidence, startDialogue]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -276,6 +365,20 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
 
     const onKeyDown = (event: KeyboardEvent) => {
       keysRef.current.add(event.code);
+      if (phaseRef.current === "playing" && !event.repeat) {
+        const tapInput = new THREE.Vector3(
+          event.code === "KeyD" ? 1 : event.code === "KeyA" ? -1 : 0,
+          0,
+          event.code === "KeyS" ? 1 : event.code === "KeyW" ? -1 : 0,
+        );
+        if (tapInput.lengthSq() > 0) {
+          tapInput.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(0.18);
+          playerRef.current.add(tapInput);
+          world.constrain(playerRef.current, zoneRef.current);
+        }
+        if (event.code === "ArrowLeft") yawRef.current += 0.08;
+        if (event.code === "ArrowRight") yawRef.current -= 0.08;
+      }
       if (event.code === "KeyF") interact();
       if (event.code === "Tab" && phaseRef.current === "playing") {
         event.preventDefault();
@@ -312,6 +415,32 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       renderer.renderer.setAnimationLoop((now: number) => {
         const delta = Math.min((now - previous) / 1000, 0.05);
         previous = now;
+        const activeTransition = transitionRef.current;
+        if (phaseRef.current === "transition" && activeTransition) {
+          const progress = THREE.MathUtils.clamp((now - activeTransition.startedAt) / activeTransition.duration, 0, 1);
+          const eased = progress * progress * (3 - 2 * progress);
+          playerRef.current.lerpVectors(activeTransition.from, activeTransition.to, eased);
+          if (activeTransition.kind === "stairs") playerRef.current.y += Math.sin(progress * Math.PI * 9) * 0.025;
+          yawRef.current = THREE.MathUtils.lerp(activeTransition.fromYaw, activeTransition.toYaw, eased);
+          if (!activeTransition.midpointDone && progress >= 0.5) {
+            activeTransition.midpointDone = true;
+            activeTransition.onMidpoint?.();
+          }
+          if (progress >= 1) {
+            const onComplete = activeTransition.onComplete;
+            playerRef.current.copy(activeTransition.to);
+            yawRef.current = activeTransition.toYaw;
+            zoneRef.current = activeTransition.targetZone;
+            setZoneState(activeTransition.targetZone);
+            transitionRef.current = undefined;
+            setTransitionKind(undefined);
+            promptIdRef.current = "";
+            setPrompt(undefined);
+            onComplete?.();
+            setPhase("playing");
+            requestPointerLock();
+          }
+        }
         if (phaseRef.current === "playing") {
           const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
           yawRef.current -= turn * 1.8 * delta;
@@ -330,7 +459,13 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         world.camera.rotation.set(pitchRef.current, yawRef.current, 0);
         world.update(delta);
 
-        const available = world.availableInteractables(memoryRef.current, timelineRef.current, zoneRef.current, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
+        const available = world.availableInteractables(
+          memoryRef.current,
+          timelineRef.current,
+          zoneRef.current,
+          checkpointRef.current.earnedFlags.includes("north.rockery.moved"),
+          checkpointRef.current.earnedFlags,
+        );
         const nearest = available
           .map((item) => ({ item, distance: item.position.distanceTo(playerRef.current) }))
           .filter(({ distance }) => distance < 2.25)
@@ -339,7 +474,14 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         const nextPromptId = phaseRef.current === "playing" ? nearest?.id ?? "" : "";
         if (nextPromptId !== promptIdRef.current) {
           promptIdRef.current = nextPromptId;
-          setPrompt(nearest?.label);
+          const promptLabel = nearest?.id === "borrowed-window" && checkpointRef.current.earnedFlags.includes("north.window.inspected")
+            ? "按 F 跨过借景框"
+            : nearest?.id === "secret-passage"
+              && checkpointRef.current.earnedFlags.includes("north.dialogue.passage")
+              && !checkpointRef.current.earnedFlags.includes("north.dialogue.trust")
+              ? "按 F 在暗道口作出判断"
+              : nearest?.label;
+          setPrompt(promptLabel);
         }
 
         const objective = objectiveFor(checkpointRef.current);
@@ -364,30 +506,55 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("pointerlockchange", onLockChange);
+      transitionRef.current = undefined;
       world.dispose();
       runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
-  }, [changeMemory, chapter.id, chapter.memories, interact, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
+  }, [changeMemory, chapter.id, chapter.memories, interact, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
 
   const objective = objectiveFor(checkpoint);
   const evidenceCount = checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length;
   const testSteps = [
     { label: "沿灯笼走到楼梯并按 F 上楼", done: checkpoint.earnedFlags.includes("north.reached.upper-floor") },
+    { label: "检查二层账桌留下的补写痕迹", done: checkpoint.earnedFlags.includes("north.ledger.inspected") },
     { label: "在账房证词中检查蓝色借景窗", done: checkpoint.earnedFlags.includes("north.window.inspected") },
-    { label: "再次按 F 穿到案发前的东院", done: checkpoint.earnedFlags.includes("north.borrowed-view.crossed") },
+    { label: "穿过借景框，进入案发前的东院", done: checkpoint.earnedFlags.includes("north.borrowed-view.crossed") },
+    { label: "沿泥地追踪算盘珠留下的浅痕", done: checkpoint.earnedFlags.includes("north.past.trail-inspected") },
     { label: "移动完整假山，再从窗框回到现在", done: checkpoint.earnedFlags.includes("north.present.route-open") },
     { label: "账房＋夫人核对窗框划痕", done: checkpoint.contradictions.includes("window-scratches") },
     { label: "账房＋园丁核对假山暗道", done: checkpoint.contradictions.includes("secret-passage") },
-    { label: "完成信任选择并结束本章", done: checkpoint.earnedFlags.includes("north.chapter.complete") },
+    { label: "回到暗道口作出信任选择", done: checkpoint.earnedFlags.includes("north.chapter.complete") },
   ];
   const completedTestSteps = testSteps.filter((step) => step.done).length;
   const activeTestStep = testSteps.findIndex((step) => !step.done);
+  const investigationTraces = [
+    checkpoint.earnedFlags.includes("north.inquiry.ledger") ? "末页补写" : checkpoint.earnedFlags.includes("north.inquiry.window") ? "窗景异时" : undefined,
+    checkpoint.earnedFlags.includes("north.window.focus.scratches") ? "窗框硬痕" : checkpoint.earnedFlags.includes("north.window.focus.time") ? "冻结雨滴" : undefined,
+    checkpoint.earnedFlags.includes("north.past.clue.beads") ? "算盘珠痕" : checkpoint.earnedFlags.includes("north.past.clue.rain") ? "时间残影" : undefined,
+    checkpoint.earnedFlags.includes("north.rockery.choice.ledger") ? "缺失石料款" : checkpoint.earnedFlags.includes("north.rockery.choice.direct") ? "记忆改路" : undefined,
+  ].filter((trace): trace is string => Boolean(trace));
+  const trustChoice = checkpoint.trustDecisions["north-route-owner"];
+  const completionOutcome = trustChoice === "gardener"
+    ? "你让暗道重新坍塌，带血的园艺剪从石缝中滑出。它证明园丁隐瞒了东西，却仍不能替账房洗清路线。"
+    : trustChoice === "wife"
+      ? "你保留了夫人在二层的影子，账页间的私信把情感动机带进案件，但暗道仍证明钱先生说了谎。"
+      : "你保留了账房版本的暗道，一本总数被改过的私账留在出口。钱先生隐瞒的不只是路线，还有一笔让人消失的支出。";
 
   return (
     <main className={`runtime runtime-${memory} runtime-north-${timeline}`}>
       <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} aria-label="第二章北楼暗账三维场景" />
       <div className="vignette" aria-hidden="true" />
+      {transitionKind && (
+        <div className={`north-transition north-transition-${transitionKind}`} role="status" aria-live="polite">
+          <i aria-hidden="true" />
+          <div>
+            <span>{transitionCopy[transitionKind].eyebrow}</span>
+            <strong>{transitionCopy[transitionKind].title}</strong>
+            <p>{transitionCopy[transitionKind].detail}</p>
+          </div>
+        </div>
+      )}
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>CHAPTER 02</span><strong>北楼暗账</strong></div>
@@ -416,6 +583,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         <span>ACTIVE TESTIMONY</span>
         <strong>{memoryName[memory] ?? memory}</strong>
         <small>按 Tab 在账房、夫人、园丁证词间切换。借景窗只存在于账房证词。</small>
+        {investigationTraces.length > 0 && <div className="investigation-traces">{investigationTraces.map((trace) => <i key={trace}>{trace}</i>)}</div>}
       </section>
 
       {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
@@ -441,7 +609,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
 
       {phase === "complete" && !activeDialogue && (
         <NorthModal eyebrow="CHAPTER 02 COMPLETE" title="北楼的账暂时平了">
-          <p>过去移动的假山已经改变现在；两条空间矛盾与一次信任选择已写入存档。</p>
+          <p>{completionOutcome}</p>
+          <blockquote>过去移动的假山已经改变现在；两条空间矛盾与你采用的解释均已写入存档。</blockquote>
           <button type="button" className="primary-button" onClick={onExit}>返回章节总览</button>
         </NorthModal>
       )}

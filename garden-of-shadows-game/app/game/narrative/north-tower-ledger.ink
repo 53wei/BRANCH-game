@@ -31,12 +31,12 @@
 -> END
 
 === north_past ===
-涟漪越过眼睛，雨声忽然停在半空。脚下的泥是干的，完整的假山挡住了七年后的路。 # speaker:narrator # line:north.past.001
-* [蹲下检查假山旁的泥。]
-    泥里有一串圆形浅印，大小和算盘珠相同。它们一直滚向墙根。 # speaker:zhaoying # portrait:guarded # line:north.past.002a # voice:north.zhaoying.017 # flag:set:north.past.clue.beads
+雨声仍停在半空。泥里的圆形浅印绕过完整假山，一直滚向墙根。 # speaker:narrator # line:north.past.001
+* [沿珠痕推断：账房的东西先进入了东院。]
+    浅印大小和算盘珠相同，而且避开积水。它们是在雨落下以前滚过来的。 # speaker:zhaoying # portrait:guarded # line:north.past.002a # voice:north.zhaoying.017 # flag:set:north.past.clue.beads
     北楼的珠子多，掉到哪里都不奇怪。 # speaker:accountant # portrait:cornered # line:north.past.003a # voice:north.accountant.009
     -> north_past_end
-* [伸手接住一滴悬停的雨。]
+* [先不下结论，伸手接住一滴悬停的雨。]
     雨滴穿过手背，时间却没有继续。这里保存的不是过去，是你愿意承认的过去。 # speaker:zhaoying # portrait:alarmed # line:north.past.002b # voice:north.zhaoying.018 # flag:set:north.past.clue.rain
     你来查案，不是来审问时间。 # speaker:accountant # portrait:cornered # line:north.past.003b # voice:north.accountant.010
     -> north_past_end
