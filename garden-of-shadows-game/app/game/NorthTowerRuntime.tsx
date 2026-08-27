@@ -46,6 +46,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<{ renderer: Awaited<ReturnType<typeof createRenderer>>; world: NorthTowerScene } | undefined>(undefined);
   const keysRef = useRef(new Set<string>());
+  const keyboardFallbackRef = useRef(false);
   const playerRef = useRef(new THREE.Vector3(...initialPosition));
   const yawRef = useRef(initialCheckpoint.yaw ?? 0);
   const pitchRef = useRef(0);
@@ -71,14 +72,25 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const [subtitle, setSubtitle] = useState("算盘珠自己落下，像有人在黑暗里核对你的脚步。");
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
+  const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [error, setError] = useState("");
 
   const setPhase = useCallback((next: NorthPhase) => { phaseRef.current = next; setPhaseState(next); }, []);
   useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [onSave, save]);
 
   const requestPointerLock = useCallback(() => {
-    const result = canvasRef.current?.requestPointerLock();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.focus();
+    keyboardFallbackRef.current = true;
+    setKeyboardFallback(true);
+    const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
+    window.setTimeout(() => {
+      if (document.pointerLockElement !== canvas) {
+        setSubtitle("当前浏览器不支持鼠标锁定：WASD 移动，方向键左右转向。");
+      }
+    }, 120);
   }, []);
 
   const commitCheckpoint = useCallback((producer: (current: CheckpointState) => CheckpointState) => {
@@ -264,6 +276,11 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       }
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
+    const onWindowBlur = () => {
+      keysRef.current.clear();
+      keyboardFallbackRef.current = false;
+      setKeyboardFallback(false);
+    };
     const onMouseMove = (event: MouseEvent) => {
       if (document.pointerLockElement !== canvas || phaseRef.current !== "playing") return;
       yawRef.current -= event.movementX * 0.0022;
@@ -274,6 +291,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     window.addEventListener("resize", resize);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onWindowBlur);
     window.addEventListener("mousemove", onMouseMove);
     document.addEventListener("pointerlockchange", onLockChange);
 
@@ -287,6 +305,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         const delta = Math.min((now - previous) / 1000, 0.05);
         previous = now;
         if (phaseRef.current === "playing") {
+          const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
+          yawRef.current -= turn * 1.8 * delta;
           const input = new THREE.Vector3(
             (keysRef.current.has("KeyD") ? 1 : 0) - (keysRef.current.has("KeyA") ? 1 : 0),
             0,
@@ -333,6 +353,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("pointerlockchange", onLockChange);
       runtimeRef.current?.renderer.dispose();
@@ -343,10 +364,21 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
 
   const objective = objectiveFor(checkpoint);
   const evidenceCount = checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length;
+  const testSteps = [
+    { label: "沿灯笼走到楼梯并按 F 上楼", done: checkpoint.earnedFlags.includes("north.reached.upper-floor") },
+    { label: "在账房证词中检查蓝色借景窗", done: checkpoint.earnedFlags.includes("north.window.inspected") },
+    { label: "再次按 F 穿到案发前的东院", done: checkpoint.earnedFlags.includes("north.borrowed-view.crossed") },
+    { label: "移动完整假山，再从窗框回到现在", done: checkpoint.earnedFlags.includes("north.present.route-open") },
+    { label: "账房＋夫人核对窗框划痕", done: checkpoint.contradictions.includes("window-scratches") },
+    { label: "账房＋园丁核对假山暗道", done: checkpoint.contradictions.includes("secret-passage") },
+    { label: "完成信任选择并结束本章", done: checkpoint.earnedFlags.includes("north.chapter.complete") },
+  ];
+  const completedTestSteps = testSteps.filter((step) => step.done).length;
+  const activeTestStep = testSteps.findIndex((step) => !step.done);
 
   return (
     <main className={`runtime runtime-${memory} runtime-north-${timeline}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" onClick={() => { if (phase === "playing") requestPointerLock(); }} aria-label="第二章北楼暗账三维场景" />
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} aria-label="第二章北楼暗账三维场景" />
       <div className="vignette" aria-hidden="true" />
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
@@ -358,6 +390,12 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         <span>CURRENT OBJECTIVE</span>
         <strong>{objective.title}</strong>
         <p>{objective.detail}</p>
+        <div className="chapter-test-route">
+          <b>第二章测试路线 · {completedTestSteps}/{testSteps.length}</b>
+          <ol>
+            {testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeTestStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}
+          </ol>
+        </div>
       </section>
 
       <section className="case-progress">
@@ -374,9 +412,9 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
 
       {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
       {subtitle && phase === "playing" && <div className="bark-subtitle"><p><b>勘验记录</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · 鼠标观察 · F 勘验/穿越 · Tab 切换证词 · Shift 加速</div>
+      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验/穿越 · Tab 切换证词 · Shift 加速</div>
 
-      {phase === "playing" && !hasPointerLock && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>点击恢复第一人称视角</button>}
+      {phase === "playing" && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>开始控制<br /><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
 
       {activeDialogue && (
         <DialogueRunner

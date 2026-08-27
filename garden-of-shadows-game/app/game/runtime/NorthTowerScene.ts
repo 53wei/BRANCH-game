@@ -15,13 +15,17 @@ export interface NorthTowerInteractable {
 }
 
 const disposeObject = (object: THREE.Object3D) => {
+  const geometries = new Set<THREE.BufferGeometry>();
+  const materials = new Set<THREE.Material>();
   object.traverse((child) => {
     if (child instanceof THREE.Mesh || child instanceof THREE.Points) {
-      child.geometry.dispose();
-      const materials = Array.isArray(child.material) ? child.material : [child.material];
-      materials.forEach((material) => material.dispose());
+      geometries.add(child.geometry);
+      const childMaterials = Array.isArray(child.material) ? child.material : [child.material];
+      childMaterials.forEach((material) => materials.add(material));
     }
   });
+  geometries.forEach((geometry) => geometry.dispose());
+  materials.forEach((material) => material.dispose());
 };
 
 const box = (
@@ -56,12 +60,16 @@ export class NorthTowerScene {
   private elapsed = 0;
 
   constructor(private readonly layers: MemoryLayer[], quality: "high" | "stable" | "low") {
-    this.scene.background = new THREE.Color("#09141d");
-    this.scene.fog = new THREE.FogExp2("#09141d", 0.028);
+    this.scene.background = new THREE.Color("#0e1b22");
+    this.scene.fog = new THREE.FogExp2("#0e1b22", 0.018);
     this.camera.rotation.order = "YXZ";
 
-    this.scene.add(new THREE.HemisphereLight("#7896a8", "#101719", 1.8));
-    this.memoryLight = new THREE.PointLight("#83b8dc", 24, 22, 1.5);
+    this.scene.add(new THREE.HemisphereLight("#b9d3dc", "#1d2423", 3.2));
+    const moonLight = new THREE.DirectionalLight("#8eb4c9", 2.2);
+    moonLight.position.set(8, 12, 7);
+    moonLight.castShadow = quality !== "low";
+    this.scene.add(moonLight);
+    this.memoryLight = new THREE.PointLight("#83b8dc", 38, 28, 1.35);
     this.memoryLight.position.set(0, 5.8, -9);
     this.memoryLight.castShadow = quality !== "low";
     this.scene.add(this.memoryLight);
@@ -88,11 +96,25 @@ export class NorthTowerScene {
     this.setTimeline("present", false);
   }
 
+  private addLantern(position: [number, number, number], color = "#d69255", intensity = 12) {
+    const frameMaterial = new THREE.MeshStandardMaterial({ color: "#3a2419", roughness: 0.7 });
+    const paperMaterial = new THREE.MeshStandardMaterial({ color: "#d6b17a", emissive: color, emissiveIntensity: 2.6, roughness: 0.55 });
+    const lantern = new THREE.Group();
+    lantern.add(box([0.48, 0.58, 0.48], [0, 0, 0], paperMaterial));
+    lantern.add(box([0.56, 0.06, 0.56], [0, 0.32, 0], frameMaterial));
+    lantern.add(box([0.56, 0.06, 0.56], [0, -0.32, 0], frameMaterial));
+    lantern.position.set(...position);
+    const light = new THREE.PointLight(color, intensity, 7, 1.7);
+    light.position.set(...position);
+    this.scene.add(lantern, light);
+  }
+
   private buildTower(quality: "high" | "stable" | "low") {
-    const plaster = new THREE.MeshStandardMaterial({ color: "#a8a99f", roughness: 0.9 });
-    const darkWood = new THREE.MeshStandardMaterial({ color: "#231712", roughness: 0.62 });
-    const floorMat = new THREE.MeshStandardMaterial({ color: "#273236", roughness: 0.46, metalness: 0.12 });
+    const plaster = new THREE.MeshStandardMaterial({ color: "#c4c2ae", roughness: 0.92 });
+    const darkWood = new THREE.MeshStandardMaterial({ color: "#3b2519", roughness: 0.62 });
+    const floorMat = new THREE.MeshStandardMaterial({ color: "#36494c", roughness: 0.42, metalness: 0.15 });
     const ledgerBlue = new THREE.MeshStandardMaterial({ color: "#28475a", emissive: "#0b2637", emissiveIntensity: 0.75, roughness: 0.48 });
+    const inkBlack = new THREE.MeshStandardMaterial({ color: "#151c1d", roughness: 0.74 });
 
     this.scene.add(box([8.5, 0.24, 11], [0, -0.12, 3], floorMat));
     this.scene.add(box([8.5, 0.24, 13], [0, 3.08, -10], floorMat));
@@ -103,9 +125,19 @@ export class NorthTowerScene {
     this.scene.add(box([8.5, 0.2, 11], [0, 3.05, 3], darkWood));
     this.scene.add(box([8.5, 0.2, 13], [0, 6.12, -10], darkWood));
 
+    for (const z of [7.4, 4.6, 1.8, -0.8]) {
+      this.scene.add(box([8.2, 0.18, 0.24], [0, 2.82, z], darkWood));
+    }
+    for (const z of [-6, -9, -12, -15]) {
+      this.scene.add(box([8.2, 0.18, 0.24], [0, 5.88, z], darkWood));
+    }
+
     for (let step = 0; step < 9; step += 1) {
       const stair = box([3.2, 0.22, 0.62], [0, 0.08 + step * 0.34, -2.1 - step * 0.57], darkWood);
       this.scene.add(stair);
+    }
+    for (const x of [-1.75, 1.75]) {
+      this.scene.add(box([0.1, 1.1, 5.2], [x, 1.8, -4.35], darkWood));
     }
 
     for (const z of [6.5, 3, -6, -10, -14]) {
@@ -119,6 +151,13 @@ export class NorthTowerScene {
 
     const desk = box([2.6, 0.82, 1.25], [0.8, 3.58, -13.5], darkWood);
     this.scene.add(desk);
+    this.scene.add(box([1.1, 1.8, 0.5], [-2.8, 4.02, -14.9], darkWood));
+    this.scene.add(box([1.1, 1.8, 0.5], [-1.4, 4.02, -14.9], darkWood));
+    this.scene.add(box([1.1, 1.8, 0.5], [2.8, 4.02, -14.9], darkWood));
+    for (const x of [-2.8, -1.4, 2.8]) {
+      for (const y of [3.55, 4.05, 4.55]) this.scene.add(box([0.92, 0.08, 0.34], [x, y, -14.58], ledgerBlue));
+    }
+    this.scene.add(box([1.5, 0.08, 0.9], [0.8, 4.04, -13.5], inkBlack));
     for (let row = 0; row < 4; row += 1) {
       for (let column = 0; column < 6; column += 1) {
         const bead = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), ledgerBlue);
@@ -129,11 +168,20 @@ export class NorthTowerScene {
     }
 
     const frame = new THREE.Group();
-    frame.add(box([0.18, 2.7, 0.22], [-3.45, 4.55, -11], this.borrowedFrameMaterial));
-    frame.add(box([0.18, 2.7, 0.22], [-3.05, 4.55, -11], this.borrowedFrameMaterial));
-    frame.add(box([0.58, 0.18, 0.22], [-3.25, 5.82, -11], this.borrowedFrameMaterial));
-    frame.add(box([0.58, 0.18, 0.22], [-3.25, 3.28, -11], this.borrowedFrameMaterial));
+    frame.add(box([0.16, 2.7, 0.22], [-3.98, 4.55, -11], this.borrowedFrameMaterial));
+    frame.add(box([0.16, 2.7, 0.22], [-2.52, 4.55, -11], this.borrowedFrameMaterial));
+    frame.add(box([1.62, 0.16, 0.22], [-3.25, 5.82, -11], this.borrowedFrameMaterial));
+    frame.add(box([1.62, 0.16, 0.22], [-3.25, 3.28, -11], this.borrowedFrameMaterial));
+    const borrowedView = new THREE.Mesh(new THREE.PlaneGeometry(1.35, 2.38), new THREE.MeshBasicMaterial({ color: "#5ca7bc", transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false }));
+    borrowedView.position.set(-3.25, 4.55, -10.87);
+    frame.add(borrowedView);
     this.scene.add(frame);
+
+    this.addLantern([-2.9, 2.22, 6.4], "#d89a58", 14);
+    this.addLantern([2.9, 2.22, 3.3], "#d89a58", 14);
+    this.addLantern([-2.9, 2.22, 0.2], "#d89a58", 16);
+    this.addLantern([2.7, 5.2, -7], "#75a9c7", 13);
+    this.addLantern([1.9, 5.2, -13], "#75a9c7", 13);
   }
 
   private buildCourtyard(quality: "high" | "stable" | "low") {
@@ -143,6 +191,19 @@ export class NorthTowerScene {
     this.scene.add(box([0.18, 2.8, 10], [-15, 1.3, -10], wallMat));
     this.scene.add(box([10, 2.8, 0.18], [-10, 1.3, -15], wallMat));
     this.scene.add(box([10, 2.8, 0.18], [-10, 1.3, -5], wallMat));
+
+    const pathMat = new THREE.MeshStandardMaterial({ color: "#59605a", roughness: 0.78 });
+    for (let index = 0; index < 8; index += 1) {
+      const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.56, 0.08, 10), pathMat);
+      stone.position.set(-6.8 - index * 0.95, 0.01, -10 + Math.sin(index * 1.7) * 0.35);
+      stone.rotation.y = index * 0.45;
+      this.scene.add(stone);
+    }
+
+    const waterMat = new THREE.MeshStandardMaterial({ color: "#173b42", emissive: "#09262c", emissiveIntensity: 0.8, roughness: 0.18, metalness: 0.3, transparent: true, opacity: 0.86 });
+    const pond = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.75, 0.08, 24), waterMat);
+    pond.position.set(-10.5, -0.02, -13.1);
+    this.scene.add(pond);
 
     const exteriorFrame = new THREE.Group();
     exteriorFrame.add(box([0.2, 2.5, 0.2], [-5.95, 1.25, -10.9], this.borrowedFrameMaterial));
@@ -157,6 +218,14 @@ export class NorthTowerScene {
       const light = new THREE.PointLight("#c77b42", quality === "low" ? 3 : 6, 6, 1.8);
       light.position.copy(lantern.position);
       this.scene.add(light);
+    }
+
+    const bambooMat = new THREE.MeshStandardMaterial({ color: "#355a43", roughness: 0.78 });
+    for (let index = 0; index < 7; index += 1) {
+      const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 3 + (index % 3) * 0.35, 8), bambooMat);
+      stalk.position.set(-14.25 + (index % 2) * 0.34, 1.45, -6.2 - index * 1.18);
+      stalk.rotation.z = (index % 2 ? -1 : 1) * 0.035;
+      this.scene.add(stalk);
     }
 
     const scratchMat = new THREE.MeshBasicMaterial({ color: "#d5b77f" });
