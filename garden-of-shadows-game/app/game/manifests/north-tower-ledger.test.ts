@@ -5,6 +5,8 @@ describe("north tower chapter", () => {
   it("contains the complete borrowed-view causal chain", () => {
     expect(northTowerChapter.memories.map((memory) => memory.id)).toEqual(["accountant", "wife", "gardener"]);
     expect(northTowerChapter.puzzleGraph.nodes.map((node) => node.id)).toEqual([
+      "remember-rockery-baseline",
+      "borrow-and-anchor",
       "reach-upper-floor",
       "cross-borrowed-window",
       "move-past-rockery",

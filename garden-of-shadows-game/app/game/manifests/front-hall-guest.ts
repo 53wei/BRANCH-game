@@ -18,7 +18,7 @@ export const frontHallChapter: ChapterManifest = {
   status: "playable",
   unlock: { chapterId: "north-tower-ledger", requiredFlags: ["north.chapter.complete"] },
   assetPack: { id: "front-hall-whitebox-v0.1", initialBudgetMb: 16, preload: ["procedural/front-hall", "media/cg/front-unfinished-hall.webp"], deferred: ["models/front-hall", "audio/painter-voice"] },
-  spawnAnchor: "front-hall-entry",
+  spawnAnchor: "front-hall",
   memories,
   contradictions: [
     { id: "painted-door", label: "画中多出的一扇门", description: "柳生坚称画的是中庭，画里却有一扇现实中不存在的东院侧门。", position: [0, 1.3, -4], kind: "geometry", requiredIndependentTestimonies: ["painter", "accountant"], confirmedByDefault: false, outputFlag: "front.contradiction.painted-door" },

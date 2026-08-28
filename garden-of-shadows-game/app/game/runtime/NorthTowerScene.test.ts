@@ -28,4 +28,13 @@ describe("north tower playable route", () => {
     expect(scene.availableInteractables("wife", "present", "courtyard", true).map((item) => item.id)).not.toContain("secret-passage");
     expect(scene.availableInteractables("gardener", "present", "courtyard", true).map((item) => item.id)).toContain("secret-passage");
   });
+
+  it("teaches the rockery loop, borrowed stone and anchor before the tower", () => {
+    scene = new NorthTowerScene(northTowerChapter.memories, "low");
+
+    expect(scene.availableInteractables("accountant", "present", "rockery-route", false).map((item) => item.id)).toContain("rockery-baseline");
+    expect(scene.availableInteractables("gardener", "present", "rockery-route", false, ["north.rockery.baseline-observed"]).map((item) => item.id)).toContain("gardener-side-route");
+    expect(scene.availableInteractables("accountant", "present", "rockery-route", false, ["north.rockery.baseline-observed", "north.rockery.loop-observed", "north.borrowed-view.previewed"]).map((item) => item.id)).toContain("borrowed-stone");
+    expect(scene.availableInteractables("wife", "present", "rockery-route", false, ["north.borrowed.stone", "north.anchor.learned"]).map((item) => item.id)).toContain("north-route-exit");
+  });
 });

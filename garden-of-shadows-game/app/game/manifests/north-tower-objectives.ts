@@ -1,6 +1,10 @@
 import type { DialogueSequence, ObjectiveDefinition } from "../types";
 
 export const northDialogueSequences: DialogueSequence[] = [
+  { id: "north-prelude-opening", knotId: "north_prelude_opening", presentation: "stage", participants: ["zhaoying", "gardener"], defaultRightSpeaker: "gardener", completionFlag: "north.dialogue.prelude", backdrop: "/media/hero-hearing-rain.png" },
+  { id: "north-rockery-loop", knotId: "north_rockery_loop", presentation: "stage", participants: ["zhaoying", "gardener"], defaultRightSpeaker: "gardener", completionFlag: "north.dialogue.rockery-loop", backdrop: "/media/hero-hearing-rain.png" },
+  { id: "north-borrowed-view", knotId: "north_borrowed_view", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.borrowed-view", backdrop: "/media/cg/north-borrowed-window.webp" },
+  { id: "north-anchor", knotId: "north_anchor", presentation: "stage", participants: ["zhaoying", "gardener"], defaultRightSpeaker: "gardener", completionFlag: "north.dialogue.anchor", backdrop: "/media/hero-hearing-rain.png" },
   { id: "north-opening", knotId: "north_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.opening", backdrop: "/media/cg/north-ledger-room.webp" },
   { id: "north-window", knotId: "north_window", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.window", backdrop: "/media/cg/north-borrowed-window.webp" },
   { id: "north-past", knotId: "north_past", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.past", backdrop: "/media/cg/north-borrowed-window.webp" },
@@ -19,8 +23,20 @@ const movementHints: [string, string, string] = [
 
 export const northObjectives: ObjectiveDefinition[] = [
   {
+    id: "north-rockery-route",
+    title: "假山旧路",
+    description: "先记住正常空间，再验证园丁记忆中的循环侧路，并借出、锚定一段能通往北楼的空间。",
+    completionFlags: ["north.rockery-route.complete"],
+    steps: [
+      { id: "remember-baseline", instruction: "记录假山、院墙和水痕的正常位置", targetPosition: [12, 1.2, 2.2], targetInteractableId: "rockery-baseline", guidance: ["objective", "direction", "world-marker"], hints: ["异常出现前，先记住正常空间。", "院墙此刻没有侧路。", "在假山前的水痕旁按 F。"] },
+      { id: "test-loop", instruction: "切到园丁证词，进入墙后的循环侧路", targetPosition: [15.2, 1.2, .5], targetInteractableId: "gardener-side-route", guidance: ["objective", "direction", "world-marker"], hints: ["园丁记得墙后还有一条路。", "这条路走得通，却到不了别处。", "按 Tab 切到园丁证词并在侧路前按 F。"] },
+      { id: "borrow-stone", instruction: "从月洞门框景里借出石板", targetPosition: [9.2, 1.2, -2], targetInteractableId: "borrowed-stone", guidance: ["objective", "direction", "world-marker"], hints: ["框内显示的是另一份认知。", "先观察月洞门，再触碰蓝色石板。", "按 F 把框中的石板借到当前空间。"] },
+      { id: "anchor-stone", instruction: "锚定借来的石板并进入北楼", targetPosition: [12, 1.2, -2], targetInteractableId: "anchor-stone", guidance: ["objective", "direction", "world-marker"], hints: ["借来的东西切换证词后会消失。", "锚定可以让一个空间元素被保留。", "在石板边缘按 F，再沿留下的路线去北楼。"] },
+    ],
+  },
+  {
     id: "north-enter",
-    title: "登上北楼",
+    title: "进入北楼暗账",
     description: "钱先生说自己整夜没有离开账房。先找到他记忆里的账房。",
     completionFlags: ["north.reached.upper-floor"],
     steps: [{ id: "reach-stairs", instruction: "前往一层尽头的楼梯", targetPosition: [0, 1.6, -1], targetInteractableId: "north-stairs", guidance: ["objective", "direction", "world-marker", "light"], hints: movementHints }],

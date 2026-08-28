@@ -3,6 +3,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { createCheckpoint, createDefaultSave, loadCampaignSave, resetGardenSave, storeCampaignSave } from "./game/campaign-save";
 import { campaignManifest, getChapter } from "./game/manifests/campaign";
+import { getChapterEntryAnchor } from "./game/manifests/campaign-topology";
 import type { CampaignSave, GameSettings } from "./game/types";
 
 const GameRuntime = lazy(() => import("./game/GameRuntime").then((module) => ({ default: module.GameRuntime })));
@@ -63,7 +64,7 @@ export default function Home() {
 
   const startOnboarding = (restart = false) => {
     if (restart) {
-      const checkpoint = { ...createCheckpoint("west-corridor-loop", "wife"), anchorId: "west-entry" };
+      const checkpoint = { ...createCheckpoint("west-corridor-loop", "wife"), anchorId: getChapterEntryAnchor("west-corridor-loop", "west-entry") };
       persist({ ...save, activeCheckpoint: checkpoint, completedChapters: save.completedChapters.filter((id) => !["prologue-rain", "west-corridor-loop"].includes(id)) });
     }
     setView("west-corridor-loop");
@@ -71,7 +72,7 @@ export default function Home() {
 
   const startNorthTower = (restart = false) => {
     if (restart || save.activeCheckpoint.chapterId !== "north-tower-ledger") {
-      const checkpoint = { ...createCheckpoint("north-tower-ledger", "accountant"), anchorId: "north-tower-entry" };
+      const checkpoint = { ...createCheckpoint("north-tower-ledger", "accountant"), anchorId: getChapterEntryAnchor("north-tower-ledger", "rockery-side-route") };
       persist({
         ...save,
         activeCheckpoint: checkpoint,
@@ -83,7 +84,7 @@ export default function Home() {
 
   const startFrontHall = (restart = false) => {
     if (restart || save.activeCheckpoint.chapterId !== "front-hall-guest") {
-      const checkpoint = { ...createCheckpoint("front-hall-guest", "painter"), anchorId: "front-hall-entry" };
+      const checkpoint = { ...createCheckpoint("front-hall-guest", "painter"), anchorId: getChapterEntryAnchor("front-hall-guest", "front-hall") };
       persist({
         ...save,
         activeCheckpoint: checkpoint,
@@ -95,7 +96,7 @@ export default function Home() {
 
   const startSealedPavilion = (restart = false) => {
     if (restart || save.activeCheckpoint.chapterId !== "sealed-pavilion") {
-      const checkpoint = { ...createCheckpoint("sealed-pavilion", "wife"), anchorId: "sealed-pavilion-entry", position: [0, 1.65, 7] as [number, number, number] };
+      const checkpoint = { ...createCheckpoint("sealed-pavilion", "wife"), anchorId: getChapterEntryAnchor("sealed-pavilion", "bridge-approach"), position: [0, 1.65, 7] as [number, number, number] };
       persist({
         ...save,
         activeCheckpoint: checkpoint,

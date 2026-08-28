@@ -1,8 +1,8 @@
 # 游园惊梦：四面证词 · V0.1R Onboarding Slice
 
-PC Web 叙事解谜游戏。当前版本仍是 `V0.1R` 开发阶段，不是 V1.0。仓库已包含序章、《西廊回环》与《北楼暗账》的实现代码；正式发布门禁仍以第一章主路径真实视觉验收为先，不因后续章节代码存在而跳过该门禁。
+PC Web 叙事解谜游戏。当前版本仍是 `V0.1R` 开发阶段，不是 V1.0。仓库已包含序章、第一至第四章的可玩逻辑；第二章已经整合《假山旧路》与《北楼暗账》。正式发布门禁仍以第一章主路径真实视觉验收为先，不因后续章节白盒代码存在而跳过该门禁。
 
-主要输入：`WASD` 移动、鼠标观察、`F` 勘验、`Tab` 切换证词、`M` 打开勘误簿；对话使用鼠标、空格或回车推进。
+主要输入：`WASD` 移动、鼠标观察、`F` 勘验、`Tab` 切换证词、`M` 打开勘误簿、`H` 定位当前测试点；对话使用鼠标、空格或回车推进。
 
 ## 本地运行
 
@@ -50,5 +50,6 @@ npm run build
 - [资产许可台账](./docs/assets/license-ledger.md)
 - [AIGC 来源台账](./docs/assets/aigc-ledger.md)
 - [测试与验收](./docs/qa/acceptance.md)
+- [视觉基础与章节整合总览](./docs/development-records/visual-foundation-chapter-integration-v1.md)
 
 旧项目 `../undying-world-game/` 及 `../game-chapter-01/`、`../game-chapter-02/` 仅作历史参考，不接受新剧情状态或新功能。

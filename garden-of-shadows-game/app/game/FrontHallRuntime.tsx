@@ -8,6 +8,7 @@ import frontStory from "./narrative/front-hall-guest.json";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { FrontHallScene, type FrontHallInteractable } from "./runtime/FrontHallScene";
+import { getChapterExitAnchor } from "./manifests/campaign-topology";
 
 type FrontPhase = "loading" | "dialogue" | "transition" | "playing" | "ranking" | "complete" | "error";
 
@@ -143,7 +144,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   }, [addFlags, persistCheckpoint]);
 
   const finishChapter = useCallback(() => {
-    const finalCheckpoint = persistCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, "front.chapter.complete", "campaign.witness.painter"]), dialogueProgress: undefined }));
+    const finalCheckpoint = persistCheckpoint((current) => ({ ...current, anchorId: getChapterExitAnchor(chapter.id, "bridge-approach"), earnedFlags: unique([...current.earnedFlags, "front.chapter.complete", "campaign.witness.painter"]), dialogueProgress: undefined }));
     const nextSave: CampaignSave = {
       ...saveRef.current,
       activeCheckpoint: finalCheckpoint,

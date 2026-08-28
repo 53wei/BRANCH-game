@@ -73,6 +73,7 @@ const anchors: LayoutAnchor[] = [
   { id: "bridge-approach", position: [5.6, 0.9, -24.6], yaw: -0.35, role: "checkpoint" },
   { id: "water-pavilion-entry", position: [9.2, 0.9, -30.5], yaw: Math.PI, role: "checkpoint" },
   { id: "pavilion-landmark", position: [10, 0, -32], yaw: Math.PI, role: "landmark" },
+  { id: "mirror-threshold", position: [10, 0.9, -34.2], yaw: Math.PI, role: "checkpoint" },
   { id: "rockery-side-route", position: [14, 0.9, -17], yaw: -Math.PI / 2, role: "checkpoint" },
   { id: "rockery-mouth", position: [10.8, 0.9, -18.8], yaw: -0.75, role: "camera" },
   { id: "east-pavilion-landmark", position: [18, 0, -9], yaw: -Math.PI / 2, role: "landmark" },

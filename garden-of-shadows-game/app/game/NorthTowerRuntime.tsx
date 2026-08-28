@@ -8,9 +8,10 @@ import northStory from "./narrative/north-tower-ledger.json";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { NorthTowerScene, type NorthTimeline, type NorthTowerInteractable, type NorthTowerZone } from "./runtime/NorthTowerScene";
+import { getChapterExitAnchor } from "./manifests/campaign-topology";
 
 type NorthPhase = "loading" | "dialogue" | "transition" | "playing" | "complete" | "error";
-type NorthTransitionKind = "stairs" | "to-past" | "to-present";
+type NorthTransitionKind = "rockery-loop" | "to-north" | "stairs" | "to-past" | "to-present";
 
 interface NorthTransition {
   kind: NorthTransitionKind;
@@ -37,6 +38,8 @@ const unique = <T,>(values: T[]) => [...new Set(values)];
 const memoryOrder: MemoryId[] = ["accountant", "wife", "gardener"];
 const memoryName: Record<string, string> = { accountant: "账房证词", wife: "夫人证词", gardener: "园丁证词" };
 const transitionCopy: Record<NorthTransitionKind, { eyebrow: string; title: string; detail: string }> = {
+  "rockery-loop": { eyebrow: "假山旧路 · 园丁证词", title: "侧路把你送回同一面墙", detail: "路没有消失，它只拒绝通向你以为的方向。" },
+  "to-north": { eyebrow: "锚定完成 · 北楼开放", title: "借来的石板留在雨里", detail: "这一次切换认知，脚下的路没有退回框景。" },
   stairs: { eyebrow: "北楼 · 一层至二层", title: "木梯记住了第二个人的脚步", detail: "每向上一阶，算盘声就少一颗。" },
   "to-past": { eyebrow: "借景 · 案发当夜", title: "跨过窗框，雨停在半空", detail: "空间没有把你送到别处，只把你送回它愿意承认的时间。" },
   "to-present": { eyebrow: "借景 · 七年以后", title: "过去已经发生，现在必须让路", detail: "雨声回来以前，假山的位置先变了。" },
@@ -44,6 +47,12 @@ const transitionCopy: Record<NorthTransitionKind, { eyebrow: string; title: stri
 
 export const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
+  if (!flags.includes("north.rockery.baseline-observed")) return { title: "记住正常的假山旧路", detail: "先用账房证词记录院墙、假山和水痕的正常位置。", targetId: "rockery-baseline", memoryId: "accountant" as const, timeline: "present" as const, zone: "rockery-route" as const };
+  if (!flags.includes("north.rockery.loop-observed")) return { title: "验证墙后的循环侧路", detail: "切到园丁证词，走进突然出现的墙后侧路。", targetId: "gardener-side-route", memoryId: "gardener" as const, timeline: "present" as const, zone: "rockery-route" as const };
+  if (!flags.includes("north.borrowed-view.previewed")) return { title: "透过月洞门借景", detail: "切回账房证词，从月洞门里观察另一认知中的石板。", targetId: "borrowed-moon-gate", memoryId: "accountant" as const, timeline: "present" as const, zone: "rockery-route" as const };
+  if (!flags.includes("north.borrowed.stone")) return { title: "借出一块空间元素", detail: "从框景里取出石板，让它暂时进入当前认知。", targetId: "borrowed-stone", memoryId: "accountant" as const, timeline: "present" as const, zone: "rockery-route" as const };
+  if (!flags.includes("north.anchor.learned")) return { title: "锚定借来的石板", detail: "把石板固定在当前空间，防止切换证词时消失。", targetId: "anchor-stone", memoryId: checkpoint.memoryId, timeline: "present" as const, zone: "rockery-route" as const };
+  if (!flags.includes("north.rockery-route.complete")) return { title: "沿锚定路线进入北楼", detail: "跨过留下来的石板，进入钱先生不愿你抵达的北楼。", targetId: "north-route-exit", memoryId: checkpoint.memoryId, timeline: "present" as const, zone: "rockery-route" as const };
   if (!flags.includes("north.reached.upper-floor")) return { title: "登上北楼", detail: "沿一层尽头找到楼梯，按 F 进入二层账房。", targetId: "north-stairs", memoryId: "accountant" as const, timeline: "present" as const, zone: "lower" as const };
   if (!flags.includes("north.ledger.inspected")) return { title: "先查账，再查窗", detail: "走到账房深处，检查钱先生声称整夜没有离开的账桌。", targetId: "ledger-desk", memoryId: "accountant" as const, timeline: "present" as const, zone: "upper" as const };
   if (!flags.includes("north.window.inspected")) return { title: "找到借景窗", detail: "保持账房证词，在二层左侧检查发出蓝光的窗框。", targetId: "borrowed-window", memoryId: "accountant" as const, timeline: "present" as const, zone: "upper" as const };
@@ -65,12 +74,19 @@ export const objectiveFor = (checkpoint: CheckpointState) => {
 export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerRuntimeProps) {
   const [initialCheckpoint] = useState<CheckpointState>(() => {
     if (save.activeCheckpoint.chapterId === chapter.id) {
-      return { ...save.activeCheckpoint, memoryId: memoryOrder.includes(save.activeCheckpoint.memoryId) ? save.activeCheckpoint.memoryId : "accountant" };
+      const restored = save.activeCheckpoint;
+      const legacyProgress = restored.earnedFlags.some((flag) => ["north.reached.upper-floor", "north.ledger.inspected", "north.window.inspected", "north.borrowed-view.crossed"].includes(flag));
+      return {
+        ...restored,
+        memoryId: memoryOrder.includes(restored.memoryId) ? restored.memoryId : "accountant",
+        earnedFlags: legacyProgress ? unique([...restored.earnedFlags, "north.rockery.baseline-observed", "north.rockery.loop-observed", "north.borrowed-view.previewed", "north.borrowed.stone", "north.anchor.learned", "north.rockery-route.complete"]) : restored.earnedFlags,
+      };
     }
     return { ...createCheckpoint(chapter.id, "accountant"), anchorId: chapter.spawnAnchor };
   });
-  const initialPosition: [number, number, number] = initialCheckpoint.position ?? [0, 1.65, 7];
-  const initialZone: NorthTowerZone = initialPosition[0] < -5 ? "courtyard" : initialPosition[1] > 3 ? "upper" : "lower";
+  const preludeComplete = initialCheckpoint.earnedFlags.includes("north.rockery-route.complete");
+  const initialPosition: [number, number, number] = initialCheckpoint.position ?? (preludeComplete ? [0, 1.65, 7] : [12, 1.65, 7]);
+  const initialZone: NorthTowerZone = !preludeComplete ? "rockery-route" : initialPosition[0] < -5 ? "courtyard" : initialPosition[1] > 3 ? "upper" : "lower";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<{ renderer: Awaited<ReturnType<typeof createRenderer>>; world: NorthTowerScene } | undefined>(undefined);
   const keysRef = useRef(new Set<string>());
@@ -136,7 +152,11 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     return next;
   }, []);
 
-  const addFlags = useCallback((...flags: string[]) => commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, ...flags]) })), [commitCheckpoint]);
+  const addFlags = useCallback((...flags: string[]) => {
+    const next = commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, ...flags]) }));
+    runtimeRef.current?.world.setPreludeFlags(next.earnedFlags);
+    return next;
+  }, [commitCheckpoint]);
 
   const changeMemory = useCallback((next: MemoryId) => {
     memoryRef.current = next;
@@ -206,7 +226,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   }, [addFlags, commitCheckpoint]);
 
   const finishChapter = useCallback(() => {
-    const finalCheckpoint = commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, "north.chapter.complete", "campaign.witness.accountant"]), dialogueProgress: undefined }));
+    const finalCheckpoint = commitCheckpoint((current) => ({ ...current, anchorId: getChapterExitAnchor(chapter.id, "front-hall"), earnedFlags: unique([...current.earnedFlags, "north.chapter.complete", "campaign.witness.accountant"]), dialogueProgress: undefined }));
     const nextSave: CampaignSave = {
       ...saveRef.current,
       activeCheckpoint: finalCheckpoint,
@@ -231,6 +251,21 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       addFlags("north.rockery.moved");
       runtimeRef.current?.world.setTimeline("past", true);
       setSubtitle("假山向侧面移开。这个动作已经发生在过去，现在会记住它。");
+      setPhase("playing");
+      requestPointerLock();
+      return;
+    }
+    if (sequence.id === "north-rockery-loop") {
+      addFlags("north.rockery.loop-observed");
+      playerRef.current.set(12, 1.65, 7);
+      setSubtitle("你走了完整一圈，却回到最初的水痕。现在从月洞门里借一段不属于这里的路。");
+      setPhase("playing");
+      requestPointerLock();
+      return;
+    }
+    if (sequence.id === "north-anchor") {
+      addFlags("north.anchor.learned");
+      setSubtitle("锚定槽已占用：这块石板不会随证词切换消失。沿它去北楼。");
       setPhase("playing");
       requestPointerLock();
       return;
@@ -284,7 +319,41 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     if (phaseRef.current !== "playing") return;
     const item = nearestRef.current;
     if (!item) return;
-    if (item.id === "north-stairs") {
+    if (item.id === "rockery-baseline") {
+      addFlags("north.rockery.baseline-observed");
+      setSubtitle("正常空间已记录：院墙封死，水痕止于假山。切到园丁证词，验证墙后那条旧路。");
+    } else if (item.id === "gardener-side-route") {
+      beginTransition({
+        kind: "rockery-loop",
+        duration: 1600,
+        targetZone: "rockery-route",
+        targetPosition: [12, 1.65, 7],
+        targetYaw: Math.PI,
+        onComplete: () => window.setTimeout(() => startDialogueRef.current("north-rockery-loop"), 80),
+      });
+    } else if (item.id === "borrowed-moon-gate") {
+      addFlags("north.borrowed-view.previewed");
+      setSubtitle("框内的石板属于另一份认知。它现在只是景，还不能承受你的重量。");
+      startDialogue("north-borrowed-view");
+    } else if (item.id === "borrowed-stone") {
+      addFlags("north.borrowed.stone");
+      setSubtitle("石板被借到当前空间，但边缘仍在闪烁。下一次切换证词，它会消失。");
+    } else if (item.id === "anchor-stone") {
+      startDialogue("north-anchor");
+    } else if (item.id === "north-route-exit") {
+      beginTransition({
+        kind: "to-north",
+        duration: 2100,
+        targetZone: "lower",
+        targetPosition: [0, 1.65, 7],
+        targetYaw: 0,
+        onComplete: () => {
+          addFlags("north.rockery-route.complete");
+          setSubtitle("假山旧路已经与北楼一层接通。钱先生的账，从这条不该存在的路开始。");
+          window.setTimeout(() => startDialogueRef.current("north-opening"), 100);
+        },
+      });
+    } else if (item.id === "north-stairs") {
       beginTransition({
         kind: "stairs",
         duration: 2600,
@@ -388,6 +457,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     const world = new NorthTowerScene(chapter.memories, save.settings.quality);
     world.setMemory(memoryRef.current);
     world.setTimeline(timelineRef.current, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
+    world.setPreludeFlags(checkpointRef.current.earnedFlags);
 
     const resize = () => {
       const runtime = runtimeRef.current;
@@ -535,8 +605,10 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       });
 
       if (save.completedChapters.includes(chapter.id)) setPhase("complete");
-      else if (checkpointRef.current.earnedFlags.includes("north.dialogue.opening")) setPhase("playing");
-      else startDialogueRef.current("north-opening");
+      else if (checkpointRef.current.earnedFlags.includes("north.dialogue.prelude") || checkpointRef.current.earnedFlags.includes("north.rockery-route.complete")) {
+        if (checkpointRef.current.earnedFlags.includes("north.rockery-route.complete") && !checkpointRef.current.earnedFlags.includes("north.dialogue.opening")) startDialogueRef.current("north-opening");
+        else setPhase("playing");
+      } else startDialogueRef.current("north-prelude-opening");
     }).catch((reason: unknown) => {
       setError(reason instanceof Error ? reason.message : "无法初始化北楼场景");
       setPhase("error");
@@ -560,6 +632,10 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const objective = objectiveFor(checkpoint);
   const evidenceCount = checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length;
   const testSteps = [
+    { label: "记录假山、院墙和水痕的正常位置", done: checkpoint.earnedFlags.includes("north.rockery.baseline-observed") },
+    { label: "在园丁证词中走完循环侧路", done: checkpoint.earnedFlags.includes("north.rockery.loop-observed") },
+    { label: "透过月洞门观察并借出石板", done: checkpoint.earnedFlags.includes("north.borrowed.stone") },
+    { label: "锚定石板并沿新路线进入北楼", done: checkpoint.earnedFlags.includes("north.rockery-route.complete") },
     { label: "沿灯笼走到楼梯并按 F 上楼", done: checkpoint.earnedFlags.includes("north.reached.upper-floor") },
     { label: "检查二层账桌留下的补写痕迹", done: checkpoint.earnedFlags.includes("north.ledger.inspected") },
     { label: "在账房证词中检查蓝色借景窗", done: checkpoint.earnedFlags.includes("north.window.inspected") },
@@ -587,7 +663,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
 
   return (
     <main className={`runtime runtime-${memory} runtime-north-${timeline}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} aria-label="第二章北楼暗账三维场景" />
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} aria-label="第二章假山旧路与北楼暗账三维场景" />
       <div className="vignette" aria-hidden="true" />
       {transitionKind && (
         <div className={`north-transition north-transition-${transitionKind}`} role="status" aria-live="polite">
@@ -601,8 +677,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       )}
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
-        <div><span>CHAPTER 02</span><strong>北楼暗账</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"} · {zone === "lower" ? "北楼一层" : zone === "upper" ? "北楼二层" : "东院假山"}</div>
+        <div><span>CHAPTER 02</span><strong>假山旧路 · 北楼暗账</strong></div>
+        <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"} · {zone === "rockery-route" ? "西院假山旧路" : zone === "lower" ? "北楼一层" : zone === "upper" ? "北楼二层" : "东院假山"}</div>
       </div>
 
       <section className="objective-card" aria-live="polite">
@@ -656,7 +732,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       {phase === "complete" && !activeDialogue && (
         <NorthModal eyebrow="CHAPTER 02 COMPLETE" title="北楼的账暂时平了">
           <p>{completionOutcome}</p>
-          <blockquote>过去移动的假山已经改变现在；两条空间矛盾与你采用的解释均已写入存档。</blockquote>
+          <blockquote>你先借出并锚定了不存在的路，随后又在过去移动假山改变现在；完整路径和两条空间矛盾均已写入存档。</blockquote>
           <button type="button" className="primary-button" onClick={onExit}>返回章节总览</button>
         </NorthModal>
       )}

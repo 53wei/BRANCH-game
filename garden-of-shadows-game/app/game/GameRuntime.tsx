@@ -13,6 +13,7 @@ import { PhysicsController, type PlayerPose } from "./runtime/PhysicsController"
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { TingYuXuanScene, type SceneInteractable } from "./runtime/TingYuXuanScene";
 import { createChapterCompletePayload, resolveChaseOutcome } from "./runtime/chapter-behavior";
+import { getChapterExitAnchor } from "./manifests/campaign-topology";
 import { containsLayoutPoint, getLayoutAnchor, getLayoutTrigger, resolveLayoutTriggerDestination, tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
 type RuntimePhase = "loading" | "dialogue" | "playing" | "chase" | "failed" | "complete" | "error";
@@ -242,7 +243,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   const finishChapter = useCallback(() => {
     if (phaseRef.current === "complete" || dialogueRef.current?.id === "completion") return;
     const current = checkpointRef.current;
-    const finalCheckpoint: CheckpointState = { ...current, anchorId: "west-safe-courtyard", activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "escaped" }, updatedAt: new Date().toISOString() };
+    const finalCheckpoint: CheckpointState = { ...current, anchorId: getChapterExitAnchor(chapter.id, "rockery-side-route"), activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "escaped" }, updatedAt: new Date().toISOString() };
     checkpointRef.current = finalCheckpoint;
     setCheckpointState(finalCheckpoint);
     const nextSave: CampaignSave = { ...saveRef.current, activeCheckpoint: finalCheckpoint, completedChapters: unique([...saveRef.current.completedChapters, chapter.id]), unlockedChapters: unique([...saveRef.current.unlockedChapters, "north-tower-ledger"]) };

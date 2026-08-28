@@ -2,10 +2,10 @@ import * as THREE from "three/webgpu";
 import type { MemoryId, MemoryLayer } from "../types";
 
 export type NorthTimeline = "past" | "present";
-export type NorthTowerZone = "lower" | "upper" | "courtyard";
+export type NorthTowerZone = "rockery-route" | "lower" | "upper" | "courtyard";
 
 export interface NorthTowerInteractable {
-  id: "north-stairs" | "ledger-desk" | "borrowed-window" | "borrowed-window-return" | "past-beads" | "past-rockery" | "window-scratches" | "secret-passage";
+  id: "rockery-baseline" | "gardener-side-route" | "borrowed-moon-gate" | "borrowed-stone" | "anchor-stone" | "north-route-exit" | "north-stairs" | "ledger-desk" | "borrowed-window" | "borrowed-window-return" | "past-beads" | "past-rockery" | "window-scratches" | "secret-passage";
   label: string;
   position: THREE.Vector3;
   zones: NorthTowerZone[];
@@ -59,6 +59,10 @@ export class NorthTowerScene {
   private readonly presentBlocker = new THREE.Group();
   private readonly openedPassage = new THREE.Group();
   private readonly guidanceMarker = new THREE.Group();
+  private readonly rockeryPrelude = new THREE.Group();
+  private readonly gardenerPreludeLayer = new THREE.Group();
+  private readonly borrowedPreludeLayer = new THREE.Group();
+  private readonly anchoredPreludeLayer = new THREE.Group();
   private readonly rain: THREE.Points;
   private readonly borrowedFrameMaterial: THREE.MeshStandardMaterial;
   private rockeryTargetX = -9;
@@ -82,13 +86,20 @@ export class NorthTowerScene {
     this.borrowedFrameMaterial = new THREE.MeshStandardMaterial({ color: "#758d99", emissive: "#164a68", emissiveIntensity: 2.2, roughness: 0.35, metalness: 0.18 });
     this.buildTower(quality);
     this.buildCourtyard(quality);
+    this.buildRockeryPrelude(quality);
     this.buildMemoryLayers();
     this.buildTimelineLayers();
     this.buildGuidanceMarker();
     this.rain = this.buildRain(quality === "high" ? 1500 : quality === "stable" ? 760 : 360);
-    this.scene.add(this.accountantLayer, this.wifeLayer, this.gardenerLayer, this.pastLayer, this.presentLayer, this.guidanceMarker, this.rain);
+    this.scene.add(this.rockeryPrelude, this.gardenerPreludeLayer, this.borrowedPreludeLayer, this.anchoredPreludeLayer, this.accountantLayer, this.wifeLayer, this.gardenerLayer, this.pastLayer, this.presentLayer, this.guidanceMarker, this.rain);
 
     this.interactables = [
+      { id: "rockery-baseline", label: "按 F 记下假山与院墙的正常位置", position: new THREE.Vector3(12, 1.2, 2.2), zones: ["rockery-route"], memoryIds: ["accountant"], hidesAfterFlag: "north.rockery.baseline-observed" },
+      { id: "gardener-side-route", label: "按 F 走进园丁记忆里的墙后侧路", position: new THREE.Vector3(15.2, 1.2, 0.5), zones: ["rockery-route"], memoryIds: ["gardener"], requiresFlags: ["north.rockery.baseline-observed"], hidesAfterFlag: "north.rockery.loop-observed" },
+      { id: "borrowed-moon-gate", label: "按 F 透过月洞门观察另一份认知", position: new THREE.Vector3(9.2, 1.2, 0.2), zones: ["rockery-route"], memoryIds: ["accountant"], requiresFlags: ["north.rockery.loop-observed"], hidesAfterFlag: "north.borrowed-view.previewed" },
+      { id: "borrowed-stone", label: "按 F 从框景中借出一块石板", position: new THREE.Vector3(9.2, 1.2, -2), zones: ["rockery-route"], memoryIds: ["accountant"], requiresFlags: ["north.borrowed-view.previewed"], hidesAfterFlag: "north.borrowed.stone" },
+      { id: "anchor-stone", label: "按 F 锚定借来的石板", position: new THREE.Vector3(12, 1.2, -2), zones: ["rockery-route"], requiresFlags: ["north.borrowed.stone"], hidesAfterFlag: "north.anchor.learned" },
+      { id: "north-route-exit", label: "按 F 沿锚定石板前往北楼", position: new THREE.Vector3(7.2, 1.2, 4.5), zones: ["rockery-route"], requiresFlags: ["north.anchor.learned"], hidesAfterFlag: "north.rockery-route.complete" },
       { id: "north-stairs", label: "按 F 沿楼梯登上二层", position: new THREE.Vector3(0, 1.2, -1), zones: ["lower"] },
       { id: "ledger-desk", label: "按 F 检查钱先生的账桌", position: new THREE.Vector3(0.8, 4.5, -12.6), zones: ["upper"], memoryIds: ["accountant"], hidesAfterFlag: "north.ledger.inspected" },
       { id: "borrowed-window", label: "按 F 检查借景窗", position: new THREE.Vector3(-3.25, 4.5, -11), zones: ["upper"], memoryIds: ["accountant"], requiresFlags: ["north.ledger.inspected"] },
@@ -101,6 +112,46 @@ export class NorthTowerScene {
 
     this.setMemory("accountant");
     this.setTimeline("present", false);
+    this.setPreludeFlags([]);
+  }
+
+  private buildRockeryPrelude(quality: "high" | "stable" | "low") {
+    const wetStone = new THREE.MeshStandardMaterial({ color: "#303b38", roughness: 0.38, metalness: 0.08 });
+    const plaster = new THREE.MeshStandardMaterial({ color: "#8e9188", roughness: 0.94 });
+    const moss = new THREE.MeshStandardMaterial({ color: "#29473a", roughness: 0.9 });
+    const borrowed = new THREE.MeshStandardMaterial({ color: "#66889a", emissive: "#23536a", emissiveIntensity: 1.8, transparent: true, opacity: 0.72 });
+    const anchored = new THREE.MeshStandardMaterial({ color: "#9b835b", emissive: "#6b5128", emissiveIntensity: 1.45, roughness: 0.5 });
+
+    this.rockeryPrelude.add(box([11, .2, 12], [12, -.12, 2], wetStone));
+    this.rockeryPrelude.add(box([.22, 3, 8], [17.4, 1.4, 2], plaster));
+    this.rockeryPrelude.add(box([5.2, 3, .22], [14.8, 1.4, -4], plaster));
+    this.rockeryPrelude.add(this.rockCluster(moss, [13.7, 0, .8]));
+    this.rockeryPrelude.add(this.rockCluster(moss, [15.5, 0, -1.8]));
+
+    const moonGate = new THREE.Group();
+    moonGate.add(box([.25, 2.8, .25], [8.4, 1.35, .2], plaster));
+    moonGate.add(box([.25, 2.8, .25], [10, 1.35, .2], plaster));
+    moonGate.add(box([1.85, .25, .25], [9.2, 2.65, .2], plaster));
+    const view = new THREE.Mesh(new THREE.CircleGeometry(.72, 32), borrowed);
+    view.position.set(9.2, 1.35, .32);
+    moonGate.add(view);
+    this.borrowedPreludeLayer.add(moonGate);
+
+    for (let index = 0; index < 5; index += 1) {
+      const slab = box([1.15, .14, .72], [8.5 + index * .92, .02, -2], index < 2 ? borrowed : anchored);
+      slab.rotation.y = (index % 2 ? 1 : -1) * .08;
+      if (index < 2) this.borrowedPreludeLayer.add(slab);
+      else this.anchoredPreludeLayer.add(slab);
+    }
+
+    const sideRoad = box([2.8, .12, 6], [15.4, .01, 1.4], moss);
+    sideRoad.rotation.y = -.18;
+    this.gardenerPreludeLayer.add(sideRoad);
+    for (let index = 0; index < 4; index += 1) {
+      const lantern = new THREE.PointLight("#6f9d7c", quality === "low" ? 2 : 4, 5, 1.8);
+      lantern.position.set(15.1 + Math.sin(index) * .5, 1.1, 3.4 - index * 1.6);
+      this.gardenerPreludeLayer.add(lantern);
+    }
   }
 
   private addLantern(position: [number, number, number], color = "#d69255", intensity = 12) {
@@ -352,6 +403,12 @@ export class NorthTowerScene {
     this.memoryLight.color.set(layer.visual.keyLight);
     this.memoryLight.intensity = memory === "accountant" ? 24 : memory === "wife" ? 18 : 14;
     this.borrowedFrameMaterial.emissiveIntensity = memory === "accountant" ? 2.8 : 0.18;
+    this.gardenerPreludeLayer.visible = memory === "gardener";
+    this.borrowedPreludeLayer.visible = memory === "accountant";
+  }
+
+  setPreludeFlags(flags: string[]) {
+    this.anchoredPreludeLayer.visible = flags.includes("north.anchor.learned");
   }
 
   setTimeline(timeline: NorthTimeline, rockeryMoved: boolean) {
@@ -377,7 +434,11 @@ export class NorthTowerScene {
   }
 
   constrain(position: THREE.Vector3, zone: NorthTowerZone) {
-    if (zone === "lower") {
+    if (zone === "rockery-route") {
+      position.x = THREE.MathUtils.clamp(position.x, 7, 17);
+      position.z = THREE.MathUtils.clamp(position.z, -3.8, 8);
+      position.y = 1.65;
+    } else if (zone === "lower") {
       position.x = THREE.MathUtils.clamp(position.x, -3.55, 3.55);
       position.z = THREE.MathUtils.clamp(position.z, -1.5, 8);
       position.y = 1.65;

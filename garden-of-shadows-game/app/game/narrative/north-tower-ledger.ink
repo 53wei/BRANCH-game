@@ -1,3 +1,39 @@
+=== north_prelude_opening ===
+第一章走过的西院还在，但假山后的墙比记忆里更完整。墙根积着一线刚涨起的水。 # speaker:narrator # line:north.prelude.001
+昨夜这边有条旧路。你们总说我记错，是因为你们只肯走今天留下的路。 # speaker:gardener # portrait:taciturn # line:north.prelude.002 # voice:north.gardener.001
+我先记住墙、石头和水痕。异常出现以前，正常空间必须有一份底稿。 # speaker:zhaoying # portrait:calm # line:north.prelude.003 # voice:north.zhaoying.026
+* [先检查院墙，确认当前没有入口。]
+    如果路只在一份证词里出现，我要知道它从哪一块砖开始撒谎。 # speaker:zhaoying # portrait:guarded # line:north.prelude.004a # voice:north.zhaoying.027 # flag:set:north.inquiry.rockery-wall
+    -> north_prelude_end
+* [先检查水痕，确认路出现前水往哪里流。]
+    水痕止在假山前。后面的空间此刻没有排水，也没有路。 # speaker:zhaoying # portrait:calm # line:north.prelude.004b # voice:north.zhaoying.028 # flag:set:north.inquiry.rockery-water
+    -> north_prelude_end
+= north_prelude_end
+先留下正常底稿，再切到我的证词。墙后那条路会自己来找你。 # speaker:gardener # portrait:guilty # line:north.prelude.005 # voice:north.gardener.002 # objective:start:north-rockery-route:remember-baseline
+-> END
+
+=== north_rockery_loop ===
+泥路绕过三块假山、两盏残灯和同一株蕨草。第四次转弯后，你又站在最初那道水痕前。 # speaker:narrator # line:north.loop.001
+路是真的。只是它不通向北楼。 # speaker:gardener # portrait:guilty # line:north.loop.002 # voice:north.gardener.003
+存在但无法抵达终点——你没有删掉路，你把它的出口折回了起点。 # speaker:zhaoying # portrait:guarded # line:north.loop.003 # voice:north.zhaoying.029
+月洞门里还有一段不属于你这份记忆的石板。我要把它借出来。 # speaker:zhaoying # portrait:calm # line:north.loop.004 # voice:north.zhaoying.030
+-> END
+
+=== north_borrowed_view ===
+月洞门外仍是园丁的湿绿泥路，框内却铺着账房证词里笔直的蓝灰石板。 # speaker:narrator # line:north.borrow.001
+你看见的是账目允许存在的路，不代表它属于你的脚下。 # speaker:accountant # portrait:composed # line:north.borrow.002 # voice:north.accountant.014
+借景不是换一张颜色。框内那块石板有自己的位置、碰撞和方向。 # speaker:zhaoying # portrait:calm # line:north.borrow.003 # voice:north.zhaoying.031
+我可以把它借到当前空间，但如果不锚定，下一次切换证词它就会退回去。 # speaker:zhaoying # portrait:guarded # line:north.borrow.004 # voice:north.zhaoying.032
+-> END
+
+=== north_anchor ===
+石板边缘的蓝光被一枚铜钉般的记忆标记压住。园丁的泥路退去，石板仍留在雨中。 # speaker:narrator # line:north.anchor.001
+这就是锚定：不证明哪份证词正确，只让一个借来的空间元素暂时跨认知保留。 # speaker:zhaoying # portrait:calm # line:north.anchor.002 # voice:north.zhaoying.033
+只能留一个？ # speaker:gardener # portrait:taciturn # line:north.anchor.003 # voice:north.gardener.004
+目前只能留一个。所以每次锚定，都是一次明确的路线选择。 # speaker:zhaoying # portrait:guarded # line:north.anchor.004 # voice:north.zhaoying.034
+石板尽头，北楼一层的灯第一次亮了。 # speaker:narrator # line:north.anchor.005
+-> END
+
 === north_opening ===
 北楼里没有雨声。算盘珠却在无人拨动时，一颗接一颗落下。 # speaker:narrator # line:north.opening.001
 我整夜都在二层账房。门没开，窗也没开，更没有去过东院。 # speaker:accountant # portrait:composed # line:north.opening.002 # voice:north.accountant.001

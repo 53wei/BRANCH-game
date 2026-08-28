@@ -8,6 +8,7 @@ import pavilionStory from "./narrative/sealed-pavilion.json";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { SealedPavilionScene, type PavilionInteractable, type PavilionInteractableId } from "./runtime/SealedPavilionScene";
+import { getChapterExitAnchor } from "./manifests/campaign-topology";
 
 type PavilionPhase = "loading" | "dialogue" | "playing" | "verdict" | "complete" | "error";
 
@@ -155,7 +156,7 @@ export function SealedPavilionRuntime({ chapter, save, onSave, onExit }: SealedP
   }, [persistCheckpoint]);
 
   const finishChapter = useCallback(() => {
-    const finalCheckpoint = persistCheckpoint((current) => ({ ...current, activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), dialogueProgress: undefined }));
+    const finalCheckpoint = persistCheckpoint((current) => ({ ...current, anchorId: getChapterExitAnchor(chapter.id, "mirror-threshold"), activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), dialogueProgress: undefined }));
     const nextSave: CampaignSave = {
       ...saveRef.current,
       activeCheckpoint: finalCheckpoint,

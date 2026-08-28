@@ -37,10 +37,10 @@ const accountantMemory: MemoryLayer = {
 export const northTowerChapter: ChapterManifest = {
   id: "north-tower-ledger",
   index: 2,
-  title: "第二章·北楼暗账",
-  subtitle: "过去与现在互相改路",
-  logline: "穿过账房记忆里的借景窗，在过去移动假山，并在现在找到一条直达东院的秘密通道。",
-  estimatedMinutes: [15, 25],
+  title: "第二章·假山旧路",
+  subtitle: "借一段路，锚定它，再让过去替现在让路",
+  logline: "在西院假山学习借景与锚定，拼出通往北楼的路线；随后穿过账房记忆里的时间窗，在过去移动假山并揭开暗账。",
+  estimatedMinutes: [25, 40],
   status: "playable",
   unlock: { chapterId: "west-corridor-loop", requiredFlags: ["west.chapter.complete"] },
   assetPack: {
@@ -49,7 +49,7 @@ export const northTowerChapter: ChapterManifest = {
     preload: ["procedural/north-tower", "audio/rain-loop"],
     deferred: ["models/north-tower", "audio/accountant-voice"],
   },
-  spawnAnchor: "north-tower-entry",
+  spawnAnchor: "rockery-side-route",
   memories: [accountantMemory, wifeMemory, gardenerMemory],
   contradictions: [
     {
@@ -75,7 +75,9 @@ export const northTowerChapter: ChapterManifest = {
   ],
   puzzleGraph: {
     nodes: [
-      { id: "reach-upper-floor", title: "登上北楼", ruleStage: "teach", prerequisites: [], interaction: "沿一层算盘格找到楼梯，进入二层账房。", outputFlags: ["north.reached.upper-floor"], softHint: "越整齐的格子，越像有人刻意安排的路线。" },
+      { id: "remember-rockery-baseline", title: "先记住正常空间", ruleStage: "teach", prerequisites: [], interaction: "记录院墙、假山与水痕，再进入园丁认知中的循环侧路。", outputFlags: ["north.rockery.baseline-observed", "north.rockery.loop-observed"], softHint: "异常只有和正常空间比较才有意义。" },
+      { id: "borrow-and-anchor", title: "借景与锚定", ruleStage: "combine", prerequisites: ["north.rockery.loop-observed"], interaction: "透过月洞门借出石板，并用一个锚定槽把它保留到当前认知。", outputFlags: ["north.borrowed.stone", "north.anchor.learned", "north.rockery-route.complete"], softHint: "先借出，再锚定；顺序不能颠倒。" },
+      { id: "reach-upper-floor", title: "登上北楼", ruleStage: "teach", prerequisites: ["north.rockery-route.complete"], interaction: "沿一层算盘格找到楼梯，进入二层账房。", outputFlags: ["north.reached.upper-floor"], softHint: "越整齐的格子，越像有人刻意安排的路线。" },
       { id: "cross-borrowed-window", title: "窗里是过去", ruleStage: "teach", prerequisites: ["north.reached.upper-floor"], interaction: "在账房记忆中触碰借景窗，从二层进入案发前的东院。", outputFlags: ["north.borrowed-view.crossed"], softHint: "窗内雨还没有落到地上。" },
       { id: "move-past-rockery", title: "让过去让路", ruleStage: "invert", prerequisites: ["north.borrowed-view.crossed"], interaction: "在过去推动完整假山，再回到现在验证坍塌区域。", outputFlags: ["north.rockery.moved", "north.present.route-open"], softHint: "现在搬不动的石头，倒下之前也许可以。" },
       { id: "cross-check-evidence", title: "暗账之外的路", ruleStage: "combine", prerequisites: ["north.present.route-open"], interaction: "分别在两份证词中勘验窗框划痕和秘密通道。", outputFlags: ["north.contradiction.scratches", "north.contradiction.passage"], softHint: "账房里的数字可以平，窗框上的硬痕不会。" },

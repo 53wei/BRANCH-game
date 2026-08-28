@@ -18,7 +18,7 @@ export const sealedPavilionChapter: ChapterManifest = {
   status: "playable",
   unlock: { chapterId: "front-hall-guest", requiredFlags: ["front.chapter.complete"] },
   assetPack: { id: "sealed-pavilion-whitebox-v0.1", initialBudgetMb: 12, preload: ["procedural/sealed-pavilion", "media/hero-hearing-rain.png"], deferred: ["models/sealed-pavilion-final", "media/cg/pavilion-*", "audio/pavilion-voices"] },
-  spawnAnchor: "sealed-pavilion-entry",
+  spawnAnchor: "bridge-approach",
   memories,
   contradictions: [
     { id: "locked-inside", label: "密室确由内部形成", description: "正门与后门的锁舌都从室内扣合，门外没有撬动痕迹。", position: [-3, 1.2, -7.5], kind: "geometry", requiredIndependentTestimonies: ["wife", "accountant"], confirmedByDefault: false, outputFlag: "pavilion.contradiction.locked-inside" },
