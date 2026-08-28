@@ -26,7 +26,8 @@ export const frontHallChapter: ChapterManifest = {
   ],
   puzzleGraph: { nodes: [
     { id: "painter-mark", title: "画中的第五条边", ruleStage: "teach", prerequisites: [], interaction: "检查柳生画架，取得画作印记。", outputFlags: ["front.mark.painter"], softHint: "画里的门不属于你站立的中庭。" },
-    { id: "cross-memory-marks", title: "四份记忆，四枚印记", ruleStage: "combine", prerequisites: ["front.mark.painter"], interaction: "切换夫人、园丁与账房证词，分别取得玉佩、园艺剪与账页。", outputFlags: ["front.mark.wife", "front.mark.gardener", "front.mark.accountant"], softHint: "按 Tab 改变空间，而不是反复搜索同一张地图。" },
+    { id: "cross-check-laws", title: "先证明空间正在撒谎", ruleStage: "combine", prerequisites: ["front.mark.painter"], interaction: "用账房证词核对画中门，再用夫人证词核对消失走廊。", outputFlags: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor"], softHint: "一份记忆只能提出疑点，两份独立证词才能完成勘误。" },
+    { id: "cross-memory-marks", title: "四份记忆，四枚印记", ruleStage: "combine", prerequisites: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor"], interaction: "切换夫人、园丁与账房证词，分别取得玉佩、园艺剪与账页。", outputFlags: ["front.mark.wife", "front.mark.gardener", "front.mark.accountant"], softHint: "按 Tab 改变空间，而不是反复搜索同一张地图。" },
     { id: "fourfold-lock", title: "四面锁", ruleStage: "combine", prerequisites: ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"], interaction: "选择最可信和最不可信的证人，让四枚印记按判断依次入锁。", outputFlags: ["front.trust.ranked", "front.chapter.complete"], softHint: "排序决定东院先采用谁的景象，不等于给案件定罪。" },
   ] },
   trustNodes: [{ id: "front-witness-ranking", prompt: "谁最可信，谁最不可信？", prerequisiteFlags: ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"], options: memories.map((memory) => ({ id: memory.id, label: memory.label, outputFlag: `front.trust.${memory.id}` })) }],

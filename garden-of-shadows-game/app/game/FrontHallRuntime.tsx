@@ -9,7 +9,7 @@ import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, D
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { FrontHallScene, type FrontHallInteractable } from "./runtime/FrontHallScene";
 
-type FrontPhase = "loading" | "dialogue" | "playing" | "ranking" | "complete" | "error";
+type FrontPhase = "loading" | "dialogue" | "transition" | "playing" | "ranking" | "complete" | "error";
 
 interface FrontHallRuntimeProps {
   chapter: ChapterManifest;
@@ -26,6 +26,18 @@ const marks = ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "
 const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
   if (!flags.includes("front.mark.painter")) return { title: "检查未完成的画", detail: "保持柳生证词，沿主走廊找到画架。", targetId: "painter-easel" as const };
+  if (!flags.includes("front.contradiction.painted-door")) {
+    const observed = checkpoint.observedBy["painted-door"] ?? [];
+    return observed.includes("painter")
+      ? { title: "用账房证词核对画中门", detail: "按 Tab 切到账房证词，在同一幅画前再次按 F。", targetId: "painted-door" as const }
+      : { title: "记录画中多出的门", detail: "保持柳生证词，在画架右侧勘验那扇现实中不存在的门。", targetId: "painted-door" as const };
+  }
+  if (!flags.includes("front.contradiction.vanishing-corridor")) {
+    const observed = checkpoint.observedBy["vanishing-corridor"] ?? [];
+    return observed.includes("painter")
+      ? { title: "用夫人证词恢复来路", detail: "按 Tab 切到夫人证词，在白墙原位再次按 F。", targetId: "vanishing-corridor" as const }
+      : { title: "让走廊在身后消失", detail: "切回柳生证词，走进中庭后回头检查白墙。", targetId: "vanishing-corridor" as const };
+  }
   if (!flags.includes("front.mark.wife")) return { title: "找回丢失的玉佩", detail: "按 Tab 切到夫人证词，进入右侧偏厅。", targetId: "wife-jade" as const };
   if (!flags.includes("front.mark.gardener")) return { title: "取出园艺剪", detail: "按 Tab 切到园丁证词，检查中庭左侧假山。", targetId: "gardener-shears" as const };
   if (!flags.includes("front.mark.accountant")) return { title: "找到夹页", detail: "按 Tab 切到账房证词，检查中庭右侧案台。", targetId: "accountant-page" as const };
@@ -65,6 +77,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [rankingMost, setRankingMost] = useState<MemoryId>();
+  const [transitionMemory, setTransitionMemory] = useState<MemoryId>();
   const [error, setError] = useState("");
 
   const setPhase = useCallback((next: FrontPhase) => { phaseRef.current = next; setPhaseState(next); }, []);
@@ -92,12 +105,21 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   }, []);
 
   const changeMemory = useCallback((next: MemoryId) => {
+    keysRef.current.clear();
+    document.exitPointerLock?.();
+    setTransitionMemory(next);
+    setPhase("transition");
     memoryRef.current = next;
     setMemoryState(next);
     runtimeRef.current?.world.setMemory(next);
     persistCheckpoint((current) => ({ ...current, memoryId: next }));
     setSubtitle(`${memoryName[next]}覆盖前厅：同一个位置，现在服从另一套记忆。`);
-  }, [persistCheckpoint]);
+    window.setTimeout(() => {
+      setTransitionMemory(undefined);
+      setPhase("playing");
+      requestPointerLock();
+    }, 920);
+  }, [persistCheckpoint, requestPointerLock, setPhase]);
 
   const startDialogue = useCallback((id: string) => {
     const sequence = chapter.dialogueSequences?.find((item) => item.id === id);
@@ -136,7 +158,30 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
     persistCheckpoint((current) => ({ ...current, dialogueProgress: undefined, earnedFlags: sequence.completionFlag ? unique([...current.earnedFlags, sequence.completionFlag]) : current.earnedFlags }));
     if (sequence.id === "front-painting") {
       addFlags("front.mark.painter");
-      setSubtitle("画作印记已记录。按 Tab 切换夫人证词，去右侧偏厅寻找玉佩。");
+      setSubtitle("画作印记已记录。先在柳生证词中勘验画里多出的门，再切到账房证词复查。");
+      setPhase("playing");
+      requestPointerLock();
+    } else if (sequence.id === "front-door-proof") {
+      setSubtitle("画中门已经由柳生与账房两份证词确认。现在走入中庭，让来路在身后消失。");
+      setPhase("playing");
+      requestPointerLock();
+    } else if (sequence.id === "front-corridor-proof") {
+      setSubtitle("两处勘误成立，白墙失去封路权。三枚角色印记已经在各自证词中显形。");
+      setPhase("playing");
+      requestPointerLock();
+    } else if (sequence.id === "front-wife-jade") {
+      addFlags("front.mark.wife");
+      setSubtitle("夫人的玉佩已记录。接下来切到园丁证词，检查中庭左侧假山。");
+      setPhase("playing");
+      requestPointerLock();
+    } else if (sequence.id === "front-gardener-shears") {
+      addFlags("front.mark.gardener");
+      setSubtitle("园艺剪已记录。切到账房证词，检查中庭右侧的靛蓝案台。");
+      setPhase("playing");
+      requestPointerLock();
+    } else if (sequence.id === "front-accountant-page") {
+      addFlags("front.mark.accountant");
+      setSubtitle("四枚印记已经齐全。继续走到东院门前，操作四面锁。");
       setPhase("playing");
       requestPointerLock();
     } else if (sequence.id === "front-lock") {
@@ -152,25 +197,31 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   const observeContradiction = useCallback((id: "painted-door" | "vanishing-corridor") => {
     const contradiction = chapter.contradictions.find((item) => item.id === id);
     if (!contradiction) return;
+    const wasConfirmed = checkpointRef.current.contradictions.includes(id);
     const next = persistCheckpoint((current) => {
       const observed = unique([...(current.observedBy[id] ?? []), memoryRef.current]);
       const confirmed = contradiction.requiredIndependentTestimonies.every((required) => observed.includes(required));
       return { ...current, observedBy: { ...current.observedBy, [id]: observed }, contradictions: confirmed ? unique([...current.contradictions, id]) : current.contradictions, earnedFlags: confirmed ? unique([...current.earnedFlags, contradiction.outputFlag]) : current.earnedFlags };
     });
-    setSubtitle(next.contradictions.includes(id) ? `${contradiction.label}已由两份证词确认。` : `已记录 1/2。切换证词，在同一位置再次勘验。`);
-  }, [chapter.contradictions, persistCheckpoint]);
+    if (next.contradictions.includes(id) && !wasConfirmed) {
+      startDialogue(id === "painted-door" ? "front-door-proof" : "front-corridor-proof");
+    } else {
+      const requiredNext = id === "painted-door" ? "账房" : "夫人";
+      setSubtitle(next.contradictions.includes(id) ? `${contradiction.label}已经完成勘误。` : `已记录 1/2。按 Tab 切到${requiredNext}证词，在同一位置再次勘验。`);
+    }
+  }, [chapter.contradictions, persistCheckpoint, startDialogue]);
 
   const interact = useCallback(() => {
     if (phaseRef.current !== "playing") return;
     const item = nearestRef.current;
     if (!item) return;
     if (item.id === "painter-easel") startDialogue("front-painting");
-    else if (item.id === "wife-jade") { addFlags("front.mark.wife"); setSubtitle("玉佩仍在梳妆台上。夫人所谓‘丢失’，是从证词里删除，不是从空间里消失。"); }
-    else if (item.id === "gardener-shears") { addFlags("front.mark.gardener"); setSubtitle("园艺剪藏在偏移的假山里。死循环被勘误后，它仍保留案发当晚的湿泥。"); }
-    else if (item.id === "accountant-page") { addFlags("front.mark.accountant"); setSubtitle("夹页记着东院门轴的修缮款。账房的数字早已走进前厅。"); }
+    else if (item.id === "wife-jade") startDialogue("front-wife-jade");
+    else if (item.id === "gardener-shears") startDialogue("front-gardener-shears");
+    else if (item.id === "accountant-page") startDialogue("front-accountant-page");
     else if (item.id === "painted-door" || item.id === "vanishing-corridor") observeContradiction(item.id);
     else if (item.id === "fourfold-lock") startDialogue("front-lock");
-  }, [addFlags, observeContradiction, startDialogue]);
+  }, [observeContradiction, startDialogue]);
 
   const chooseRanking = useCallback((choice: MemoryId) => {
     if (!rankingMost) { setRankingMost(choice); return; }
@@ -203,7 +254,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
       keysRef.current.add(event.code);
       if (phaseRef.current === "playing" && !event.repeat) {
         const tap = new THREE.Vector3(event.code === "KeyD" ? 1 : event.code === "KeyA" ? -1 : 0, 0, event.code === "KeyS" ? 1 : event.code === "KeyW" ? -1 : 0);
-        if (tap.lengthSq() > 0) { tap.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(.18); playerRef.current.add(tap); world.constrain(playerRef.current); }
+        if (tap.lengthSq() > 0) { const previousZ = playerRef.current.z; tap.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(.18 * world.movementScale(playerRef.current, memoryRef.current)); playerRef.current.add(tap); world.constrain(playerRef.current, memoryRef.current, previousZ); }
         if (event.code === "ArrowLeft") yawRef.current += .08;
         if (event.code === "ArrowRight") yawRef.current -= .08;
       }
@@ -238,11 +289,13 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
           const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
           yawRef.current -= turn * 1.8 * delta;
           const input = new THREE.Vector3((keysRef.current.has("KeyD") ? 1 : 0) - (keysRef.current.has("KeyA") ? 1 : 0), 0, (keysRef.current.has("KeyS") ? 1 : 0) - (keysRef.current.has("KeyW") ? 1 : 0));
-          if (input.lengthSq() > 0) { input.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(delta * (keysRef.current.has("ShiftLeft") ? 5.4 : 3.25)); playerRef.current.add(input); world.constrain(playerRef.current); }
+          if (input.lengthSq() > 0) { const previousZ = playerRef.current.z; input.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(delta * (keysRef.current.has("ShiftLeft") ? 5.4 : 3.25) * world.movementScale(playerRef.current, memoryRef.current)); playerRef.current.add(input); world.constrain(playerRef.current, memoryRef.current, previousZ); }
         }
-        world.camera.position.copy(playerRef.current);
-        world.camera.rotation.set(pitchRef.current, yawRef.current, 0);
+        world.setEvidenceFlags(checkpointRef.current.earnedFlags);
         world.update(delta, playerRef.current.z);
+        world.camera.position.copy(playerRef.current);
+        world.camera.position.y += world.cameraLift(playerRef.current, memoryRef.current);
+        world.camera.rotation.set(pitchRef.current, yawRef.current, world.cameraRoll(playerRef.current, memoryRef.current));
         const nextArea = playerRef.current.z > 0 ? "慢时前厅" : playerRef.current.z < -8 ? "快时中庭" : "主走廊";
         if (nextArea !== areaRef.current) { areaRef.current = nextArea; setArea(nextArea); }
         const available = world.availableInteractables(memoryRef.current, checkpointRef.current.earnedFlags);
@@ -276,6 +329,8 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   const markCount = marks.filter((flag) => checkpoint.earnedFlags.includes(flag)).length;
   const testSteps = [
     { label: "柳生证词：检查画中多出的门", done: checkpoint.earnedFlags.includes("front.mark.painter") },
+    { label: "柳生＋账房：确认画中门真实存在", done: checkpoint.earnedFlags.includes("front.contradiction.painted-door") },
+    { label: "柳生＋夫人：确认回头消失的走廊", done: checkpoint.earnedFlags.includes("front.contradiction.vanishing-corridor") },
     { label: "夫人证词：偏厅取回玉佩", done: checkpoint.earnedFlags.includes("front.mark.wife") },
     { label: "园丁证词：假山取出园艺剪", done: checkpoint.earnedFlags.includes("front.mark.gardener") },
     { label: "账房证词：中庭找到账页夹页", done: checkpoint.earnedFlags.includes("front.mark.accountant") },
@@ -287,6 +342,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
     <main className={`runtime runtime-${memory} runtime-front-hall`}>
       <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} aria-label="第三章前厅访客三维场景" />
       <div className="vignette" aria-hidden="true" />
+      {transitionMemory && <div className="memory-shift" role="status"><i /><strong>{memoryName[transitionMemory]}</strong><small>空间法则正在重写</small></div>}
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>CHAPTER 03</span><strong>前厅访客</strong></div>
@@ -297,7 +353,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
         <div className="chapter-test-route"><b>第三章测试路线 · {testSteps.filter((step) => step.done).length}/{testSteps.length}</b><ol>{testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}</ol></div>
       </section>
       <section className="case-progress"><span>FOURFOLD LOCK</span><strong>{markCount} / 4 枚印记</strong><small>空间矛盾 {checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length} / {chapter.contradictions.length}</small></section>
-      <section className="memory-card"><span>ACTIVE TESTIMONY</span><strong>{memoryName[memory]}</strong><small>Tab 切换柳生、夫人、园丁、账房。偏厅仅在柳生视角出现低重力漂浮。</small></section>
+      <section className="memory-card"><span>ACTIVE TESTIMONY</span><strong>{memoryName[memory]}</strong><small>{area === "慢时前厅" ? "时间流速 ×0.62：脚步与钟摆都被等待拖慢。" : area === "快时中庭" ? "时间流速 ×1.28：离开的记忆正在催促你。" : memory === "painter" ? "偏厅低重力；跨入中庭后，柳生的来路会变成白墙。" : "Tab 切换柳生、夫人、园丁、账房四份证词。"}</small></section>
       {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
       {subtitle && phase === "playing" && <div className="bark-subtitle"><p><b>勘验记录</b>{subtitle}</p></div>}
       <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验 · Tab 切换四份证词 · Shift 加速</div>

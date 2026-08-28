@@ -120,6 +120,15 @@ a { color: inherit; text-decoration: none; }
 .runtime-accountant .memory-card { border-left-color: #73a9c6; }
 .runtime-painter .memory-card { border-left-color: #b88cba; }
 .runtime-front-hall .vignette { background: radial-gradient(circle, transparent 40%, rgba(20,8,25,.58) 100%), linear-gradient(0deg, rgba(5,3,8,.74), transparent 24%, rgba(110,58,92,.1)); }
+.memory-shift { position: absolute; z-index: 65; inset: 0; display: grid; place-content: center; justify-items: center; gap: 9px; overflow: hidden; pointer-events: none; background: rgba(7,4,10,.78); animation: memory-shift-veil .92s ease-in-out both; }
+.memory-shift::before, .memory-shift::after { content: ""; position: absolute; inset: -25%; background: repeating-conic-gradient(from 18deg at 50% 50%, transparent 0 8deg, rgba(229,214,183,.13) 9deg 9.6deg, transparent 10deg 18deg); animation: memory-shift-crack .92s ease-out both; }
+.memory-shift::after { transform: rotate(17deg) scale(1.15); opacity: .45; }
+.memory-shift > i { width: 92px; height: 92px; border: 1px solid rgba(215,193,141,.52); border-radius: 50%; box-shadow: 0 0 70px rgba(146,101,153,.45), inset 0 0 32px rgba(215,193,141,.16); animation: memory-shift-ring .92s ease-in-out both; }
+.memory-shift strong { color: #eee2cb; font-size: 28px; font-weight: 400; letter-spacing: .14em; text-shadow: 0 4px 26px #000; }
+.memory-shift small { color: #9c8a9f; font: 9px Arial, sans-serif; letter-spacing: .22em; }
+@keyframes memory-shift-veil { 0%,100% { opacity: 0; } 24%,72% { opacity: 1; } }
+@keyframes memory-shift-crack { 0% { opacity: 0; clip-path: circle(0 at 50% 50%); } 45%,70% { opacity: 1; clip-path: circle(76% at 50% 50%); } 100% { opacity: 0; clip-path: circle(100% at 50% 50%); } }
+@keyframes memory-shift-ring { 0% { opacity: 0; transform: scale(.2); } 48% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(2.2); } }
 .front-ranking .choice-stack { grid-template-columns: 1fr 1fr; }
 .front-ranking .choice-stack button { display: grid; gap: 6px; }
 .front-ranking .choice-stack strong { color: #e0d6c2; font-weight: 400; }
