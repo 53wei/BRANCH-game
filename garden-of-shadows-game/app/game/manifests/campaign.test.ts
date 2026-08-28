@@ -10,8 +10,8 @@ describe("campaign manifest", () => {
     expect(campaignManifest.chapters.map((chapter) => chapter.index)).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
-  it("marks the first and second chapter prototypes as playable", () => {
-    expect(campaignManifest.chapters.filter((chapter) => chapter.status === "playable").map((chapter) => chapter.id)).toEqual(["west-corridor-loop", "north-tower-ledger"]);
+  it("marks the first three chapter prototypes as playable", () => {
+    expect(campaignManifest.chapters.filter((chapter) => chapter.status === "playable").map((chapter) => chapter.id)).toEqual(["west-corridor-loop", "north-tower-ledger", "front-hall-guest"]);
   });
 
   it("does not ship an approved asset without release metadata", () => {

@@ -1,5 +1,6 @@
 import type { CampaignManifest, ChapterManifest } from "../types";
 import { northTowerChapter } from "./north-tower-ledger";
+import { frontHallChapter } from "./front-hall-guest";
 import { westCorridorChapter } from "./west-corridor";
 
 const planned = (
@@ -46,7 +47,7 @@ const chapters: ChapterManifest[] = [
   prologue,
   westCorridorChapter,
   northTowerChapter,
-  planned("front-hall-guest", 3, "第三章·前厅访客", "四份证词第一次同时展开", "在四套空间法则中收集四枚印记，打开通往东院的四面锁。", "north-tower-ledger", ["north.chapter.complete"]),
+  frontHallChapter,
   planned("sealed-pavilion", 4, "第四章·水榭密室", "四种入口只有一条能够自洽", "保留至少两条进入水榭的路径，并核对四份完全不同的死亡现场。", "front-hall-guest", ["front-hall-guest.complete"]),
   planned("mirror-self", 5, "终章·镜中我", "第五份证词来自勘验人自己", "在倒流的镜廊中修正记忆片段，并决定接受还是继续否认。", "sealed-pavilion", ["sealed-pavilion.complete"]),
 ];
