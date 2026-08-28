@@ -1,8 +1,8 @@
 {
-  "status": "pending-visual-validation",
+  "status": "pending-user-visual-acceptance",
   "layoutVersion": "tingyuxuan-v1.2",
   "approvedAt": null,
-  "blockingReason": "The formal TingYuXuan runtime must be rebuilt, executed and reviewed through the five-screenshot visual gate before release approval.",
+  "blockingReason": "Five formal WebGL2 screenshots and runtime telemetry were captured. User visual acceptance and measured performance follow-up are still required before release approval.",
   "gates": {
     "license": {
       "ccBySources": 6,
@@ -11,17 +11,18 @@
       "status": "audited"
     },
     "functional": {
-      "testSuite": "requires-current-run",
-      "typecheck": "requires-current-run",
-      "lint": "requires-current-run",
-      "productionBuild": "requires-current-run",
-      "chapterRouteContract": "implemented-awaiting-current-run"
+      "testSuite": "passed-36-of-36",
+      "typecheck": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "chapterRouteContract": "passed"
     },
     "visual": {
       "beforeScreenshots": 1,
       "requiredAfterScreenshots": 5,
-      "capturedAfterScreenshots": 0,
-      "formalTingYuXuan": "pending",
+      "capturedAfterScreenshots": 5,
+      "formalTingYuXuan": "captured-pending-user-visual-acceptance",
+      "comparison": "docs/visual-regression/after/phase-one-comparison.jpg",
       "assetPreview": "source-and-runtime-preview-implemented",
       "credits": "implemented"
     },
@@ -29,13 +30,19 @@
       "policy": "measure-fidelity-first-optimize-second",
       "referenceMaxStaticMiB": 25,
       "referencePreloadMiB": 18,
-      "chapterPreloadMiB": null,
-      "runtimeFiles": null,
-      "capturedMetrics": null,
-      "meshoptKtx2": "pipeline-configured-awaiting-current-assets-prepare"
+      "chapterPreloadMiB": 98.72,
+      "runtimeFiles": 10,
+      "capturedMetrics": {
+        "renderer": "webgl2",
+        "fpsRange": [21.3, 34.9],
+        "drawCallsRange": [108, 360],
+        "renderedTrianglesRange": [1225691, 1792831],
+        "sourceGeometryPreserved": true
+      },
+      "meshoptKtx2": "derivative-assets-generated; two formal source models remain source-faithful until measured texture-colourspace compatibility work"
     },
     "browsers": {
-      "webgl2": "requires-current-visual-capture",
+      "webgl2": "verified-five-shot-capture",
       "webgpuPath": "implemented-not-currently-reverified",
       "recoverableAssetErrorPath": "implemented"
     }

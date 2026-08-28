@@ -2,7 +2,7 @@ import * as THREE from "three/webgpu";
 import type { MemoryId, MemoryLayer } from "../types";
 import { RuntimeAssetLoader, type RuntimeAssetId } from "./RuntimeAssetLoader";
 import { createUnifiedMaterials, hydrateUnifiedMaterials } from "./UnifiedMaterials";
-import { resolveLayoutZonesForPoint, TINGYUXUAN_RUNTIME_ZONES, tingYuXuanFallbackPlacements, tingYuXuanLayout, type LayoutPlacement, type LayoutZone } from "./tingyuxuan-layout";
+import { placementLoadsInZones, resolveLayoutZonesForPoint, TINGYUXUAN_RUNTIME_ZONES, tingYuXuanFallbackPlacements, tingYuXuanLayout, type LayoutPlacement, type LayoutZone } from "./tingyuxuan-layout";
 
 export interface SceneInteractable {
   id: string;
@@ -67,6 +67,7 @@ export class TingYuXuanScene {
   private elapsed = 0;
   private readonly loadedDeferredPlacementIds = new Set<string>();
   private readonly pendingDeferredPlacementIds = new Set<string>();
+  private deferredLoadQueue: Promise<void> = Promise.resolve();
   private materialHydrationPromise?: Promise<void>;
   private lastAreaSignature = "";
 
@@ -95,7 +96,11 @@ export class TingYuXuanScene {
     this.proceduralDressing.add(courtyardFill);
     this.memoryLight = new THREE.PointLight("#e2b677", 20, 28, 1.5);
     this.memoryLight.position.set(-4, 3.2, 8);
-    this.memoryLight.castShadow = quality !== "low";
+    // A shadow-casting point light renders six shadow-map faces. In the first
+    // source-faithful browser capture this multiplied the untouched Siheyuan
+    // into ~4.9M rendered triangles by itself. Keep the atmospheric fill while
+    // the directional moon key provides the formal architecture shadow.
+    this.memoryLight.castShadow = false;
     this.scene.add(this.memoryLight);
     const moonLight = new THREE.PointLight("#d99b4c", quality === "low" ? 5 : 9, 13, 1.7);
     moonLight.position.set(2, 2.4, -18.5);
@@ -150,11 +155,39 @@ export class TingYuXuanScene {
     return new TingYuXuanScene(layers, quality, loader, fallbackEnabled);
   }
 
+  private prepareFormalVisual(object: THREE.Object3D, placement: LayoutPlacement) {
+    const clonedMaterials = new Map<THREE.Material, THREE.Material>();
+    object.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      child.castShadow = this.quality === "high" && placement.assetId !== "tyx-nat-quaternius-set-a";
+      child.receiveShadow = this.quality !== "low";
+      const sourceMaterials = Array.isArray(child.material) ? child.material : [child.material];
+      const prepared = sourceMaterials.map((source) => {
+        const cached = clonedMaterials.get(source);
+        if (cached) return cached;
+        const material = source.clone();
+        if (material instanceof THREE.MeshStandardMaterial && !material.transparent) {
+          const name = material.name.toLowerCase();
+          const foliage = /leaf|grass|plant|foliage|flower|bush/.test(name);
+          material.roughness = foliage
+            ? Math.max(0.48, material.roughness)
+            : Math.max(0.2, Math.min(0.82, material.roughness * 0.74));
+          material.envMapIntensity = foliage ? 0.8 : 1.15;
+          material.needsUpdate = true;
+        }
+        clonedMaterials.set(source, material);
+        return material;
+      });
+      child.material = Array.isArray(child.material) ? prepared : prepared[0];
+    });
+    return object;
+  }
+
   async loadDeferredAssets(zones: LayoutZone[]) {
     const allowedZones = new Set(zones);
     const placements = tingYuXuanLayout.placements.filter((placement) =>
       placement.load === "deferred"
-      && allowedZones.has(placement.zone)
+      && placementLoadsInZones(placement, allowedZones)
       && !this.loadedDeferredPlacementIds.has(placement.id)
       && !this.pendingDeferredPlacementIds.has(placement.id));
 
@@ -171,12 +204,10 @@ export class TingYuXuanScene {
         this.materialHydrationPromise,
       ]);
       placements.forEach((placement) => {
-        const object = placeObject(this.assetLoader.clone(placement.assetId, placement.nodeName), placement);
-        object.traverse((child) => {
-          if (!(child instanceof THREE.Mesh)) return;
-          child.castShadow = this.quality === "high" && placement.zone !== "water-court";
-          child.receiveShadow = this.quality !== "low";
-        });
+        const object = this.prepareFormalVisual(
+          placeObject(this.assetLoader.clone(placement.assetId, placement.nodeName), placement),
+          placement,
+        );
         this.visualAssets.add(object);
         this.loadedDeferredPlacementIds.add(placement.id);
       });
@@ -186,25 +217,28 @@ export class TingYuXuanScene {
   }
 
   async ensureAreaAssets(point: { x: number; z: number }) {
-    const allowed = new Set<LayoutZone>(TINGYUXUAN_RUNTIME_ZONES);
-    const zones = resolveLayoutZonesForPoint(point).filter((zone) => allowed.has(zone));
-    const signature = zones.slice().sort().join("|");
-    if (signature === this.lastAreaSignature && zones.every((zone) =>
-      tingYuXuanLayout.placements
-        .filter((placement) => placement.load === "deferred" && placement.zone === zone)
-        .every((placement) => this.loadedDeferredPlacementIds.has(placement.id)))) return;
-    await this.loadDeferredAssets(zones);
-    this.lastAreaSignature = signature;
+    const request = this.deferredLoadQueue.then(async () => {
+      const allowed = new Set<LayoutZone>(TINGYUXUAN_RUNTIME_ZONES);
+      const zones = resolveLayoutZonesForPoint(point).filter((zone) => allowed.has(zone));
+      const signature = zones.slice().sort().join("|");
+      const activeZones = new Set<LayoutZone>(zones);
+      const allAreaPlacementsLoaded = tingYuXuanLayout.placements
+        .filter((placement) => placement.load === "deferred" && placementLoadsInZones(placement, activeZones))
+        .every((placement) => this.loadedDeferredPlacementIds.has(placement.id));
+      if (signature === this.lastAreaSignature && allAreaPlacementsLoaded) return;
+      await this.loadDeferredAssets(zones);
+      this.lastAreaSignature = signature;
+    });
+    this.deferredLoadQueue = request.catch(() => undefined);
+    return request;
   }
 
   private buildPreloadedArchitecture() {
     tingYuXuanLayout.placements.filter((placement) => placement.load === "preload").forEach((placement) => {
-      const object = placeObject(this.assetLoader.clone(placement.assetId, placement.nodeName), placement);
-      object.traverse((child) => {
-        if (!(child instanceof THREE.Mesh)) return;
-        child.castShadow = this.quality === "high";
-        child.receiveShadow = this.quality !== "low";
-      });
+      const object = this.prepareFormalVisual(
+        placeObject(this.assetLoader.clone(placement.assetId, placement.nodeName), placement),
+        placement,
+      );
       this.visualAssets.add(object);
     });
   }
@@ -264,6 +298,11 @@ export class TingYuXuanScene {
     const pondFloor = new THREE.Mesh(new THREE.BoxGeometry(10.8, 0.12, 14.2), this.materials["stone-moss"]);
     pondFloor.position.set(10, -0.22, -29);
     this.proceduralDressing.add(pondFloor);
+    const pavilionDeck = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.16, 3.8), this.materials["stone-wet"]);
+    pavilionDeck.name = "PavilionStoneDeck";
+    pavilionDeck.position.set(10, 0.02, -32);
+    pavilionDeck.receiveShadow = true;
+    this.proceduralDressing.add(pavilionDeck);
 
     const bankMaterial = this.materials["stone-wet"];
     const banks: Array<[string, [number, number, number], [number, number, number]]> = [
@@ -293,12 +332,14 @@ export class TingYuXuanScene {
   }
 
   private buildDressing() {
-    const lanternMaterial = this.materials["wood-painted-old"];
     for (const [x, z] of [[0, 27], [0, 20], [-8, 10], [-8, 2], [2, -8], [2, -16]] as const) {
-      const lantern = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.2, 0.52, 12), lanternMaterial);
-      lantern.position.set(x - 1.15, 2.45, z);
-      this.proceduralDressing.add(lantern);
+      // The old CylinderGeometry lantern body read as a floating black proxy
+      // against the source-faithful architecture. Keep only the authored
+      // atmosphere light until a real lantern asset is selected.
       const light = new THREE.PointLight("#d98a43", this.quality === "low" ? 3.5 : 7, 7, 1.9);
+      light.name = `LanternLight_${x}_${z}`;
+      light.userData.baseIntensity = light.intensity;
+      light.userData.flickerPhase = (Math.abs(x * 17 + z * 11) % 19) * 0.37;
       light.position.set(x - 1.1, 2.25, z);
       this.proceduralDressing.add(light);
     }
@@ -316,6 +357,9 @@ export class TingYuXuanScene {
       [3.0, -22.6, -0.18], [4.2, -23.1, -0.26], [5.3, -23.8, -0.35],
       [6.25, -24.6, -0.28], [7.15, -25.25, -0.12],
     ].forEach(([x, z, rotation], index) => addSlab(`WaterApproach_${index}`, x, z, 1.45, 0.82, rotation));
+    [
+      [7.35, -28.65, -0.12], [8.05, -29.45, -0.48], [8.85, -30.15, -0.62], [9.55, -30.75, -0.7],
+    ].forEach(([x, z, rotation], index) => addSlab(`PavilionCauseway_${index}`, x, z, 1.35, 0.76, rotation));
 
     [
       [8.8, -20.2, 0.35], [10.1, -19.55, 0.45], [11.25, -18.75, 0.58],
@@ -444,6 +488,12 @@ export class TingYuXuanScene {
       this.guidanceMarker.scale.set(pulse, 1, pulse);
       this.guidanceMarker.rotation.y = this.elapsed * 0.35;
     }
+    this.proceduralDressing.children.forEach((child) => {
+      if (!(child instanceof THREE.PointLight) || !child.name.startsWith("LanternLight_")) return;
+      const base = Number(child.userData.baseIntensity ?? child.intensity);
+      const phase = Number(child.userData.flickerPhase ?? 0);
+      child.intensity = base * (0.94 + Math.sin(this.elapsed * 5.7 + phase) * 0.035 + Math.sin(this.elapsed * 2.1 + phase * 0.7) * 0.02);
+    });
     this.waterMaterial.opacity = 0.865 + Math.sin(this.elapsed * 0.55) * 0.025;
     this.waterRipples.children.forEach((child, index) => {
       const phase = (this.elapsed * 0.34 + index * 0.8) % 2.4;

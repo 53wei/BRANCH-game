@@ -27,7 +27,8 @@ SOURCES = {
     "house": os.path.join(SOURCE_ROOT, "ancient-chinese-courtyard-house", "ancient_chinese_courtyard_house.glb"),
     "park": os.path.join(SOURCE_ROOT, "ancient-chinese-courtyard-park", "ancient_chinese_courtyard_park.glb"),
     "pavilion": os.path.join(SOURCE_ROOT, "chinese-pavilion-memoriam", "chinese_pavilion_memoriam.glb"),
-    "bridge": os.path.join(WORKING_ROOT, "preview", "low_bridge_metalrough.glb"),
+    "pavilion_b": os.path.join(SOURCE_ROOT, "chinese-pavilion", "chinese_pavilion.glb"),
+    "bridge": os.path.join(SOURCE_ROOT, "low-bridge", "low_bridge.glb"),
     "siheyuan": os.path.join(SOURCE_ROOT, "traditional-chinese-siheyuan-courtyard", "traditional_chinese_siheyuan_courtyard.glb"),
 }
 
@@ -304,6 +305,16 @@ def build_pavilion():
     export_root(root, "TYX_ARCH_Pavilion_A.glb", "chinese-pavilion-memoriam", "landscape and water removed; pavilion normalized to 9 m span")
 
 
+def build_pavilion_b():
+    reset_scene()
+    imported = import_glb(SOURCES["pavilion_b"])
+    remove_matching(imported, ["camera", "light"])
+    imported = list(bpy.context.scene.objects)
+    root = create_root("TYX_ARCH_Pavilion_B", imported)
+    normalize_root(root, imported, 8.0)
+    export_root(root, "TYX_ARCH_Pavilion_B.glb", "chinese-pavilion", "pivot repaired, grounded and normalized to 8 m horizontal span; reserved scenic pavilion")
+
+
 def build_bridge():
     reset_scene()
     imported = import_glb(SOURCES["bridge"])
@@ -311,7 +322,7 @@ def build_bridge():
     imported = list(bpy.context.scene.objects)
     root = create_root("TYX_GMP_Bridge_Low_A", imported)
     normalize_root(root, imported, 6.0)
-    export_root(root, "TYX_GMP_Bridge_Low_A.glb", "low-bridge", "spec/gloss converted non-destructively; bridge normalized to 6 m span")
+    export_root(root, "TYX_GMP_Bridge_Low_A.glb", "low-bridge", "source GLB imported into Blender and re-exported as metallic-roughness working derivative; bridge normalized to 6 m span")
 
 
 def build_rocks():
@@ -359,7 +370,7 @@ def build_moon_gate_collision():
 
 
 try:
-    for builder in (build_house, build_pavilion, build_bridge, build_rocks, build_fallback_kit, build_moon_gate_collision):
+    for builder in (build_house, build_pavilion, build_pavilion_b, build_bridge, build_rocks, build_fallback_kit, build_moon_gate_collision):
         builder()
     with open(REPORT_PATH, "w", encoding="utf-8") as report_file:
         json.dump(REPORT, report_file, ensure_ascii=False, indent=2)

@@ -21,8 +21,12 @@ const assets = [
     preload: true,
     sourceRelativePath: "assets-source/manual-downloads/traditional-chinese-siheyuan-courtyard/traditional_chinese_siheyuan_courtyard.glb",
     workingRelativePath: "assets-source/blender-working/fidelity/TYX_ARCH_Siheyuan_Source_A.glb",
-    preserveUncompressed: false,
-    optimizationStage: "optimized-runtime",
+    // Phase-one visual validation must begin with the audited source geometry
+    // and textures. The current Sketchfab texture colourspace trips the local
+    // UASTC/libvips conversion, so compression remains a later measured step
+    // instead of becoming a gate that prevents the real model from loading.
+    preserveUncompressed: true,
+    optimizationStage: "source-faithful-runtime",
   },
   {
     id: "tyx-env-courtyard-park-source-a",
@@ -32,8 +36,8 @@ const assets = [
     preload: false,
     sourceRelativePath: "assets-source/manual-downloads/ancient-chinese-courtyard-park/ancient_chinese_courtyard_park.glb",
     workingRelativePath: "assets-source/blender-working/fidelity/TYX_ENV_Courtyard_Park_Source_A.glb",
-    preserveUncompressed: false,
-    optimizationStage: "optimized-runtime",
+    preserveUncompressed: true,
+    optimizationStage: "source-faithful-runtime",
   },
   {
     id: "tyx-arch-greybox-fallback-a",
@@ -63,6 +67,13 @@ const assets = [
     preload: false,
   },
   {
+    id: "tyx-arch-pavilion-b",
+    file: "TYX_ARCH_Pavilion_B.glb",
+    output: "public/assets/architecture/TYX_ARCH_Pavilion_B.glb",
+    sources: ["chinese-pavilion"],
+    preload: false,
+  },
+  {
     id: "tyx-gmp-bridge-low-a",
     file: "TYX_GMP_Bridge_Low_A.glb",
     output: "public/assets/gameplay/TYX_GMP_Bridge_Low_A.glb",
@@ -75,7 +86,7 @@ const assets = [
     file: "TYX_GMP_MoonGate_Collision.glb",
     output: "public/assets/gameplay/TYX_GMP_MoonGate_Collision.glb",
     sources: ["project-authored"],
-    preload: true,
+    preload: false,
     preserveUncompressed: true,
   },
   {

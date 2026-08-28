@@ -38,7 +38,10 @@ export function devAssetPreviewPlugin(): Plugin {
   const catalogPath = path.join(docsRoot, "downloaded-3d-assets.json");
   const runtimeCatalogPath = path.join(docsRoot, "runtime-assets.json");
   const compatibilityFiles: Record<string, string> = {
-    "low-bridge": path.join(projectRoot, "assets-source", "blender-working", "preview", "low_bridge_metalrough.glb"),
+    // Generated reproducibly by scripts/assets/build_runtime_assets.py from the
+    // untouched audited Low Bridge source. Blender import/export performs the
+    // legacy Spec/Gloss -> metallic-roughness compatibility conversion.
+    "low-bridge": path.join(projectRoot, "assets-source", "blender-working", "runtime-raw", "TYX_GMP_Bridge_Low_A.glb"),
   };
   const runtimeWorkingFiles: Record<string, string> = {
     "traditional-chinese-siheyuan-courtyard": path.join(projectRoot, "assets-source", "blender-working", "fidelity", "TYX_ARCH_Siheyuan_Source_A.glb"),

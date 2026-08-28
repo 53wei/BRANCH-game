@@ -37,7 +37,7 @@ export const westCorridorChapter: ChapterManifest = {
     id: "tingyuxuan-v1.2",
     initialBudgetMb: 18, // 发布参考值；第一阶段正式视觉验收不作为真实模型前置否决门禁。
     preload: ["/assets/fidelity/architecture/TYX_ARCH_Siheyuan_Source_A.glb", "/basis/basis_transcoder.js", "/basis/basis_transcoder.wasm"],
-    deferred: ["/assets/fidelity/environment/TYX_ENV_Courtyard_Park_Source_A.glb", "/assets/architecture/TYX_ARCH_House_A.glb", "/assets/architecture/TYX_ARCH_Pavilion_A.glb", "/assets/gameplay/TYX_GMP_Bridge_Low_A.glb", "/assets/nature/TYX_NAT_Rock_Set_A.glb", "/assets/nature/TYX_NAT_Quaternius_Set_A.glb"],
+    deferred: ["/assets/fidelity/environment/TYX_ENV_Courtyard_Park_Source_A.glb", "/assets/architecture/TYX_ARCH_House_A.glb", "/assets/architecture/TYX_ARCH_Pavilion_A.glb", "/assets/architecture/TYX_ARCH_Pavilion_B.glb", "/assets/gameplay/TYX_GMP_Bridge_Low_A.glb", "/assets/nature/TYX_NAT_Rock_Set_A.glb", "/assets/nature/TYX_NAT_Quaternius_Set_A.glb"],
   },
   spawnAnchor: "west-entry",
   memories: [wifeMemory, gardenerMemory],

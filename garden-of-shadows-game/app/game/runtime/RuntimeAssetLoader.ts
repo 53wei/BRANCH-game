@@ -9,6 +9,7 @@ export type RuntimeAssetId =
   | "tyx-arch-greybox-fallback-a"
   | "tyx-arch-house-a"
   | "tyx-arch-pavilion-a"
+  | "tyx-arch-pavilion-b"
   | "tyx-gmp-bridge-low-a"
   | "tyx-nat-rock-set-a"
   | "tyx-nat-quaternius-set-a";
@@ -19,6 +20,7 @@ export const runtimeAssetByteEstimates: Record<RuntimeAssetId, number> = {
   "tyx-arch-greybox-fallback-a": 1074276,
   "tyx-arch-house-a": 20093748,
   "tyx-arch-pavilion-a": 8626596,
+  "tyx-arch-pavilion-b": 4344904,
   "tyx-gmp-bridge-low-a": 2959164,
   "tyx-nat-rock-set-a": 2079652,
   "tyx-nat-quaternius-set-a": 3743932,
@@ -35,6 +37,7 @@ const runtimeAssetUrls: Record<RuntimeAssetId, string> = {
   "tyx-arch-greybox-fallback-a": "/assets/architecture/TYX_ARCH_Kit_A.glb",
   "tyx-arch-house-a": "/assets/architecture/TYX_ARCH_House_A.glb",
   "tyx-arch-pavilion-a": "/assets/architecture/TYX_ARCH_Pavilion_A.glb",
+  "tyx-arch-pavilion-b": "/assets/architecture/TYX_ARCH_Pavilion_B.glb",
   "tyx-gmp-bridge-low-a": "/assets/gameplay/TYX_GMP_Bridge_Low_A.glb",
   "tyx-nat-rock-set-a": "/assets/nature/TYX_NAT_Rock_Set_A.glb",
   "tyx-nat-quaternius-set-a": "/assets/nature/TYX_NAT_Quaternius_Set_A.glb",

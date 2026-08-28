@@ -18,12 +18,10 @@
     "visual:capture": "node scripts/visual/capture-regression.mjs",
     "visual:verify": "node scripts/visual/verify-regression.mjs",
     "visual:verify-release": "node scripts/visual/verify-regression.mjs --release",
-    "dialogue:compile": "inkjs-compiler app/game/narrative/west-onboarding.ink -o app/game/narrative/west-onboarding.json",
-    "validate:content": "vitest run app/game/narrative/dialogue.test.ts app/game/runtime/ObjectiveDirector.test.ts app/game/runtime/tingyuxuan-layout.test.ts app/game/runtime/chapter-behavior.test.ts app/game/runtime/west-chapter-walkthrough.test.ts app/game/manifests/campaign.test.ts app/game/campaign-save.test.ts",
     "dialogue:compile": "npm run dialogue:compile:west && npm run dialogue:compile:north",
     "dialogue:compile:west": "inkjs-compiler app/game/narrative/west-onboarding.ink -o app/game/narrative/west-onboarding.json",
     "dialogue:compile:north": "inkjs-compiler app/game/narrative/north-tower-ledger.ink -o app/game/narrative/north-tower-ledger.json",
-    "validate:content": "vitest run app/game/narrative/dialogue.test.ts app/game/runtime/ObjectiveDirector.test.ts app/game/manifests/campaign.test.ts app/game/manifests/north-tower-ledger.test.ts",
+    "validate:content": "vitest run app/game/narrative/dialogue.test.ts app/game/runtime/ObjectiveDirector.test.ts app/game/runtime/tingyuxuan-layout.test.ts app/game/runtime/chapter-behavior.test.ts app/game/runtime/west-chapter-walkthrough.test.ts app/game/manifests/campaign.test.ts app/game/campaign-save.test.ts app/game/manifests/north-tower-ledger.test.ts app/game/runtime/NorthTowerScene.test.ts",
     "prebuild": "npm run dialogue:compile && npm run validate:content",
     "build": "vinext build",
     "start": "vinext start",
@@ -69,4 +67,3 @@
     "wrangler": "4.92.0"
   }
 }
-

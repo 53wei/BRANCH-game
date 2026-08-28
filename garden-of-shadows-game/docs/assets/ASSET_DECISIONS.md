@@ -8,9 +8,9 @@
 |---|---|---|---|
 | ancient-chinese-courtyard-house | A | 低面数、结构简单，标准化比例后直接使用 | 北楼 / 内宅外轮廓、远景降级 |
 | ancient-chinese-courtyard-park | B | 保留真实园林外观；使用区域流式加载，不先用减面破坏视觉 | 西院、曲廊、园墙、框景与月洞门周边 |
-| chinese-pavilion | B | 坐标比例异常且偏重，仅保留备用 | 备用亭阁，不作为主水榭 |
+| chinese-pavilion | B | 修正 Pivot / 比例 / 落地后进入 Runtime 处理链 | 备用景观点亭阁，不作为主水榭 |
 | chinese-pavilion-memoriam | A | 正式清洗后直接使用 | 水榭、台基、长凳、岩石来源 |
-| low-bridge | B | 只在 Working Copy 做 Spec/Gloss → Metallic/Roughness 兼容转换 | 水院低桥 |
+| low-bridge | B | 从原始 GLB 通过 Blender 导入/导出可复现地转换为 Metallic/Roughness 工作副本 | 水院低桥 |
 | traditional-chinese-siheyuan-courtyard | B | 作为入口正式建筑基线；视觉定型后再做 KTX2/Meshopt | 正门、前厅、院墙、屋面主来源 |
 
 ## 三层边界
@@ -21,14 +21,19 @@
 
 ## 正式场景模块
 
-当前正式场景不再依赖程序 BoxGeometry 伪装建筑。**本轮激活的 Phase One 正式视觉模块只有：**
+当前正式场景不再依赖程序 BoxGeometry 伪装建筑。当前已纳入完整听雨轩运行拓扑的模块包括：
 
 1. Siheyuan Entrance Compound —— 正门 / 前厅 / 院墙 / 屋面。
 2. Courtyard Park West Garden —— 西院 / 两次转折曲廊 / 园墙 / 框景 / 漏窗与月洞门过渡。
-3. Quaternius West-Court subset —— 仅西院所需的少量树 / 地被。
-4. Moon-gate gameplay geometry —— 门洞、Trigger 与 Collision 独立于视觉模型。
+3. House Outline —— 北楼与内宅外轮廓。
+4. Pavilion A —— 水榭正式主视觉。
+5. Pavilion B —— 修正 Pivot / 比例后的备用景观点亭阁，进入 Runtime 但不抢占主水榭职责。
+6. Bridge Low A —— 水院低桥，使用可复现材质兼容转换链路。
+7. Rock Set A —— 假山主结构。
+8. Quaternius subset —— 西院 / 水院使用的少量树、灌木、岩石与地被。
+9. Moon-gate gameplay geometry —— 门洞、Trigger 与 Collision 独立于视觉模型。
 
-以下资产虽然已经存在于 Runtime 资产表和布局数据里，但**本轮不激活、不作为第一阶段完成项**：House Outline、Pavilion A、Bridge Low A、Rock Set A、水院植被。它们保留给用户确认第一阶段视觉之后的第二 / 第三阶段。
+这些模块通过区域流式加载进入场景；入口仍保持最小 preload，不再因为“后续区域已开发”而把所有资源一次性塞入首屏。
 
 `TYX_ARCH_Kit_A.glb` 仅保留为显式 `?fallbackArchitecture=1` 的历史 Greybox，不属于正式模块。
 

@@ -510,7 +510,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
 
   return (
     <main className={`runtime runtime-${checkpoint.memoryId} runtime-phase-${phase}${visualMode ? " visual-regression-mode" : ""}${visualUi ? " visual-regression-ui" : ""}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" aria-label={checkpoint.memoryId === "north-tower" ? "北塔账房实时三维场景" : "西廊回环实时三维场景"} tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} />
+      <canvas ref={canvasRef} className="runtime-canvas" aria-label="西廊回环实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" onClick={onExit} className="text-button">← 章节总览</button>

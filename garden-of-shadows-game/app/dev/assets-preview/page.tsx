@@ -96,7 +96,8 @@ export default function AssetPreviewPage() {
       })
       .then((entries) => {
         setCatalog(entries);
-        setSelectedId(entries[0]?.id ?? "");
+        const requestedId = new URLSearchParams(window.location.search).get("asset");
+        setSelectedId(entries.some((entry) => entry.id === requestedId) ? requestedId! : (entries[0]?.id ?? ""));
       })
       .catch((reason) => setError(reason instanceof Error ? reason.message : "无法读取资产目录"))
       .finally(() => setLoading(false));

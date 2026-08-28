@@ -1,0 +1,180 @@
+{
+  "generatedAt": "2026-08-28T10:58:37.798Z",
+  "baseUrl": "http://localhost:3000/",
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "policy": {
+    "fpsReference": 60,
+    "fpsStableFloor": 45,
+    "note": "FPS is a measurement, not an auto-approval substitute for visual review."
+  },
+  "shots": [
+    {
+      "id": "spawn-front-view",
+      "file": "docs/visual-regression/after/spawn-front-view.png",
+      "bytes": 499690,
+      "sha256": "88894fd97ece62d684db8b7babd1fbb601b0bfcd1d98ddf54eb5c03ff37e276e",
+      "telemetry": {
+        "url": "http://localhost:3000/?visualTest=1&visualAnchor=west-entry&visualPitch=-0.04&renderer=webgl",
+        "fps": 34.9,
+        "drawCalls": 108,
+        "triangles": 1225691,
+        "points": 2200,
+        "visibleModels": [
+          "siheyuan-front-compound"
+        ],
+        "loadedAssetIds": [
+          "tyx-arch-siheyuan-source-a"
+        ],
+        "loadedAssetBytes": 102934464,
+        "rendererBackend": "webgl2",
+        "transferBytes": 115911081,
+        "durationMs": 17915.90000000596,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "front-hall",
+      "file": "docs/visual-regression/after/front-hall.png",
+      "bytes": 1317548,
+      "sha256": "1c193cdb804bbfcb21d14a75e0e291318ca04420b39c6cf2b1385a1c3f6f4c3a",
+      "telemetry": {
+        "url": "http://localhost:3000/?visualTest=1&visualAnchor=front-hall&visualPitch=-0.05&renderer=webgl",
+        "fps": 21.3,
+        "drawCalls": 177,
+        "triangles": 1792831,
+        "points": 2200,
+        "visibleModels": [
+          "siheyuan-front-compound",
+          "courtyard-park-west-garden",
+          "cc0-plant-big-a",
+          "cc0-tree-b"
+        ],
+        "loadedAssetIds": [
+          "tyx-arch-siheyuan-source-a",
+          "tyx-env-courtyard-park-source-a",
+          "tyx-nat-quaternius-set-a"
+        ],
+        "loadedAssetBytes": 131496676,
+        "rendererBackend": "webgl2",
+        "transferBytes": 155338418,
+        "durationMs": 9020.299999982119,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "west-courtyard",
+      "file": "docs/visual-regression/after/west-courtyard.png",
+      "bytes": 1100963,
+      "sha256": "d45562bb827de2c861729f09eb9ffea910b39a969a2370d0546469a935c41ae8",
+      "telemetry": {
+        "url": "http://localhost:3000/?visualTest=1&visualAnchor=west-courtyard&visualPitch=-0.05&renderer=webgl",
+        "fps": 28.1,
+        "drawCalls": 360,
+        "triangles": 1792707,
+        "points": 2200,
+        "visibleModels": [
+          "siheyuan-front-compound",
+          "courtyard-park-west-garden",
+          "inner-outline",
+          "cc0-plant-big-a",
+          "cc0-tree-b"
+        ],
+        "loadedAssetIds": [
+          "tyx-arch-siheyuan-source-a",
+          "tyx-env-courtyard-park-source-a",
+          "tyx-nat-quaternius-set-a",
+          "tyx-arch-house-a"
+        ],
+        "loadedAssetBytes": 151590424,
+        "rendererBackend": "webgl2",
+        "transferBytes": 147867792,
+        "durationMs": 6717.299999982119,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "curved-corridor",
+      "file": "docs/visual-regression/after/curved-corridor.png",
+      "bytes": 775040,
+      "sha256": "0ac8ecf7412d8890c70873d56a188daa5d31bedc9907fec1bc8444ad6290938a",
+      "telemetry": {
+        "url": "http://localhost:3000/?visualTest=1&visualAnchor=corridor-turn-one&visualPitch=-0.04&renderer=webgl",
+        "fps": 24.4,
+        "drawCalls": 279,
+        "triangles": 1786689,
+        "points": 2200,
+        "visibleModels": [
+          "siheyuan-front-compound",
+          "courtyard-park-west-garden",
+          "cc0-plant-big-a",
+          "cc0-tree-b"
+        ],
+        "loadedAssetIds": [
+          "tyx-arch-siheyuan-source-a",
+          "tyx-env-courtyard-park-source-a",
+          "tyx-nat-quaternius-set-a"
+        ],
+        "loadedAssetBytes": 131496676,
+        "rendererBackend": "webgl2",
+        "transferBytes": 127773444,
+        "durationMs": 6983,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "moon-gate-window",
+      "file": "docs/visual-regression/after/moon-gate-window.png",
+      "bytes": 817040,
+      "sha256": "8114b75d800cbdec0692c1d68dd02b1540dbc8ea952bfe5b357951c19ebc2fba",
+      "telemetry": {
+        "url": "http://localhost:3000/?visualTest=1&visualAnchor=loop-seventh-window&visualPitch=-0.05&renderer=webgl",
+        "fps": 29.1,
+        "drawCalls": 339,
+        "triangles": 1788762,
+        "points": 2200,
+        "visibleModels": [
+          "siheyuan-front-compound",
+          "courtyard-park-west-garden",
+          "water-pavilion",
+          "water-bridge",
+          "secondary-garden-pavilion",
+          "rockery-a",
+          "rockery-b",
+          "rockery-c",
+          "cc0-rock-a",
+          "cc0-rock-b",
+          "cc0-rock-c",
+          "cc0-bush-a",
+          "cc0-bush-flowers-a",
+          "cc0-tree-a",
+          "cc0-grass-a",
+          "cc0-fern-a"
+        ],
+        "loadedAssetIds": [
+          "tyx-arch-siheyuan-source-a",
+          "tyx-env-courtyard-park-source-a",
+          "tyx-nat-rock-set-a",
+          "tyx-arch-pavilion-b",
+          "tyx-gmp-bridge-low-a",
+          "tyx-nat-quaternius-set-a",
+          "tyx-arch-pavilion-a"
+        ],
+        "loadedAssetBytes": 147468224,
+        "rendererBackend": "webgl2",
+        "transferBytes": 143747392,
+        "durationMs": 8161.9000000059605,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    }
+  ]
+}

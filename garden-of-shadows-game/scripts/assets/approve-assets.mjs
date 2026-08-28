@@ -74,7 +74,7 @@ const measuredLoadedBytes = shotTelemetry.map((item) => Number(item.loadedAssetB
 const rendererBackends = [...new Set(shotTelemetry.map((item) => item.rendererBackend).filter(Boolean))];
 write("release-approval.json", {
   status: "approved",
-  layoutVersion: "tingyuxuan-v1.1",
+  layoutVersion: "tingyuxuan-v1.2",
   approvedAt: new Date().toISOString(),
   visualAcceptance: visualAcceptancePath.replace(projectRoot + path.sep, "").replaceAll(path.sep, "/"),
   gates: {

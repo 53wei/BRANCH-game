@@ -43,13 +43,14 @@ describe("TingYuXuan layout v1.2", () => {
       "waterline-direction", "corridor-count", "wife-moon-gate",
     ]);
     const route = ["west-entry", "front-gate", "front-hall", "west-courtyard", "corridor-turn-one", "corridor-turn-two", "loop-seventh-window", "wife-moon-gate"];
-    expect(route.map((id) => getLayoutAnchor(id).position[2])).toEqual([29, 25, 18, 12, -2, -4, -13, -20]);
+    expect(route.map((id) => getLayoutAnchor(id).position[2])).toEqual([37.5, 25, 23.25, 12, -2, -4, -17, -20]);
   });
 
   it("keeps formal architecture on audited assets, streams the park, and keeps greybox fallback-only", () => {
     const phaseOnePreload = tingYuXuanLayout.placements.filter((placement) => placement.load === "preload");
     expect(phaseOnePreload.map((placement) => placement.assetId)).toEqual(["tyx-arch-siheyuan-source-a"]);
     expect(tingYuXuanLayout.placements.find((placement) => placement.id === "courtyard-park-west-garden")?.load).toBe("deferred");
+    expect(tingYuXuanLayout.placements.find((placement) => placement.id === "secondary-garden-pavilion")).toMatchObject({ assetId: "tyx-arch-pavilion-b", load: "deferred", zone: "rockery" });
     expect(tingYuXuanLayout.placements.some((placement) => placement.assetId === "tyx-arch-greybox-fallback-a")).toBe(false);
     expect(tingYuXuanFallbackPlacements.length).toBeGreaterThan(0);
     expect(tingYuXuanFallbackPlacements.every((placement) => placement.assetId === "tyx-arch-greybox-fallback-a")).toBe(true);
@@ -63,6 +64,15 @@ describe("TingYuXuan layout v1.2", () => {
     expect(resolveLayoutZonesForPoint({ x: 10, z: -29 })).toContain("water-court");
     expect(resolveLayoutZonesForPoint({ x: 10, z: 11 })).toContain("north-house");
     expect(resolveLayoutZonesForPoint({ x: -13, z: 18 })).toContain("inner-house");
+  });
+
+  it("leaves a deliberate opening in the west pond bank for the bridge approach", () => {
+    const point = getLayoutAnchor("bridge-approach").position;
+    const blockingWestBank = tingYuXuanLayout.colliders
+      .filter((collider) => collider.id.startsWith("pond-west"))
+      .some((collider) => Math.abs(point[0] - collider.center[0]) <= collider.halfExtents[0] + 1.1
+        && Math.abs(point[2] - collider.center[2]) <= collider.halfExtents[2]);
+    expect(blockingWestBank).toBe(false);
   });
 
   it("applies the gardener loop and wife escape only in their matching memories", () => {

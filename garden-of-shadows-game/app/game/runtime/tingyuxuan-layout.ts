@@ -26,6 +26,8 @@ export interface LayoutTrigger {
   destinationAnchorId?: string;
 }
 
+export type LayoutZone = "front-gate" | "front-hall" | "west-courtyard" | "corridor" | "water-court" | "rockery" | "north-house" | "inner-house";
+
 export interface LayoutPlacement {
   id: string;
   assetId: RuntimeAssetId;
@@ -34,10 +36,9 @@ export interface LayoutPlacement {
   rotationY?: number;
   scale?: Vec3;
   load: "preload" | "deferred";
-  zone: "front-gate" | "front-hall" | "west-courtyard" | "corridor" | "water-court" | "rockery" | "north-house" | "inner-house";
+  zone: LayoutZone;
+  loadZones?: readonly LayoutZone[];
 }
-
-export type LayoutZone = LayoutPlacement["zone"];
 
 export interface LayoutZoneLoadVolume {
   zone: LayoutZone;
@@ -56,14 +57,14 @@ export interface LayoutInteractable {
 export const TINGYUXUAN_LAYOUT_VERSION = "tingyuxuan-v1.2";
 
 const anchors: LayoutAnchor[] = [
-  { id: "west-entry", position: [0, 0.9, 29], yaw: 0, role: "spawn" },
+  { id: "west-entry", position: [1.5, 0.9, 37.5], yaw: 0, role: "spawn" },
   { id: "front-gate", position: [0, 0.9, 25], yaw: 0, role: "camera" },
-  { id: "front-hall", position: [0, 0.9, 18], yaw: -0.45, role: "camera" },
+  { id: "front-hall", position: [0, 0.9, 23.25], yaw: 0, role: "camera" },
   { id: "west-courtyard", position: [-8, 0.9, 12], yaw: 0, role: "checkpoint" },
   { id: "west-waterline", position: [-8, 0.9, 6], yaw: 0, role: "checkpoint" },
   { id: "corridor-turn-one", position: [-8, 0.9, -2], yaw: -Math.PI / 2, role: "checkpoint" },
   { id: "corridor-turn-two", position: [2, 0.9, -4], yaw: 0, role: "checkpoint" },
-  { id: "loop-seventh-window", position: [2, 0.9, -13], yaw: 0, role: "checkpoint" },
+  { id: "loop-seventh-window", position: [2, 0.9, -17], yaw: 0, role: "checkpoint" },
   { id: "chase-retry", position: [2, 0.9, -10], yaw: 0, role: "checkpoint" },
   { id: "wife-moon-gate", position: [2, 0.9, -20], yaw: 0, role: "checkpoint" },
   { id: "west-safe-courtyard", position: [2, 0.9, -23], yaw: -0.25, role: "checkpoint" },
@@ -74,6 +75,7 @@ const anchors: LayoutAnchor[] = [
   { id: "pavilion-landmark", position: [10, 0, -32], yaw: Math.PI, role: "landmark" },
   { id: "rockery-side-route", position: [14, 0.9, -17], yaw: -Math.PI / 2, role: "checkpoint" },
   { id: "rockery-mouth", position: [10.8, 0.9, -18.8], yaw: -0.75, role: "camera" },
+  { id: "east-pavilion-landmark", position: [18, 0, -9], yaw: -Math.PI / 2, role: "landmark" },
   { id: "north-tower-entry", position: [10, 0.9, 9], yaw: Math.PI, role: "checkpoint" },
   { id: "north-court", position: [10, 0.9, 15], yaw: Math.PI, role: "camera" },
   { id: "interior-entry", position: [-13, 0.9, 17], yaw: Math.PI / 2, role: "checkpoint" },
@@ -99,7 +101,9 @@ const colliders: LayoutCollider[] = [
   { id: "moon-gate-left", center: [-0.15, 1.7, -21], halfExtents: [0.85, 1.7, 0.22] },
   { id: "moon-gate-right", center: [4.15, 1.7, -21], halfExtents: [0.85, 1.7, 0.22] },
   { id: "moon-gate-top", center: [2, 3.08, -21], halfExtents: [1.3, 0.33, 0.22] },
-  { id: "pond-west", center: [4.6, 0.8, -29], halfExtents: [0.2, 0.8, 7.5] },
+  // West bank is split to leave a deliberate 3.8 m bridge-approach opening.
+  { id: "pond-west-north", center: [4.6, 0.8, -21.95], halfExtents: [0.2, 0.8, 0.45] },
+  { id: "pond-west-south", center: [4.6, 0.8, -31.35], halfExtents: [0.2, 0.8, 5.15] },
   { id: "pond-east", center: [15.4, 0.8, -29], halfExtents: [0.2, 0.8, 7.5] },
   { id: "pond-north", center: [10, 0.8, -21.5], halfExtents: [5.6, 0.8, 0.2] },
   { id: "pond-south", center: [10, 0.8, -36.5], halfExtents: [5.6, 0.8, 0.2] },
@@ -121,15 +125,18 @@ const placements: LayoutPlacement[] = [
   // Phase-one formal visual layer: source geometry is preserved. The complete
   // Siheyuan supplies the gate/front-hall compound; Courtyard Park supplies
   // the west-garden and corridor transition instead of the old greybox kit.
-  { id: "siheyuan-front-compound", assetId: "tyx-arch-siheyuan-source-a", position: [0.05, 0.224, 23.25], load: "preload", zone: "front-gate" },
-  // Source bounds are 143.33 × 16.54 × 175.58. At 0.185 scale this places the
-  // real park from roughly z=12.47 (west courtyard) through z=-20.01 (moon gate),
-  // with its authored floor aligned to y=0 instead of floating above the route.
-  { id: "courtyard-park-west-garden", assetId: "tyx-env-courtyard-park-source-a", position: [-1.865, 0.491, -6.7], scale: [0.185, 0.185, 0.185], load: "deferred", zone: "west-courtyard" },
+  // The authored exterior gate is on the source model's +X side. Rotate the
+  // complete source compound so that real gate faces the chapter's +Z entry.
+  { id: "siheyuan-front-compound", assetId: "tyx-arch-siheyuan-source-a", position: [0.05, 0.224, 23.25], rotationY: -Math.PI / 2, load: "preload", zone: "front-gate" },
+  // Source bounds are 143.33 × 16.54 × 175.58. A 0.185 scale made authored
+  // doors and corridor eaves shorter than the 0.9 m player eye. Preserve the
+  // real geometry at a legible architectural scale and align minY=-2.6553 to 0.
+  { id: "courtyard-park-west-garden", assetId: "tyx-env-courtyard-park-source-a", position: [-1.865, 0.903, -6.7], scale: [0.34, 0.34, 0.34], load: "deferred", zone: "west-courtyard", loadZones: ["west-courtyard", "corridor"] },
   { id: "north-outline", assetId: "tyx-arch-house-a", position: [10, 0, 11], rotationY: Math.PI, scale: [1.05, 1, 1.05], load: "deferred", zone: "north-house" },
   { id: "inner-outline", assetId: "tyx-arch-house-a", position: [-13, 0, 18], rotationY: Math.PI / 2, scale: [0.9, 0.85, 0.9], load: "deferred", zone: "inner-house" },
   { id: "water-pavilion", assetId: "tyx-arch-pavilion-a", position: [10, 0.2, -32], rotationY: Math.PI, scale: [0.72, 0.72, 0.72], load: "deferred", zone: "water-court" },
   { id: "water-bridge", assetId: "tyx-gmp-bridge-low-a", position: [7.3, 0.18, -25.5], rotationY: Math.PI / 2, scale: [0.82, 0.82, 0.82], load: "deferred", zone: "water-court" },
+  { id: "secondary-garden-pavilion", assetId: "tyx-arch-pavilion-b", position: [18, 0, -9], rotationY: -Math.PI / 2, scale: [0.9, 0.9, 0.9], load: "deferred", zone: "rockery" },
   { id: "rockery-a", assetId: "tyx-nat-rock-set-a", nodeName: "Rock_A", position: [12.4, 0, -14.8], scale: [1.5, 1.7, 1.5], load: "deferred", zone: "rockery" },
   { id: "rockery-b", assetId: "tyx-nat-rock-set-a", nodeName: "Rock_B", position: [15.2, 0, -18.5], rotationY: 0.8, scale: [1.35, 1.5, 1.35], load: "deferred", zone: "rockery" },
   { id: "rockery-c", assetId: "tyx-nat-rock-set-a", nodeName: "Rock_C", position: [11.7, 0, -19.2], rotationY: 1.6, scale: [1.15, 1.2, 1.15], load: "deferred", zone: "rockery" },
@@ -172,6 +179,9 @@ export const resolveLayoutZonesForPoint = (point: { x: number; z: number }): Lay
     .map((volume) => volume.zone);
   return [...new Set(zones)];
 };
+
+export const placementLoadsInZones = (placement: LayoutPlacement, zones: ReadonlySet<LayoutZone>) =>
+  (placement.loadZones ?? [placement.zone]).some((zone) => zones.has(zone));
 
 // Explicit opt-in fallback only. These instances never enter visualAssets and
 // are shown only with ?fallbackArchitecture=1 or during layout debugging.

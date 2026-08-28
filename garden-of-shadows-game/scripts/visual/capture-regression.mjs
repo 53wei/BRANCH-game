@@ -8,8 +8,10 @@ const projectRoot = path.resolve(import.meta.dirname, "../..");
 const acceptancePath = path.join(projectRoot, "docs", "visual-regression", "phase-one-acceptance.json");
 const outputRoot = path.join(projectRoot, "docs", "visual-regression", "after");
 const metricsPath = path.join(outputRoot, "capture-metrics.json");
-const baseUrl = process.env.VISUAL_BASE_URL ?? "http://127.0.0.1:5173/";
-const viewport = { width: 1440, height: 900, deviceScaleFactor: 1 };
+const defaultVisualPort = 43_000 + (process.pid % 1_000);
+const baseUrl = process.env.VISUAL_BASE_URL ?? `http://127.0.0.1:${defaultVisualPort}/`;
+const visualDevUrl = new URL(baseUrl);
+const viewport = { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false };
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const sha256 = (buffer) => crypto.createHash("sha256").update(buffer).digest("hex");
 
@@ -62,8 +64,13 @@ async function ensureDevServer() {
     await waitForHttp(baseUrl, 1_500);
     return undefined;
   } catch {
-    const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-    const child = spawn(npm, ["run", "dev", "--", "--host", "127.0.0.1", "--port", "5173", "--strictPort"], {
+    const npmCli = process.env.npm_execpath;
+    const command = npmCli ? process.execPath : (process.platform === "win32" ? "npm.cmd" : "npm");
+    const args = [
+      ...(npmCli ? [npmCli] : []),
+      "run", "dev", "--", "--host", visualDevUrl.hostname, "--port", visualDevUrl.port, "--strictPort",
+    ];
+    const child = spawn(command, args, {
       cwd: projectRoot,
       env: { ...process.env },
       stdio: ["ignore", "pipe", "pipe"],
@@ -142,7 +149,14 @@ async function waitForRuntimeReady(client, timeoutMs = 120_000) {
         assetsReady: canvas.dataset.assetsReady,
         streaming: canvas.dataset.streaming,
         error: document.querySelector('.runtime-phase-error')?.textContent ?? ''
-      } : { ready: false, missingCanvas: true };
+      } : {
+        ready: false,
+        missingCanvas: true,
+        href: location.href,
+        title: document.title,
+        readyState: document.readyState,
+        bodyText: document.body?.innerText?.slice(0, 600) ?? ''
+      };
     })()`);
     if (lastState?.error) throw new Error(`Runtime entered error state: ${lastState.error}`);
     if (lastState?.ready) {
@@ -255,6 +269,10 @@ try {
 } finally {
   chromeProcess.kill();
   devServer?.kill();
-  await sleep(250);
-  fs.rmSync(profileDir, { recursive: true, force: true });
+  await sleep(1_000);
+  try {
+    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 250 });
+  } catch (error) {
+    console.warn(`Chrome profile cleanup deferred: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
