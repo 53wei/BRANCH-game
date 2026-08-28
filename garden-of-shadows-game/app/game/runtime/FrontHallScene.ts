@@ -39,6 +39,10 @@ export class FrontHallScene {
   private readonly guidanceMarker = new THREE.Group();
   private readonly memoryLight: THREE.PointLight;
   private readonly clockHands: THREE.Object3D[] = [];
+  private readonly lockTokens = new Map<string, THREE.Object3D>();
+  private readonly gateLeft = new THREE.Group();
+  private readonly gateRight = new THREE.Group();
+  private gateOpen = false;
   private currentMemory: MemoryId = "painter";
   private elapsed = 0;
 
@@ -65,12 +69,12 @@ export class FrontHallScene {
 
     this.interactables = [
       { id: "painter-easel", label: "按 F 检查未完成的中庭画", position: new THREE.Vector3(0, 1.2, -4.2), memoryIds: ["painter"], hidesAfterFlag: "front.mark.painter" },
-      { id: "painted-door", label: "按 F 核对画中多出的门", position: new THREE.Vector3(.9, 1.2, -4.1), memoryIds: ["painter", "accountant"], requiresFlags: ["front.mark.painter"] },
-      { id: "wife-jade", label: "按 F 取回夫人遗失的玉佩", position: new THREE.Vector3(4.2, 1.2, -2.2), memoryIds: ["wife"], requiresFlags: ["front.mark.painter"], hidesAfterFlag: "front.mark.wife" },
-      { id: "gardener-shears", label: "按 F 从假山深处取出园艺剪", position: new THREE.Vector3(-3.2, 1.2, -11), memoryIds: ["gardener"], requiresFlags: ["front.mark.painter"], hidesAfterFlag: "front.mark.gardener" },
-      { id: "accountant-page", label: "按 F 检查账本夹页", position: new THREE.Vector3(3.1, 1.2, -10.2), memoryIds: ["accountant"], requiresFlags: ["front.mark.painter"], hidesAfterFlag: "front.mark.accountant" },
-      { id: "vanishing-corridor", label: "按 F 勘验被涂成白墙的来路", position: new THREE.Vector3(0, 1.2, -7.1), memoryIds: ["painter", "wife"], requiresFlags: ["front.mark.painter"] },
-      { id: "fourfold-lock", label: "按 F 将四枚印记嵌入四面锁", position: new THREE.Vector3(0, 1.25, -17), requiresFlags: ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"] },
+      { id: "painted-door", label: "按 F 核对画中多出的门", position: new THREE.Vector3(.9, 1.2, -4.1), memoryIds: ["painter", "accountant"], requiresFlags: ["front.mark.painter"], hidesAfterFlag: "front.contradiction.painted-door" },
+      { id: "wife-jade", label: "按 F 取回夫人遗失的玉佩", position: new THREE.Vector3(4.2, 1.2, -2.2), memoryIds: ["wife"], requiresFlags: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor"], hidesAfterFlag: "front.mark.wife" },
+      { id: "gardener-shears", label: "按 F 从假山深处取出园艺剪", position: new THREE.Vector3(-3.2, 1.2, -11), memoryIds: ["gardener"], requiresFlags: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor"], hidesAfterFlag: "front.mark.gardener" },
+      { id: "accountant-page", label: "按 F 检查账本夹页", position: new THREE.Vector3(3.1, 1.2, -10.2), memoryIds: ["accountant"], requiresFlags: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor"], hidesAfterFlag: "front.mark.accountant" },
+      { id: "vanishing-corridor", label: "按 F 勘验被涂成白墙的来路", position: new THREE.Vector3(0, 1.2, -8.2), memoryIds: ["painter", "wife"], requiresFlags: ["front.contradiction.painted-door"], hidesAfterFlag: "front.contradiction.vanishing-corridor" },
+      { id: "fourfold-lock", label: "按 F 将四枚印记嵌入四面锁", position: new THREE.Vector3(0, 1.25, -17), requiresFlags: ["front.contradiction.painted-door", "front.contradiction.vanishing-corridor", "front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"] },
     ];
     this.setMemory("painter");
   }
@@ -106,11 +110,24 @@ export class FrontHallScene {
     archMesh.rotation.z = Math.PI;
     archMesh.position.set(0, 1.1, -15.2);
     this.scene.add(archMesh, box([5.9, 1.15, .45], [0, 2.78, -15.2], plaster));
+    const gateMaterial = new THREE.MeshStandardMaterial({ color: "#17130f", emissive: "#26180e", emissiveIntensity: .42, roughness: .72, metalness: .12 });
+    this.gateLeft.add(box([2.05, 2.7, .28], [0, 0, 0], gateMaterial));
+    this.gateRight.add(box([2.05, 2.7, .28], [0, 0, 0], gateMaterial));
+    this.gateLeft.position.set(-1.05, 1.35, -17.25);
+    this.gateRight.position.set(1.05, 1.35, -17.25);
+    this.scene.add(this.gateLeft, this.gateRight);
     const lock = new THREE.Group();
+    const tokenColors = ["#a9799e", "#8bc3a9", "#758d68", "#78a6c5"];
+    const tokenFlags = ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"];
     for (let side = 0; side < 4; side += 1) {
       const plate = box([.7, .7, .14], [0, .25 + side * .48, 0], gold);
       plate.rotation.z = side * Math.PI / 4;
       lock.add(plate);
+      const token = new THREE.Mesh(new THREE.OctahedronGeometry(.16, 0), new THREE.MeshStandardMaterial({ color: tokenColors[side], emissive: tokenColors[side], emissiveIntensity: 1.8, roughness: .26 }));
+      token.position.set(0, .25 + side * .48, .14);
+      token.visible = false;
+      lock.add(token);
+      this.lockTokens.set(tokenFlags[side], token);
     }
     lock.position.set(0, .65, -17.1);
     this.scene.add(lock);
@@ -200,12 +217,17 @@ export class FrontHallScene {
   }
 
   setPlayerDepth(z: number) {
-    this.corridorWall.visible = this.currentMemory === "painter" && z < -7.5;
+    this.corridorWall.visible = this.currentMemory === "painter" && z < -7.05;
   }
 
   setGuidanceTarget(position?: THREE.Vector3) {
     this.guidanceMarker.visible = Boolean(position);
     if (position) this.guidanceMarker.position.set(position.x, 0, position.z);
+  }
+
+  setEvidenceFlags(flags: string[]) {
+    this.lockTokens.forEach((token, flag) => { token.visible = flags.includes(flag); });
+    this.gateOpen = flags.includes("front.trust.ranked");
   }
 
   availableInteractables(memory: MemoryId, earnedFlags: string[]) {
@@ -214,11 +236,28 @@ export class FrontHallScene {
       && (!item.hidesAfterFlag || !earnedFlags.includes(item.hidesAfterFlag)));
   }
 
-  constrain(position: THREE.Vector3) {
+  constrain(position: THREE.Vector3, memory: MemoryId = this.currentMemory, previousZ = position.z) {
     position.x = THREE.MathUtils.clamp(position.x, -4.45, 4.45);
     position.z = THREE.MathUtils.clamp(position.z, -17.7, 8);
+    if (memory === "painter" && previousZ < -7.05 && position.z >= -7.05) position.z = -7.08;
     position.y = 1.65;
     return position;
+  }
+
+  movementScale(position: THREE.Vector3, memory: MemoryId) {
+    if (memory === "painter" && position.x > 2.3 && position.z < .5 && position.z > -4.8) return .78;
+    if (position.z > 0) return .62;
+    if (position.z < -8) return 1.28;
+    return 1;
+  }
+
+  cameraLift(position: THREE.Vector3, memory: MemoryId) {
+    if (memory !== "painter" || position.x <= 2.3 || position.z >= .5 || position.z <= -4.8) return 0;
+    return .12 + Math.sin(this.elapsed * 1.7) * .075;
+  }
+
+  cameraRoll(position: THREE.Vector3, memory: MemoryId) {
+    return this.cameraLift(position, memory) === 0 ? 0 : Math.sin(this.elapsed * 1.15) * .018;
   }
 
   update(delta: number, playerZ: number) {
@@ -230,6 +269,8 @@ export class FrontHallScene {
       object.position.y += Math.sin(this.elapsed * 1.2 + index) * delta * .08;
       object.rotation.y += delta * (.12 + index * .015);
     });
+    this.gateLeft.position.x = THREE.MathUtils.damp(this.gateLeft.position.x, this.gateOpen ? -2.35 : -1.05, 3.4, delta);
+    this.gateRight.position.x = THREE.MathUtils.damp(this.gateRight.position.x, this.gateOpen ? 2.35 : 1.05, 3.4, delta);
     if (this.guidanceMarker.visible) {
       const pulse = 1 + Math.sin(this.elapsed * 3.2) * .1;
       this.guidanceMarker.scale.set(pulse, 1, pulse);
