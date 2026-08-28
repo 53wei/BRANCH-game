@@ -1,0 +1,57 @@
+import { describe, expect, it } from "vitest";
+import { createCheckpoint } from "./campaign-save";
+import { objectiveFor as frontObjectiveFor } from "./FrontHallRuntime";
+import { objectiveFor as northObjectiveFor } from "./NorthTowerRuntime";
+
+describe("runtime objective guidance", () => {
+  it("keeps the north-tower trust decision anchored to the secret passage", () => {
+    const checkpoint = createCheckpoint("north-tower-ledger", "accountant");
+    checkpoint.earnedFlags = [
+      "north.reached.upper-floor",
+      "north.ledger.inspected",
+      "north.window.inspected",
+      "north.borrowed-view.crossed",
+      "north.past.trail-inspected",
+      "north.rockery.moved",
+      "north.present.route-open",
+      "north.contradiction.scratches",
+      "north.contradiction.passage",
+    ];
+
+    expect(northObjectiveFor(checkpoint)).toMatchObject({
+      targetId: "secret-passage",
+      timeline: "present",
+      zone: "courtyard",
+    });
+  });
+
+  it("guides the second north-tower observation to the other testimony", () => {
+    const checkpoint = createCheckpoint("north-tower-ledger", "accountant");
+    checkpoint.earnedFlags = [
+      "north.reached.upper-floor",
+      "north.ledger.inspected",
+      "north.window.inspected",
+      "north.borrowed-view.crossed",
+      "north.past.trail-inspected",
+      "north.rockery.moved",
+      "north.present.route-open",
+    ];
+    checkpoint.observedBy["window-scratches"] = ["accountant"];
+
+    expect(northObjectiveFor(checkpoint)).toMatchObject({
+      targetId: "window-scratches",
+      memoryId: "wife",
+    });
+  });
+
+  it("guides front-hall cross-checks to the required second testimony", () => {
+    const checkpoint = createCheckpoint("front-hall-guest", "painter");
+    checkpoint.earnedFlags = ["front.mark.painter"];
+    checkpoint.observedBy["painted-door"] = ["painter"];
+
+    expect(frontObjectiveFor(checkpoint)).toMatchObject({
+      targetId: "painted-door",
+      memoryId: "accountant",
+    });
+  });
+});

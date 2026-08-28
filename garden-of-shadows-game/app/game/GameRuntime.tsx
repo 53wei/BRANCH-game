@@ -257,6 +257,25 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     startChase();
   }, [commitCheckpoint, startChase]);
 
+  const locateObjective = useCallback(() => {
+    if (!runtimeRef.current || !["playing", "chase"].includes(phaseRef.current)) return;
+    const active = resolveActiveObjective(chapter.objectives ?? [], checkpointRef.current);
+    const target = active?.step.targetPosition;
+    if (!active || !target) return;
+    const desiredMemory: MemoryId = active.step.id.includes("gardener")
+      ? "gardener"
+      : active.step.id.includes("wife") || active.step.targetInteractableId === "wife-moon-gate"
+        ? "wife"
+        : checkpointRef.current.memoryId;
+    runtimeRef.current.world.setMemory(desiredMemory);
+    runtimeRef.current.physics.setMemory(desiredMemory);
+    runtimeRef.current.physics.teleport({ x: target[0], y: 0.9, z: target[2] + 1.35 });
+    yawRef.current = 0;
+    commitCheckpoint((current) => ({ ...current, memoryId: desiredMemory }));
+    setSubtitle(`测试定位完成：已抵达“${active.step.instruction}”附近，按 F 或点击中央提示继续。`);
+    setBarkSpeaker("steward");
+  }, [chapter.objectives, commitCheckpoint]);
+
   useEffect(() => {
     const onChange = () => setHasPointerLock(document.pointerLockElement === canvasRef.current);
     document.addEventListener("pointerlockchange", onChange);
@@ -356,7 +375,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             if (!item.memoryIds.includes(checkpointRef.current.memoryId)) continue;
             if (item.kind === "portal" && activePhase !== "chase") continue;
             const itemDistance = distance(pose, item.position);
-            if (itemDistance < 2.15 && itemDistance < nearestDistance) { nearest = item; nearestDistance = itemDistance; }
+            if (itemDistance < 2.9 && itemDistance < nearestDistance) { nearest = item; nearestDistance = itemDistance; }
           }
           if (nearestRef.current?.id !== nearest?.id) { nearestRef.current = nearest; setPrompt(nearest ? `[F] ${nearest.label}` : undefined); }
 
@@ -411,6 +430,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       if (event.repeat) return;
       if (event.code === "Tab") { event.preventDefault(); switchMemory(); }
       if (event.code === "KeyF") interact();
+      if (event.code === "KeyH") locateObjective();
       if (event.code === "KeyM" && ["playing", "chase"].includes(phaseRef.current)) {
         const next = !notebookRef.current;
         setShowNotebook(next);
@@ -433,7 +453,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("blur", onWindowBlur);
     return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("blur", onWindowBlur); };
-  }, [interact, requestPointerLock, setShowNotebook, switchMemory]);
+  }, [interact, locateObjective, requestPointerLock, setShowNotebook, switchMemory]);
 
   const activeObjective = resolveActiveObjective(chapter.objectives ?? [], checkpoint);
   const activeMemory = chapter.memories.find((memory) => memory.id === checkpoint.memoryId);
@@ -456,14 +476,14 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
         <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"}</div>
       </header>
 
-      {activeObjective && <aside className="objective-card" aria-live="polite"><span>当前任务</span><strong>{activeObjective.objective.title}</strong><p>{activeObjective.step.instruction}</p>{activeObjective.hint && <small>提示：{activeObjective.hint}</small>}</aside>}
+      {activeObjective && <aside className="objective-card" aria-live="polite"><span>当前任务</span><strong>{activeObjective.objective.title}</strong><p>{activeObjective.step.instruction}</p>{activeObjective.hint && <small>提示：{activeObjective.hint}</small>}<button type="button" className="qa-locate-button" onClick={locateObjective}>H · 定位当前测试点</button></aside>}
       <aside className="memory-card"><span>当前证词 · TAB 切换</span><strong>{activeMemory?.label}</strong><small>{activeMemory?.description}</small></aside>
       <aside className="case-progress"><span>勘误进度</span><strong>{checkpoint.contradictions.length} / {chapter.contradictions.length}</strong><small>{observedCount} 次独立观察</small><button type="button" onClick={() => { setShowNotebook(true); document.exitPointerLock?.(); }}>M · 打开勘误簿</button></aside>
 
       {guideDistance !== undefined && activeObjective?.step.guidance.includes("direction") && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
-      {prompt && <div className="interaction-prompt">{prompt}</div>}
+      {prompt && <button type="button" className="interaction-prompt" onClick={interact}>{prompt} · 点击也可触发</button>}
       {save.settings.subtitles && subtitle && !activeDialogue && <div className="bark-subtitle">{barkImage && <img src={barkImage} alt="" />}<p><b>{barkProfile?.name}</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · Shift 快走 · Tab 换证词 · F 勘验 · M 勘误簿</div>
+      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · Shift 快走 · Tab 换证词 · F 勘验 · H 定位测试点 · M 勘误簿</div>
 
       <div className="touch-controls" aria-label="移动端控制"><div className="touch-move"><button type="button" aria-label="向前" onPointerDown={() => beginTouchMove("KeyW")} onPointerUp={() => keysRef.current.delete("KeyW")} onPointerCancel={() => keysRef.current.delete("KeyW")}>↑</button><button type="button" aria-label="向左" onPointerDown={() => beginTouchMove("KeyA")} onPointerUp={() => keysRef.current.delete("KeyA")} onPointerCancel={() => keysRef.current.delete("KeyA")}>←</button><button type="button" aria-label="向后" onPointerDown={() => beginTouchMove("KeyS")} onPointerUp={() => keysRef.current.delete("KeyS")} onPointerCancel={() => keysRef.current.delete("KeyS")}>↓</button><button type="button" aria-label="向右" onPointerDown={() => beginTouchMove("KeyD")} onPointerUp={() => keysRef.current.delete("KeyD")} onPointerCancel={() => keysRef.current.delete("KeyD")}>→</button></div><div className="touch-actions"><button type="button" onClick={switchMemory}>换证词</button><button type="button" onClick={interact}>勘验</button></div></div>
 
