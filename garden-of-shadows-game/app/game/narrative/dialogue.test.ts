@@ -4,9 +4,11 @@ import { join } from "node:path";
 import { Story } from "inkjs";
 import { northDialogueSequences } from "../manifests/north-tower-objectives";
 import { frontHallDialogueSequences } from "../manifests/front-hall-objectives";
+import { sealedPavilionDialogueSequences } from "../manifests/sealed-pavilion-objectives";
 import { westDialogueSequences } from "../manifests/west-onboarding";
 import northStory from "./north-tower-ledger.json";
 import frontStory from "./front-hall-guest.json";
+import pavilionStory from "./sealed-pavilion.json";
 import westStory from "./west-onboarding.json";
 import { parseDialogueTags } from "./dialogue";
 import { speakerProfiles } from "./speakers";
@@ -77,6 +79,16 @@ describe("front hall dialogue", () => {
       const story = new Story(frontStory);
       story.ChoosePathString(sequence.knotId);
       expect(walkEveryBranch(story, frontStory, "front")).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("sealed pavilion dialogue", () => {
+  it("resolves every declared sequence and every Ink choice", () => {
+    for (const sequence of sealedPavilionDialogueSequences) {
+      const story = new Story(pavilionStory);
+      story.ChoosePathString(sequence.knotId);
+      expect(walkEveryBranch(story, pavilionStory, "pavilion")).toBeGreaterThan(0);
     }
   });
 });
