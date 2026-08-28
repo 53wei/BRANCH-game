@@ -118,6 +118,25 @@ a { color: inherit; text-decoration: none; }
 .visual-regression-mode:not(.visual-regression-ui):not(.runtime-phase-error) > :not(.runtime-canvas):not(.vignette) { display: none !important; }
 .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, transparent 45%, rgba(0,0,0,.48) 100%), linear-gradient(0deg, rgba(2,5,4,.7), transparent 18%, transparent 84%, rgba(2,5,4,.55)); }
 .runtime-gardener .vignette { background: radial-gradient(circle, transparent 38%, rgba(0,20,14,.56) 100%), linear-gradient(0deg, rgba(2,7,5,.72), transparent 22%); }
+.runtime-north-past .vignette { background: radial-gradient(circle, transparent 42%, rgba(39,28,15,.42) 100%), linear-gradient(0deg, rgba(18,12,5,.56), transparent 25%, rgba(159,123,63,.08)); }
+.runtime-accountant .memory-card { border-left-color: #73a9c6; }
+.north-transition { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; overflow: hidden; pointer-events: none; background: rgba(2,7,7,.92); animation: north-transition-veil 2.6s ease-in-out both; }
+.north-transition::before, .north-transition::after { content: ""; position: absolute; left: 50%; top: 50%; width: 42vmin; height: 42vmin; border: 1px solid rgba(124,185,196,.34); border-radius: 50%; transform: translate(-50%, -50%); animation: borrowed-ripple 1.45s ease-out infinite; }
+.north-transition::after { animation-delay: .42s; }
+.north-transition > i { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 54px, rgba(202,177,112,.11) 55px 56px); opacity: .34; transform: perspective(520px) rotateX(64deg) scale(1.5); }
+.north-transition > div { position: relative; z-index: 2; width: min(720px, 82vw); padding: 30px; text-align: center; text-shadow: 0 4px 24px #000; animation: north-transition-copy 2.6s ease-in-out both; }
+.north-transition span { display: block; color: #a99563; font: 10px Arial, sans-serif; letter-spacing: .22em; }
+.north-transition strong { display: block; margin-top: 16px; color: #eee3cb; font-size: clamp(25px, 4vw, 48px); font-weight: 400; letter-spacing: .08em; }
+.north-transition p { color: #aaa697; font-size: 13px; letter-spacing: .08em; }
+.north-transition-to-past, .north-transition-to-present { animation-duration: 2.1s; background: rgba(3,14,15,.92); }
+.north-transition-to-past > div, .north-transition-to-present > div { animation-duration: 2.1s; }
+.north-transition-to-present::before, .north-transition-to-present::after { border-color: rgba(205,178,112,.34); }
+.north-transition-stairs { animation-name: north-stairs-veil; }
+.north-transition-stairs::before, .north-transition-stairs::after { display: none; }
+@keyframes north-transition-veil { 0% { opacity: 0; background: rgba(2,7,7,0); } 18%, 78% { opacity: 1; } 48%, 58% { background: rgba(2,7,7,.98); } 100% { opacity: 0; background: rgba(2,7,7,0); } }
+@keyframes north-stairs-veil { 0%, 100% { opacity: 0; background: rgba(2,7,7,0); } 18%, 82% { opacity: 1; background: rgba(2,7,7,.42); } 48%, 58% { background: rgba(2,7,7,.64); } }
+@keyframes north-transition-copy { 0%, 14%, 86%, 100% { opacity: 0; transform: translateY(14px); } 34%, 68% { opacity: 1; transform: translateY(0); } }
+@keyframes borrowed-ripple { from { opacity: .8; transform: translate(-50%, -50%) scale(.35); } to { opacity: 0; transform: translate(-50%, -50%) scale(2.4); } }
 .runtime-topbar { position: absolute; z-index: 10; top: 0; left: 0; right: 0; height: 75px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 34px; border-bottom: 1px solid rgba(221,213,194,.13); background: linear-gradient(#050907d6, transparent); }
 .text-button { justify-self: start; padding: 8px; border: 0; background: transparent; color: #9f9889; cursor: pointer; }
 .runtime-topbar > div:nth-child(2) { display: flex; align-items: baseline; gap: 12px; }
@@ -132,12 +151,24 @@ a { color: inherit; text-decoration: none; }
 .objective-card strong { display: block; margin: 9px 0 8px; color: #eee3cc; font-size: 19px; font-weight: 400; letter-spacing: .08em; }
 .objective-card p { margin: 0; color: #d7cebd; font-size: 13px; line-height: 1.65; }
 .objective-card small { display: block; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: #c4b58f; font-size: 11px; line-height: 1.6; }
+.chapter-test-route { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(193,165,109,.2); }
+.chapter-test-route b { color: #bca66e; font: 10px Arial, sans-serif; letter-spacing: .1em; }
+.chapter-test-route ol { display: grid; gap: 5px; margin: 9px 0 0; padding: 0; list-style: none; }
+.chapter-test-route li { display: grid; grid-template-columns: 18px 1fr; align-items: center; color: #736f66; font-size: 10px; line-height: 1.35; }
+.chapter-test-route li i { display: grid; place-items: center; width: 14px; height: 14px; border: 1px solid #4d4b44; border-radius: 50%; font: 8px Arial, sans-serif; font-style: normal; }
+.chapter-test-route li.active { color: #ead8aa; }
+.chapter-test-route li.active i { border-color: #d0ae60; color: #e2c779; box-shadow: 0 0 8px rgba(208,174,96,.32); }
+.chapter-test-route li.done { color: #6f9f89; }
+.chapter-test-route li.done i { border-color: #568672; color: #8bc1a8; }
 .memory-card { top: auto; bottom: 22px; left: 28px; border-left: 2px solid var(--jade-bright); }
 .case-progress { top: 96px; right: 28px; text-align: right; }
 .memory-card strong, .case-progress strong { display: block; margin: 8px 0 7px; font-size: 19px; font-weight: 400; }
 .memory-card small, .case-progress small { color: #858176; font-size: 10px; line-height: 1.6; }
+.investigation-traces { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(193,165,109,.14); }
+.investigation-traces i { padding: 3px 6px; border: 1px solid rgba(115,169,198,.3); background: rgba(29,60,70,.34); color: #91b8c6; font: 8px Arial, sans-serif; font-style: normal; letter-spacing: .08em; }
 .case-progress button { display: block; width: 100%; margin-top: 13px; padding: 8px; border: 1px solid #4e493c; background: transparent; color: #aaa08e; font-size: 10px; cursor: pointer; }
 .interaction-prompt { position: absolute; z-index: 12; left: 50%; top: 58%; transform: translate(-50%, -50%); padding: 10px 15px; border: 1px solid rgba(193,165,109,.5); background: rgba(4,8,7,.72); color: #e4d8bd; font-size: 12px; letter-spacing: .08em; }
+.pointer-lock-callout { position: absolute; z-index: 16; left: 50%; top: 70%; transform: translateX(-50%); padding: 10px 16px; border: 1px solid rgba(193,165,109,.5); background: rgba(4,8,7,.88); color: #d9ceb7; cursor: pointer; }
 .objective-direction { position: absolute; z-index: 14; top: 88px; left: 50%; display: grid; justify-items: center; gap: 3px; transform: translateX(-50%); color: #dfc986; font: 10px Arial, sans-serif; letter-spacing: .12em; text-shadow: 0 2px 8px #000; }
 .objective-direction i { display: grid; place-items: center; width: 34px; height: 34px; font-size: 27px; font-style: normal; filter: drop-shadow(0 0 8px rgba(223,201,134,.7)); transition: transform .12s linear; }
 .bark-subtitle { position: absolute; z-index: 18; left: 50%; bottom: 58px; display: flex; align-items: end; width: min(760px, 82vw); min-height: 74px; transform: translateX(-50%); pointer-events: none; }
@@ -157,7 +188,9 @@ a { color: inherit; text-decoration: none; }
 /* Dialogue stage */
 .dialogue { position: absolute; z-index: 70; inset: 0; }
 .dialogue-stage { overflow: hidden; background: rgba(1,4,3,.25); }
-.dialogue-curtain { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(2,5,4,.88) 0%, rgba(2,5,4,.12) 55%, rgba(2,5,4,.42) 100%); backdrop-filter: blur(9px) saturate(.72); }
+.dialogue-scene { position: absolute; inset: 0; background-position: center; background-size: cover; filter: saturate(.9) contrast(1.04); transform: scale(1.015); animation: dialogue-scene-enter 1.2s ease-out both; }
+.dialogue-curtain { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(2,5,4,.9) 0%, rgba(2,5,4,.08) 58%, rgba(2,5,4,.38) 100%); backdrop-filter: blur(1.5px) saturate(.78); }
+@keyframes dialogue-scene-enter { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: scale(1.015); } }
 .portrait { position: absolute; z-index: 2; bottom: 0; width: min(34vw, 520px); height: min(78vh, 820px); pointer-events: none; transition: opacity .25s ease, filter .25s ease, transform .25s ease; }
 .portrait img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 20px 38px rgba(0,0,0,.75)); }
 .portrait-left { left: max(0px, calc(50% - 760px)); transform-origin: bottom left; }

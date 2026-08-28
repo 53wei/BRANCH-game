@@ -1,4 +1,5 @@
 import type { CampaignManifest, ChapterManifest } from "../types";
+import { northTowerChapter } from "./north-tower-ledger";
 import { westCorridorChapter } from "./west-corridor";
 
 const planned = (
@@ -44,13 +45,10 @@ const prologue = planned(
 const chapters: ChapterManifest[] = [
   prologue,
   westCorridorChapter,
-  planned("north-tower-ledger", 2, "北楼墨账", "过去与现在互相改路", "从账房的漏窗借景中核对错置时辰，让一笔不可能存在的支出显影。", "west-corridor-loop", ["west.chapter.complete"]),
-  planned("missing-painted-door", 3, "画中缺门", "逃生门只存在于错误透视里", "沿画师故意画错的透视进入画中门，并在第二次空间追逐中带回门后的证词。", "north-tower-ledger", ["north-tower-ledger.complete"]),
-  planned("unperformed-resurrection", 4, "未演还魂", "台上从来有第五道声音", "重构当夜未演完的昆曲与仪式，第一次确认第五席与第五人的存在。", "missing-painted-door", ["missing-painted-door.complete"]),
-  planned("four-sided-lock", 5, "四面锁", "四个人共同删去了同一个人", "交叉排列四份证词的可信度，区分每个人说谎的内容与保护的对象。", "unperformed-resurrection", ["unperformed-resurrection.complete"]),
-  planned("doorless-pavilion", 6, "水榭无门", "一条唯一可达的死亡路径", "拼出反锁、逆水、画门消失与溺亡的唯一顺序，排除四种表面凶案。", "four-sided-lock", ["four-sided-lock.complete"]),
-  planned("nameless-testimony", 7, "无名证词", "被删去的人就是勘验人", "开启第五视角，恢复沈照影的身份，并理解四次破坏为何同时救她也抹去她。", "doorless-pavilion", ["doorless-pavilion.complete"]),
-  planned("awakening-resurrection", 8, "惊梦还魂", "名字是最后一间牢房", "在最终追逐中找回四枚姓名锚点，完成关系推断，并决定让真相、姓名还是自由留下。", "nameless-testimony", ["nameless-testimony.complete"]),
+  northTowerChapter,
+  planned("front-hall-guest", 3, "第三章·前厅访客", "四份证词第一次同时展开", "在四套空间法则中收集四枚印记，打开通往东院的四面锁。", "north-tower-ledger", ["north.chapter.complete"]),
+  planned("sealed-pavilion", 4, "第四章·水榭密室", "四种入口只有一条能够自洽", "保留至少两条进入水榭的路径，并核对四份完全不同的死亡现场。", "front-hall-guest", ["front-hall-guest.complete"]),
+  planned("mirror-self", 5, "终章·镜中我", "第五份证词来自勘验人自己", "在倒流的镜廊中修正记忆片段，并决定接受还是继续否认。", "sealed-pavilion", ["sealed-pavilion.complete"]),
 ];
 
 export const campaignManifest: CampaignManifest = {

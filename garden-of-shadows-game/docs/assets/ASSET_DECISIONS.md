@@ -34,7 +34,7 @@
 
 ## 流式加载
 
-首帧只要求入口 Siheyuan。第一阶段进入西院 / 曲廊时再加载 Courtyard Park 与西院少量植被。`PHASE_ONE_RUNTIME_ZONES` 当前只允许 `west-courtyard` / `corridor`；水院、水榭、桥、假山、北楼与内宅即使已有 placement，也不会由正常第一章游玩路径自动加载。区域加载逻辑位于 `tingyuxuan-layout.ts` 与 `TingYuXuanScene.ensureAreaAssets()`。
+首帧只要求入口 Siheyuan。其余正式区域均按空间范围延迟加载：西院 / 曲廊加载 Courtyard Park 与西院植被，继续接近时再加载假山、水院、水榭、Low Bridge、北楼和内宅。`TINGYUXUAN_RUNTIME_ZONES` 已覆盖完整听雨轩拓扑，但不会把这些资产重新塞回入口 preload。区域加载逻辑位于 `tingyuxuan-layout.ts` 与 `TingYuXuanScene.ensureAreaAssets()`。
 
 ## 优化原则
 

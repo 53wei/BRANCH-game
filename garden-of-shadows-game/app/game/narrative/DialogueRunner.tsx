@@ -12,8 +12,11 @@ interface DialogueLine extends ParsedDialogueTags {
   text: string;
 }
 
+export type InkStoryContent = string | Record<string, unknown>;
+
 interface DialogueRunnerProps {
   sequence: DialogueSequence;
+  storyContent?: InkStoryContent;
   settings: CampaignSave["settings"];
   restoredState?: string;
   seenLineIds: string[];
@@ -25,7 +28,9 @@ interface DialogueRunnerProps {
 
 const speedMs = { slow: 46, normal: 28, fast: 14, instant: 0 } as const;
 
-export function DialogueRunner({ sequence, settings, restoredState, seenLineIds, onCommand, onProgress, onSeen, onComplete }: DialogueRunnerProps) {
+const createStory = (content: InkStoryContent) => typeof content === "string" ? new Story(content) : new Story(content);
+
+export function DialogueRunner({ sequence, storyContent = compiledStory, settings, restoredState, seenLineIds, onCommand, onProgress, onSeen, onComplete }: DialogueRunnerProps) {
   const storyRef = useRef<Story | undefined>(undefined);
   const callbackRef = useRef({ onCommand, onProgress, onSeen, onComplete });
   const [rightSpeakerId, setRightSpeakerId] = useState<SpeakerId>(sequence.defaultRightSpeaker ?? "steward");
@@ -60,7 +65,7 @@ export function DialogueRunner({ sequence, settings, restoredState, seenLineIds,
   }, [history.length, sequence.id, settings.dialogueSpeed]);
 
   useEffect(() => {
-    const story = new Story(compiledStory);
+    const story = createStory(storyContent);
     if (restoredState) story.state.LoadJson(restoredState);
     else story.ChoosePathString(sequence.knotId);
     storyRef.current = story;
@@ -68,7 +73,7 @@ export function DialogueRunner({ sequence, settings, restoredState, seenLineIds,
     return () => { window.clearTimeout(timer); storyRef.current = undefined; };
     // A dialogue sequence is intentionally instantiated once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sequence.id]);
+  }, [sequence.id, storyContent]);
 
   useEffect(() => {
     if (!line || visibleLength >= line.text.length || speedMs[settings.dialogueSpeed] === 0) return;
@@ -128,6 +133,7 @@ export function DialogueRunner({ sequence, settings, restoredState, seenLineIds,
 
   return (
     <section className={rootClass} role="dialog" aria-modal={sequence.presentation === "stage"} aria-label="剧情对话">
+      {sequence.presentation === "stage" && sequence.backdrop && <div className="dialogue-scene" style={{ backgroundImage: `url(${sequence.backdrop})` }} aria-hidden="true" />}
       {sequence.presentation === "stage" && <div className="dialogue-curtain" aria-hidden="true" />}
       {sequence.presentation === "stage" && (
         <div className={`portrait portrait-left ${line?.speakerId === "zhaoying" ? "active" : "inactive"}`}>
