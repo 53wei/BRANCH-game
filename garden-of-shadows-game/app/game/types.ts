@@ -163,6 +163,7 @@ export interface ChaseSegment {
 
 export interface CheckpointState {
   schemaVersion: 2;
+  layoutVersion: string;
   chapterId: string;
   anchorId: string;
   position?: [number, number, number];

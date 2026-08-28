@@ -1,5 +1,6 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import type { MemoryId } from "../types";
+import type { LayoutCollider } from "./tingyuxuan-layout";
 
 export interface PlayerPose {
   x: number;
@@ -19,7 +20,7 @@ export class PhysicsController {
     private readonly controller: RAPIER.KinematicCharacterController,
   ) {}
 
-  static async create(spawn: PlayerPose): Promise<PhysicsController> {
+  static async create(spawn: PlayerPose, layoutColliders: LayoutCollider[]): Promise<PhysicsController> {
     await RAPIER.init();
     const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
 
@@ -42,11 +43,7 @@ export class PhysicsController {
           .setCollisionGroups(STATIC_GROUP),
       );
     };
-
-    addBox(0, -0.16, -11, 4.2, 0.15, 18);
-    addBox(-4.05, 1.4, -11, 0.12, 1.5, 18);
-    addBox(4.05, 1.4, -11, 0.12, 1.5, 18);
-    addBox(0, 1.4, 6.9, 4.2, 1.5, 0.12);
+    layoutColliders.forEach(({ center, halfExtents }) => addBox(...center, ...halfExtents));
 
     return new PhysicsController(world, body, collider, controller);
   }

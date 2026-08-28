@@ -23,6 +23,30 @@ export default function Home() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (process.env.NODE_ENV === "development" && params.get("visualTest") === "1") {
+        const anchorId = params.get("visualAnchor") ?? "front-gate";
+        const checkpoint = {
+          ...createCheckpoint("west-corridor-loop", "wife"),
+          anchorId,
+          earnedFlags: ["prologue.dialogue.complete"],
+        };
+        const visualSave = createDefaultSave();
+        setSave({
+          ...visualSave,
+          activeCheckpoint: checkpoint,
+          settings: {
+            ...visualSave.settings,
+            renderer: params.get("renderer") === "webgl" ? "webgl" : "auto",
+            quality: "high",
+            masterVolume: 0,
+            subtitles: false,
+          },
+        });
+        setView("west-corridor-loop");
+        setReady(true);
+        return;
+      }
       setSave(loadCampaignSave());
       setReady(true);
     }, 0);
@@ -133,7 +157,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <span>《游园惊梦：四面证词》 V0.1R ONBOARDING SLICE</span>
-        <span>{ready ? `存档：${save.completedChapters.length} / 9 章完成` : "正在读取存档…"}</span>
+        <span><a href="/credits">制作与授权</a> · {ready ? `存档：${save.completedChapters.length} / 9 章完成` : "正在读取存档…"}</span>
       </footer>
 
       {view === "settings" && (

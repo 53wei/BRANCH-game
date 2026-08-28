@@ -17,3 +17,10 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Local 3D source assets and reproducible art-tool workspace
+/garden-of-shadows-game/assets-source/manual-downloads/
+/garden-of-shadows-game/assets-source/cc0-auto/
+/garden-of-shadows-game/assets-source/blender-working/
+/.tools/
+/.playwright-mcp/

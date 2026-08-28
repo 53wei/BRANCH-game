@@ -1,31 +1,30 @@
 # 第三方资产许可台账
 
-机器可读清单见 [`asset-manifest.json`](./asset-manifest.json)。本表是人工审计说明，不代表已经购买或下载候选资产。
+机器可读记录见 `downloaded-3d-assets.json`、`cc0-materials.json`、`cc0-nature.json` 与 `runtime-assets.json`。原件仅保存在 Git 忽略的 `assets-source/`；公开交付物均可沿 SHA-256 追溯到原件。
 
-| ID | 类型 | 当前用途 | Web 交付结论 | AI 输入 | 状态/下一步 |
-|---|---|---|---|---|---|
-| aigc-hero-hearing-rain-v1 | 生成图片 | 首页主视觉 | 项目内允许；正式发行前做最终条款复核 | 允许 | 已接入 V0.1 |
-| aigc-portrait-zhaoying-v1 | 生成图片 | 沈照影三表情对话立牌 | 项目内允许；正式发行前做最终条款复核 | 允许 | 已接入 V0.1R |
-| aigc-portrait-steward-v1 | 生成图片 | 管家残影三表情对话立牌 | 项目内允许；正式发行前做最终条款复核 | 允许 | 已接入 V0.1R |
-| aigc-portrait-wife-v1 | 生成图片 | 顾蘅秋三表情对话立牌 | 项目内允许；正式发行前做最终条款复核 | 允许 | 已接入 V0.1R |
-| aigc-portrait-gardener-v1 | 生成图片 | 周守圃三表情对话立牌 | 项目内允许；正式发行前做最终条款复核 | 允许 | 已接入 V0.1R |
-| candidate-realtime-chinese-pavilion | Sketchfab 模型 | 亭构件候选 | 待确认具体许可与署名 | 未知，默认禁止 | 未下载；联系作者/查清许可 |
-| candidate-suzhou-pavilion | Sketchfab 模型 | 构图与亭构件候选 | 待确认具体许可与署名 | 未知，默认禁止 | 未下载；联系作者/查清许可 |
-| candidate-fab-classical-garden | Fab 完整环境 | 构图、拆件或预渲染候选 | 默认只作预渲染；模型文件会被 Web 暴露 | 未知，默认禁止 | 未购买；需要作者书面 Web 授权才可运行时交付 |
-| polyhaven-materials | CC0 材质/HDRI | 运行时材质优先来源 | 允许 | 按单项页面复核 | 尚未选型 |
-| candidate-blendkit-cc0-chinese-pavilion | CC0 源模型 | 亭阁离线优化候选 | 允许，但不得未经减面直接进入网页 | 允许 | 未下载；当前环境无 Blender，待资产工序执行 |
-| candidate-polyhaven-chinese-garden-hdri | CC0 HDRI | 反射与环境光候选 | 允许 | 允许 | 未下载；需选择 1K/2K 运行时版本 |
+## Sketchfab · CC BY 4.0
 
-## 审计规则
+| ID | 标题 / 作者 | 原始页面 | 正式用途 | 署名位置 |
+|---|---|---|---|---|
+| ancient-chinese-courtyard-house | Ancient Chinese Courtyard House / BlackBirb | [Sketchfab](https://sketchfab.com/3d-models/ancient-chinese-courtyard-house-ed4ea9eb5f024d989eec182d48fa72d8) | 轻量房屋、远景降级 | `/credits` |
+| ancient-chinese-courtyard-park | Ancient Chinese courtyard Park / noyou | [Sketchfab](https://sketchfab.com/3d-models/ancient-chinese-courtyard-park-55d8371278844dbbbe43e1f867b5fcde) | 园林拆件来源 | `/credits` |
+| chinese-pavilion | Chinese pavilion / shineSUU | [Sketchfab](https://sketchfab.com/3d-models/chinese-pavilion-b0f6c1fb43e744ec876faecaba3d4925) | 修正比例后的备选亭 | `/credits` |
+| chinese-pavilion-memoriam | Chinese Pavilion Memoriam / TenatiousV | [Sketchfab](https://sketchfab.com/3d-models/chinese-pavilion-memoriam-87f4931714d7481baa54e5050f679be2) | 水榭、台基、长凳与岩石来源 | `/credits` |
+| low-bridge | Low Bridge / YanaBelaya | [Sketchfab](https://sketchfab.com/3d-models/low-bridge-015406b34db64859a6d17fb8c825bf52) | 水院低桥；工作副本兼容转换 | `/credits` |
+| traditional-chinese-siheyuan-courtyard | Traditional Chinese Siheyuan Courtyard / andertan | [Sketchfab](https://sketchfab.com/3d-models/traditional-chinese-siheyuan-courtyard-a18881525cfd4fe882e739c9c7cee752) | 正门、前厅、回廊与模块库主来源 | `/credits` |
 
-1. `candidate` 不得进入 `public/assets/runtime/`。
-2. Sketchfab CC-BY 资源必须在游戏内“制作与授权”页给出可点击署名。
-3. Fab 标准许可允许把资产并入项目，但不允许独立再分发；Web 游戏会把资源文件交给客户端，因此未取得明确 Web 交付许可的付费源文件只用于预渲染或内部构图。
-4. 发现 `NoAI` 标识立即将 `aiUsage` 设为 `prohibited`；不得上传到生成、补纹理、重拓扑或训练工具。
-5. 进入正式清单前填写作者、许可版本、原包版本、压缩包路径与 SHA-256；缺一项即构建失败。
+许可统一为 [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)。Low Bridge 原件使用旧 `KHR_materials_pbrSpecularGlossiness`；只对工作副本执行 metallic-roughness 兼容转换，原件哈希保持不变。
 
-参考：
+## CC0 材质与自然资源
 
-- [Fab EULA](https://www.fab.com/eula?lang=en)
-- [Poly Haven License](https://polyhaven.com/license)
-- [Sketchfab Download API attribution guidelines](https://sketchfab.com/developers/download-api/guidelines)
+| 来源 | 选用范围 | 许可 | 交付规则 |
+|---|---|---|---|
+| [Poly Haven](https://polyhaven.com/license) | 8 套 1K 材质、每套 Diffuse / OpenGL Normal / ARM | CC0 1.0 | 原 JPG 忽略；跟踪 24 个 KTX2 |
+| [Quaternius Stylized Nature MegaKit](https://quaternius.com/packs/stylizednaturemegakit.html) | 3 岩石、3 灌木、2 树、2 地被 | CC0 1.0 | 单件经 [Poly Pizza 镜像页](https://poly.pizza/bundle/Stylized-Nature-MegaKit-T34GZFA0fm) 审计；跟踪合并后的 Meshopt/KTX2 GLB |
+
+## 审计与发布规则
+
+1. Source → Working Copy → Runtime 三层不可逆向覆盖；原件 SHA-256 不得变化。
+2. 第一阶段正式视觉验收期间，25 MiB 单文件与 18 MiB `preload` 仅作为发布预算参考，不得提前否决真实建筑；先完成实景接入与测量，再通过拆分、区域加载、KTX2、Meshopt、LOD 或适度减面优化。
+3. 已进入优化阶段的 runtime GLB 必须具备 Meshopt，含纹理的优化副本使用 KTX2/Basis；`visual-fidelity-baseline` 可暂时保留审计原始几何与纹理，用于正式视觉基线验证。fallback 模块与自然套件仍须满足清单节点约束。
+4. `candidate` 只有在许可、功能以及五张第一阶段主路径截图的人工视觉验收通过后才可改为 `approved`；构建或资产预览通过不得自动替代视觉验收。

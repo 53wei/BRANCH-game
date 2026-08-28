@@ -1,4 +1,5 @@
 import type { CampaignSave, CheckpointState, GameSettings, MemoryId } from "./types";
+import { TINGYUXUAN_LAYOUT_VERSION, tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
 export const SAVE_KEY = "garden-of-shadows.save.v2";
 
@@ -13,6 +14,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
 
 export const createCheckpoint = (chapterId = "prologue-rain", memoryId: MemoryId = "baseline"): CheckpointState => ({
   schemaVersion: 2,
+  layoutVersion: chapterId === "west-corridor-loop" ? TINGYUXUAN_LAYOUT_VERSION : "campaign-v2",
   chapterId,
   anchorId: `${chapterId}-entry`,
   memoryId,
@@ -45,6 +47,9 @@ export function normalizeSave(value: unknown): CampaignSave {
   const candidate = value as Partial<CampaignSave>;
   if (candidate.schemaVersion !== 2 || !candidate.activeCheckpoint) return createDefaultSave();
   const base = createDefaultSave();
+  const rawCheckpoint = candidate.activeCheckpoint;
+  const legacyTingYuXuan = rawCheckpoint.chapterId === "west-corridor-loop" && rawCheckpoint.layoutVersion !== TINGYUXUAN_LAYOUT_VERSION;
+  const knownAnchor = tingYuXuanLayout.anchors.some((anchor) => anchor.id === rawCheckpoint.anchorId);
   return {
     ...base,
     ...candidate,
@@ -55,18 +60,22 @@ export function normalizeSave(value: unknown): CampaignSave {
     settings: { ...DEFAULT_SETTINGS, ...(candidate.settings ?? {}) },
     activeCheckpoint: {
       ...base.activeCheckpoint,
-      ...candidate.activeCheckpoint,
+      ...rawCheckpoint,
       schemaVersion: 2,
-      earnedFlags: unique(candidate.activeCheckpoint.earnedFlags ?? []),
-      contradictions: unique(candidate.activeCheckpoint.contradictions ?? []),
-      observedBy: candidate.activeCheckpoint.observedBy ?? {},
-      trustDecisions: candidate.activeCheckpoint.trustDecisions ?? {},
-      nameAnchors: unique(candidate.activeCheckpoint.nameAnchors ?? []),
-      chaseProgress: candidate.activeCheckpoint.chaseProgress ?? {},
-      objectiveProgress: candidate.activeCheckpoint.objectiveProgress ?? {},
-      seenDialogueLines: unique(candidate.activeCheckpoint.seenDialogueLines ?? []),
-      hintLevels: candidate.activeCheckpoint.hintLevels ?? {},
-      pointerLockPending: candidate.activeCheckpoint.pointerLockPending ?? false,
+      layoutVersion: legacyTingYuXuan ? TINGYUXUAN_LAYOUT_VERSION : (rawCheckpoint.layoutVersion ?? "campaign-v2"),
+      anchorId: legacyTingYuXuan ? (knownAnchor ? rawCheckpoint.anchorId : "west-entry") : rawCheckpoint.anchorId,
+      position: legacyTingYuXuan ? undefined : rawCheckpoint.position,
+      yaw: legacyTingYuXuan ? undefined : rawCheckpoint.yaw,
+      earnedFlags: unique(rawCheckpoint.earnedFlags ?? []),
+      contradictions: unique(rawCheckpoint.contradictions ?? []),
+      observedBy: rawCheckpoint.observedBy ?? {},
+      trustDecisions: rawCheckpoint.trustDecisions ?? {},
+      nameAnchors: unique(rawCheckpoint.nameAnchors ?? []),
+      chaseProgress: rawCheckpoint.chaseProgress ?? {},
+      objectiveProgress: rawCheckpoint.objectiveProgress ?? {},
+      seenDialogueLines: unique(rawCheckpoint.seenDialogueLines ?? []),
+      hintLevels: rawCheckpoint.hintLevels ?? {},
+      pointerLockPending: rawCheckpoint.pointerLockPending ?? false,
     },
   };
 }

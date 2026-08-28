@@ -1,0 +1,407 @@
+[
+  {
+    "id": "tyx-arch-siheyuan-source-a",
+    "file": "/assets/fidelity/architecture/TYX_ARCH_Siheyuan_Source_A.glb",
+    "devFile": "/__runtime-source/model/traditional-chinese-siheyuan-courtyard",
+    "sourceRelativePath": "assets-source/manual-downloads/traditional-chinese-siheyuan-courtyard/traditional_chinese_siheyuan_courtyard.glb",
+    "deliveryMode": "dev-source-pass-through",
+    "bytes": 102934464,
+    "sha256": "a1c6a9734cd1ceccd444be71e9c34ba4b218758275da91bc09cd71fe23384746",
+    "sourceAssetIds": [
+      "traditional-chinese-siheyuan-courtyard"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "candidate",
+    "preload": true,
+    "requiredNodes": [],
+    "optimizationStage": "optimized-runtime-pending-regeneration",
+    "extensionsUsed": [],
+    "extensionsRequired": [],
+    "nodes": [
+      "Object_4", "Object_5", "Object_6", "Object_7", "Object_8", "Object_9", "Object_10", "Object_11",
+      "Object_12", "Object_13", "Object_14", "Object_15", "Object_16", "Object_17", "Object_18", "Object_19",
+      "Object_20", "Object_21", "Object_22", "Object_23", "Object_24", "Object_25", "Object_26", "Object_27",
+      "Object_28", "Object_29", "Object_30", "Object_31", "Object_32", "Object_33", "Object_34", "Object_35"
+    ]
+  },
+  {
+    "id": "tyx-env-courtyard-park-source-a",
+    "file": "/assets/fidelity/environment/TYX_ENV_Courtyard_Park_Source_A.glb",
+    "devFile": "/__runtime-source/model/ancient-chinese-courtyard-park",
+    "sourceRelativePath": "assets-source/manual-downloads/ancient-chinese-courtyard-park/ancient_chinese_courtyard_park.glb",
+    "deliveryMode": "dev-source-pass-through",
+    "bytes": 24818280,
+    "sha256": "53fade9500956157d22566a680079018390f9b9b6e4e8ac643cd461705f3c7ab",
+    "sourceAssetIds": [
+      "ancient-chinese-courtyard-park"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "candidate",
+    "preload": false,
+    "requiredNodes": [],
+    "optimizationStage": "optimized-runtime-pending-regeneration",
+    "extensionsUsed": [],
+    "extensionsRequired": [],
+    "nodes": [
+      "FF01_zhuan04.jpg_0", "FF02_KHFC_07.jpg_0", "FF03_tingzhiyuan_09.jpg_0", "FF04_dingzhiyi3.jpg_0",
+      "FF05_lou.png_0", "FF06_tingzhiyuan_02.jpg_0", "FF07_KHFC_09.jpg_0", "FF08_tingzhiyuan_01.jpg_0",
+      "FF09_KHFC_06.png_0", "FF10_YZY-09_0", "FF11_cezhiyi.jpg_0", "FF12_KHFC_01.jpg_0", "FF13_wall04.jpg_0",
+      "FF14_huzhongqiao.jpg_0", "FF15_fangcong_tingzi.png_0", "FF16_fangcong_fangzi02.jpg_0", "FF17_fangcong_fangzi.jpg_0",
+      "FF18_jiashan02.jpg_0", "FF19_zawu01.png_0", "FF20_zhuan05.jpg_0", "FF21_zhuan03.jpg_0", "FF23_Yazhiyuan06.jpg_0",
+      "FF24_zhuan01.jpg_0", "FF22_zhuan02.jpg_0"
+    ]
+  },
+  {
+    "id": "tyx-arch-greybox-fallback-a",
+    "file": "/assets/architecture/TYX_ARCH_Kit_A.glb",
+    "bytes": 1074276,
+    "sha256": "0740f38191b56f7819847561052ad652fc34d6dce50ad61a23d47f44579dd3e6",
+    "sourceAssetIds": [
+      "project-authored"
+    ],
+    "license": "project-owned",
+    "status": "fallback-only",
+    "preload": false,
+    "requiredNodes": [
+      "Corridor_Straight_4m",
+      "Corridor_Straight_8m",
+      "Corridor_Corner",
+      "Wall_Solid",
+      "Wall_Window",
+      "Wall_MoonGate_Base",
+      "Door_Wood",
+      "Window_Lattice",
+      "House_Small",
+      "Roof_Grey"
+    ],
+    "optimizationStage": "fallback-only",
+    "extensionsUsed": [
+      "EXT_mesh_gpu_instancing",
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "Corridor_Corner_A_Ridge",
+      "Corridor_Corner_A_Roof_L",
+      "Corridor_Corner_A_Roof_R",
+      "Corridor_Corner_Floor_A",
+      "Corridor_Corner_Floor_B",
+      "Corridor_Corner",
+      "Corridor_Straight_4m_Beam_L",
+      "Corridor_Straight_4m_Beam_R",
+      "Corridor_Straight_4m_Floor",
+      "Corridor_Straight_4m_Ridge",
+      "Corridor_Straight_4m_Roof_L",
+      "Corridor_Straight_4m_Roof_R",
+      "Corridor_Straight_4m",
+      "Corridor_Straight_8m_Beam_L",
+      "Corridor_Straight_8m_Beam_R",
+      "Corridor_Straight_8m_Floor",
+      "Corridor_Straight_8m_Ridge",
+      "Corridor_Straight_8m_Roof_L",
+      "Corridor_Straight_8m_Roof_R",
+      "Corridor_Straight_8m",
+      "Door_Wood_Left",
+      "Door_Wood_Rail",
+      "Door_Wood_Rail.001",
+      "Door_Wood_Rail.002",
+      "Door_Wood_Right",
+      "Door_Wood",
+      "House_Small_Back",
+      "House_Small_Floor",
+      "House_Small_Left",
+      "House_Small_Pillar",
+      "House_Small_Pillar.001",
+      "House_Small_Pillar.002",
+      "House_Small_Pillar.003",
+      "House_Small_Ridge",
+      "House_Small_Right",
+      "House_Small_Roof_L",
+      "House_Small_Roof_R",
+      "House_Small",
+      "Roof_Grey_Ridge",
+      "Roof_Grey_Roof_L",
+      "Roof_Grey_Roof_R",
+      "Roof_Grey",
+      "MoonGate_Frame",
+      "MoonGate_Left",
+      "MoonGate_Right",
+      "MoonGate_Top",
+      "Wall_MoonGate_Base",
+      "Wall_Solid_Body",
+      "Wall_Solid_Cap",
+      "Wall_Solid",
+      "Wall_Window_Lattice",
+      "Wall_Window_Lattice.001",
+      "Wall_Window_Lattice.002",
+      "Wall_Window_Lattice.003",
+      "Wall_Window_Lattice.004",
+      "Wall_Window_Lattice.005",
+      "Wall_Window_Lattice.006",
+      "Wall_Window_Lattice.007",
+      "Wall_Window_Left",
+      "Wall_Window_Right",
+      "Wall_Window_Top",
+      "Wall_Window",
+      "Window_Lattice_Frame_B",
+      "Window_Lattice_Frame_L",
+      "Window_Lattice_Frame_R",
+      "Window_Lattice_Frame_T",
+      "Window_Lattice_H",
+      "Window_Lattice_H.001",
+      "Window_Lattice_H.002",
+      "Window_Lattice_H.003",
+      "Window_Lattice_V",
+      "Window_Lattice_V.001",
+      "Window_Lattice_V.002",
+      "Window_Lattice_V.003",
+      "Window_Lattice_V.004",
+      "Window_Lattice",
+      "TYX_ARCH_Kit_A"
+    ]
+  },
+  {
+    "id": "tyx-arch-house-a",
+    "file": "/assets/architecture/TYX_ARCH_House_A.glb",
+    "bytes": 20093748,
+    "sha256": "4f0a9f620a4f61224dc1924e15c8e7ebfc224f822f5514c59700d085f403a25d",
+    "sourceAssetIds": [
+      "ancient-chinese-courtyard-house"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "approved",
+    "preload": false,
+    "requiredNodes": [],
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "PLASTER_OVEN1_StingrayPBSwalls_0",
+      "PLASTER_OVEN1",
+      "ROOF_WOODWORK3_StingrayPBSroof_0",
+      "ROOF_WOODWORK3",
+      "RootNode",
+      "chinese_courtyard_house.fbx",
+      "Sketchfab_model",
+      "TYX_ARCH_House_A"
+    ]
+  },
+  {
+    "id": "tyx-arch-pavilion-a",
+    "file": "/assets/architecture/TYX_ARCH_Pavilion_A.glb",
+    "bytes": 8626596,
+    "sha256": "5fb320dbf7b32938e311d24db40aa972c241f54da6a0e5a5b5e84c29082283e4",
+    "sourceAssetIds": [
+      "chinese-pavilion-memoriam"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "approved",
+    "preload": false,
+    "requiredNodes": [],
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "Bench_final1_Bench_final:initialShadingGroup1_0",
+      "Bench_final1",
+      "Chinese_Pavilion_RoofLP_Wood_and_Tiles_0",
+      "Chinese_Pavilion_RoofLP",
+      "Chinese_PavilionTubes_LP_Wood_and_Tiles_0",
+      "Chinese_PavilionTubes_LP",
+      "ChinesePavilionTop_LP_Wood_and_Tiles_0",
+      "ChinesePavilionTop_LP",
+      "IncenseBox_LP_lambert1_0",
+      "IncenseBox_LP",
+      "LP_ChinesePavPillars_Wood_0",
+      "LP_ChinesePavPillars",
+      "LP_ChinesePavWalls_Wood_0",
+      "LP_ChinesePavWalls",
+      "LP_PavilionRings_Wood_0",
+      "LP_PavilionRings",
+      "Platform_Final_Platform_fine1:initialShadingGroup1_0",
+      "Platform_Final",
+      "RingSupports_LP_Wood_0",
+      "RingSupports_LP",
+      "Rock_LP_Rock_Final:initialShadingGroup1_0",
+      "Rock_LP",
+      "RootNode",
+      "444d16f26f73477986fc4121cae81627.fbx",
+      "Sketchfab_model",
+      "TYX_ARCH_Pavilion_A"
+    ]
+  },
+  {
+    "id": "tyx-gmp-bridge-low-a",
+    "file": "/assets/gameplay/TYX_GMP_Bridge_Low_A.glb",
+    "bytes": 2959164,
+    "sha256": "2f799d0fbcb4f005788db8abe1f9719d9f702545a8b7fbe091155a6425aa140d",
+    "sourceAssetIds": [
+      "low-bridge"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "approved",
+    "preload": false,
+    "requiredNodes": [],
+    "compatibilityConversion": "KHR_materials_pbrSpecularGlossiness to metallic-roughness on a working copy",
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_materials_ior",
+      "KHR_materials_specular",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "Object_2",
+      "Object_3",
+      "bridge all in one2.obj.cleaner.materialmerger.gles",
+      "Sketchfab_model",
+      "TYX_GMP_Bridge_Low_A"
+    ]
+  },
+  {
+    "id": "tyx-gmp-moon-gate-collision",
+    "file": "/assets/gameplay/TYX_GMP_MoonGate_Collision.glb",
+    "bytes": 5228,
+    "sha256": "e14625f34f0265581d1c60004cca7fc46b70206848182fc204503f7dc62eb9ff",
+    "sourceAssetIds": [
+      "project-authored"
+    ],
+    "license": "project-owned",
+    "status": "approved",
+    "preload": true,
+    "requiredNodes": [],
+    "extensionsUsed": [],
+    "extensionsRequired": [],
+    "nodes": [
+      "MoonGate_Collider_Left",
+      "MoonGate_Collider_Right",
+      "MoonGate_Collider_Top",
+      "TYX_GMP_MoonGate_Collision"
+    ]
+  },
+  {
+    "id": "tyx-nat-rock-set-a",
+    "file": "/assets/nature/TYX_NAT_Rock_Set_A.glb",
+    "bytes": 2079652,
+    "sha256": "f1f8f515409b88c5c9b0082f033bc75692f3ac4efd0bcb647d67760362caa3fb",
+    "sourceAssetIds": [
+      "chinese-pavilion-memoriam"
+    ],
+    "license": "CC-BY-4.0",
+    "status": "approved",
+    "preload": false,
+    "requiredNodes": [
+      "Rock_A",
+      "Rock_B",
+      "Rock_C"
+    ],
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "Rock_A",
+      "Rock_B",
+      "Rock_C",
+      "TYX_NAT_Rock_Set_A"
+    ]
+  },
+  {
+    "id": "tyx-nat-quaternius-set-a",
+    "file": "/assets/nature/TYX_NAT_Quaternius_Set_A.glb",
+    "bytes": 3743932,
+    "sha256": "d65acda876809776f7da92c58f83219f8217731ea09d6b4e756b136225ec78ea",
+    "sourceAssetIds": [
+      "quaternius-stylized-nature-megakit"
+    ],
+    "license": "CC0-1.0",
+    "status": "approved",
+    "preload": false,
+    "requiredNodes": [
+      "Quaternius_Bush_A",
+      "Quaternius_Bush_Flowers_A",
+      "Quaternius_Plant_Big_A",
+      "Quaternius_Tree_A",
+      "Quaternius_Tree_B",
+      "Quaternius_Grass_A",
+      "Quaternius_Fern_A",
+      "Quaternius_Rock_A",
+      "Quaternius_Rock_B",
+      "Quaternius_Rock_C"
+    ],
+    "extensionsUsed": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization",
+      "KHR_texture_basisu"
+    ],
+    "nodes": [
+      "Bush_Common",
+      "RootNode",
+      "Quaternius_Bush_A",
+      "Bush_Common_Flowers",
+      "RootNode.001",
+      "Quaternius_Bush_Flowers_A",
+      "Fern_1",
+      "RootNode.006",
+      "Quaternius_Fern_A",
+      "Grass_Common_Short",
+      "RootNode.005",
+      "Quaternius_Grass_A",
+      "Plant_7_Big",
+      "RootNode.002",
+      "Quaternius_Plant_Big_A",
+      "Rock_Medium_2",
+      "RootNode.007",
+      "Quaternius_Rock_A",
+      "Rock_Medium_1",
+      "RootNode.008",
+      "Quaternius_Rock_B",
+      "Rock_Medium_3",
+      "RootNode.009",
+      "Quaternius_Rock_C",
+      "CommonTree_3",
+      "RootNode.003",
+      "Quaternius_Tree_A",
+      "CommonTree_4",
+      "RootNode.004",
+      "Quaternius_Tree_B",
+      "TYX_NAT_Quaternius_Set_A"
+    ]
+  }
+]

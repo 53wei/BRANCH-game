@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultSave, loadCampaignSave, normalizeSave, resetGardenSave, SAVE_KEY, storeCampaignSave } from "./campaign-save";
+import { TINGYUXUAN_LAYOUT_VERSION } from "./runtime/tingyuxuan-layout";
 
 class MemoryStorage {
   values = new Map<string, string>();
@@ -47,5 +48,25 @@ describe("campaign save v2", () => {
     expect(normalized.activeCheckpoint.seenDialogueLines).toEqual([]);
     expect(normalized.activeCheckpoint.hintLevels).toEqual({});
     expect(normalized.settings.dialogueSpeed).toBe("normal");
+  });
+
+  it("keeps story progress but reanchors an older west-corridor layout", () => {
+    const source = createDefaultSave();
+    source.activeCheckpoint = {
+      ...source.activeCheckpoint,
+      chapterId: "west-corridor-loop",
+      anchorId: "loop-seventh-window",
+      layoutVersion: "west-corridor-v0.1r",
+      position: [3.7, 0.9, -27],
+      earnedFlags: ["west.contradiction.waterline"],
+      contradictions: ["waterline-direction"],
+      trustDecisions: { "west-water-motive": "protect" },
+    };
+    const normalized = normalizeSave(source);
+    expect(normalized.activeCheckpoint.layoutVersion).toBe(TINGYUXUAN_LAYOUT_VERSION);
+    expect(normalized.activeCheckpoint.anchorId).toBe("loop-seventh-window");
+    expect(normalized.activeCheckpoint.position).toBeUndefined();
+    expect(normalized.activeCheckpoint.contradictions).toEqual(["waterline-direction"]);
+    expect(normalized.activeCheckpoint.trustDecisions["west-water-motive"]).toBe("protect");
   });
 });

@@ -1,4 +1,5 @@
 import type { ChapterManifest, MemoryLayer } from "../types";
+import { interactablePosition } from "../runtime/tingyuxuan-layout";
 import { westDialogueSequences, westObjectives } from "./west-onboarding";
 
 const wifeMemory: MemoryLayer = {
@@ -33,10 +34,10 @@ export const westCorridorChapter: ChapterManifest = {
   status: "playable",
   unlock: { chapterId: "prologue-rain", requiredFlags: ["prologue.examiner-appointed"] },
   assetPack: {
-    id: "west-courtyard-v0.1",
-    initialBudgetMb: 18,
-    preload: ["procedural/west-corridor", "audio/rain-loop", "media/hero-hearing-rain"],
-    deferred: ["video/west-corridor-transition", "character/faceless-owner"],
+    id: "tingyuxuan-v1.2",
+    initialBudgetMb: 18, // 发布参考值；第一阶段正式视觉验收不作为真实模型前置否决门禁。
+    preload: ["/assets/fidelity/architecture/TYX_ARCH_Siheyuan_Source_A.glb", "/basis/basis_transcoder.js", "/basis/basis_transcoder.wasm"],
+    deferred: ["/assets/fidelity/environment/TYX_ENV_Courtyard_Park_Source_A.glb", "/assets/architecture/TYX_ARCH_House_A.glb", "/assets/architecture/TYX_ARCH_Pavilion_A.glb", "/assets/gameplay/TYX_GMP_Bridge_Low_A.glb", "/assets/nature/TYX_NAT_Rock_Set_A.glb", "/assets/nature/TYX_NAT_Quaternius_Set_A.glb"],
   },
   spawnAnchor: "west-entry",
   memories: [wifeMemory, gardenerMemory],
@@ -45,7 +46,7 @@ export const westCorridorChapter: ChapterManifest = {
       id: "waterline-direction",
       label: "逆向水痕",
       description: "夫人记忆中的干渠，在园丁证词里留下朝水榭倒流的苔线。",
-      position: [-2.6, 1.1, -9],
+      position: interactablePosition("waterline-direction"),
       kind: "geometry",
       requiredIndependentTestimonies: ["wife", "gardener"],
       confirmedByDefault: false,
@@ -55,7 +56,7 @@ export const westCorridorChapter: ChapterManifest = {
       id: "corridor-count",
       label: "第七码步",
       description: "同一组漏窗重复出现；不是园子太长，而是证词把出口接回了入口。",
-      position: [2.5, 1.2, -22],
+      position: interactablePosition("corridor-count"),
       kind: "geometry",
       requiredIndependentTestimonies: ["wife", "gardener"],
       confirmedByDefault: false,

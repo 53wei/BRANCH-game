@@ -1,3 +1,11 @@
+/**
+ * LEGACY GREYBOX SCENE ONLY.
+ *
+ * This file is intentionally not imported by GameRuntime. Its procedural Box/Cylinder/Torus
+ * architecture is retained only as historical greybox/reference code and must not be restored
+ * as the formal visual layer. The production chapter scene is TingYuXuanScene.ts, which loads
+ * audited Siheyuan/Courtyard Park geometry for the phase-one main route.
+ */
 import * as THREE from "three/webgpu";
 import type { MemoryId, MemoryLayer } from "../types";
 

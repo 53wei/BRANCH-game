@@ -1,0 +1,43 @@
+{
+  "status": "pending-visual-validation",
+  "layoutVersion": "tingyuxuan-v1.2",
+  "approvedAt": null,
+  "blockingReason": "The formal TingYuXuan runtime must be rebuilt, executed and reviewed through the five-screenshot visual gate before release approval.",
+  "gates": {
+    "license": {
+      "ccBySources": 6,
+      "cc0Materials": 8,
+      "cc0NatureModules": 10,
+      "status": "audited"
+    },
+    "functional": {
+      "testSuite": "requires-current-run",
+      "typecheck": "requires-current-run",
+      "lint": "requires-current-run",
+      "productionBuild": "requires-current-run",
+      "chapterRouteContract": "implemented-awaiting-current-run"
+    },
+    "visual": {
+      "beforeScreenshots": 1,
+      "requiredAfterScreenshots": 5,
+      "capturedAfterScreenshots": 0,
+      "formalTingYuXuan": "pending",
+      "assetPreview": "source-and-runtime-preview-implemented",
+      "credits": "implemented"
+    },
+    "performance": {
+      "policy": "measure-fidelity-first-optimize-second",
+      "referenceMaxStaticMiB": 25,
+      "referencePreloadMiB": 18,
+      "chapterPreloadMiB": null,
+      "runtimeFiles": null,
+      "capturedMetrics": null,
+      "meshoptKtx2": "pipeline-configured-awaiting-current-assets-prepare"
+    },
+    "browsers": {
+      "webgl2": "requires-current-visual-capture",
+      "webgpuPath": "implemented-not-currently-reverified",
+      "recoverableAssetErrorPath": "implemented"
+    }
+  }
+}

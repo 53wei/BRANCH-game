@@ -32,6 +32,10 @@ npm run build
 - 固定章节完成事件 `garden-of-shadows:chapter-complete`。
 - `inkjs` 分支对话、左右工笔重彩立牌、对话历史与已读跳过。
 - 单一主任务、方向距离、3D 目标标记及 60/120/180 秒自适应软提示。
+- 正式视觉采用 `gameplaySkeleton / visualAssets / proceduralDressing` 三层：程序建筑已从正常 `visualAssets` 退出，`TYX_ARCH_Kit_A` 只保留显式 fallback/debug。
+- Phase One 主路径使用真实 `Traditional Chinese Siheyuan`（出生点/正门/前厅）和 `Ancient Chinese Courtyard Park`（西院/曲廊/月洞门过渡）。Courtyard Park 进入区域后延迟加载，首帧不再同时预载两套大型场景。
+- `/dev/assets-preview` 同时支持 Source 与 Runtime 资产预览；`/credits`、Asset Manifest、License Ledger、KTX2/Basis/Meshopt 链路保留。
+- 水院、水榭、桥、假山、北楼和内宅 placements 仍保留在数据层，但当前 `PHASE_ONE_RUNTIME_ZONES` 不会在第一阶段正常游玩中自动激活。
 
 正式配音尚未进入构建。`docs/assets/voice-manifest.json` 已锁定 Azure 付费预置声线和 SSML 模板，但生成 OGG/MP3 需要项目方在本地配置 Azure Speech 凭据，密钥不得提交。
 

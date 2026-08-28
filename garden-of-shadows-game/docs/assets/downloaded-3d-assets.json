@@ -1,0 +1,478 @@
+[
+  {
+    "id": "ancient-chinese-courtyard-house",
+    "title": "Ancient Chinese Courtyard House",
+    "sourceFile": "ancient_chinese_courtyard_house.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/ancient-chinese-courtyard-house/ancient_chinese_courtyard_house.glb",
+    "bytes": 28583048,
+    "sha256": "4d992e9a0029c203ef1d4c2a1d90aeda4b771869dd4868367a6ba5efba695e3a",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-16.72.0",
+    "author": "BlackBirb (https://sketchfab.com/BlackBirb)",
+    "sourceUrl": "https://sketchfab.com/3d-models/ancient-chinese-courtyard-house-ed4ea9eb5f024d989eec182d48fa72d8",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "A",
+    "processingNote": "低面数、结构简单；标准化比例后可直接作为北楼/内宅外轮廓。",
+    "intendedUse": "轻量房屋、远景与低画质降级资产",
+    "previewMode": "raw",
+    "containsFbx": false,
+    "sourceFileCount": 1,
+    "externalTextureCount": 8,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 7,
+      "meshes": 2,
+      "primitives": 2,
+      "materials": 2,
+      "textures": 6,
+      "images": 6,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 7639
+    },
+    "bounds": {
+      "min": [
+        -6.6899,
+        -0.1823,
+        -5.0837
+      ],
+      "max": [
+        5.1565,
+        7.3716,
+        5.9458
+      ],
+      "size": [
+        11.8464,
+        7.5539,
+        11.0295
+      ],
+      "center": [
+        -0.7667,
+        3.5946,
+        0.4311
+      ]
+    },
+    "meshNodes": [
+      "PLASTER_OVEN1_StingrayPBSwalls_0",
+      "ROOF_WOODWORK3_StingrayPBSroof_0"
+    ],
+    "extensionsUsed": [],
+    "extensionsRequired": []
+  },
+  {
+    "id": "ancient-chinese-courtyard-park",
+    "title": "Ancient Chinese courtyard Park",
+    "sourceFile": "ancient_chinese_courtyard_park.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/ancient-chinese-courtyard-park/ancient_chinese_courtyard_park.glb",
+    "bytes": 24818280,
+    "sha256": "53fade9500956157d22566a680079018390f9b9b6e4e8ac643cd461705f3c7ab",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-12.65.0",
+    "author": "noyou (https://sketchfab.com/zsm123)",
+    "sourceUrl": "https://sketchfab.com/3d-models/ancient-chinese-courtyard-park-55d8371278844dbbbe43e1f867b5fcde",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "B",
+    "processingNote": "园林内容完整但尺度大、对象跨度广；正式使用需区域摆放与流式加载。",
+    "intendedUse": "回廊、园墙、亭、桥、假山与园林拆件来源",
+    "previewMode": "raw",
+    "containsFbx": true,
+    "sourceFileCount": 1,
+    "externalTextureCount": 24,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 189,
+      "meshes": 27,
+      "primitives": 27,
+      "materials": 24,
+      "textures": 24,
+      "images": 24,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 268540
+    },
+    "bounds": {
+      "min": [
+        -61.5821,
+        -2.6553,
+        -71.9764
+      ],
+      "max": [
+        81.7442,
+        13.8844,
+        103.6057
+      ],
+      "size": [
+        143.3263,
+        16.5397,
+        175.5821
+      ],
+      "center": [
+        10.081,
+        5.6146,
+        15.8147
+      ]
+    },
+    "meshNodes": [
+      "FF01_zhuan04.jpg_0",
+      "FF02_KHFC_07.jpg_0",
+      "FF03_tingzhiyuan_09.jpg_0",
+      "FF04_dingzhiyi3.jpg_0",
+      "FF05_lou.png_0",
+      "FF06_tingzhiyuan_02.jpg_0",
+      "FF07_KHFC_09.jpg_0",
+      "FF08_tingzhiyuan_01.jpg_0",
+      "FF09_KHFC_06.png_0",
+      "FF10_YZY-09_0",
+      "FF11_cezhiyi.jpg_0",
+      "FF12_KHFC_01.jpg_0",
+      "FF13_wall04.jpg_0",
+      "FF14_huzhongqiao.jpg_0",
+      "FF15_fangcong_tingzi.png_0",
+      "FF16_fangcong_fangzi02.jpg_0",
+      "FF16_fangcong_fangzi02.jpg_0",
+      "FF16_fangcong_fangzi02.jpg_0",
+      "FF17_fangcong_fangzi.jpg_0",
+      "FF17_fangcong_fangzi.jpg_0",
+      "FF18_jiashan02.jpg_0",
+      "FF19_zawu01.png_0",
+      "FF20_zhuan05.jpg_0",
+      "FF21_zhuan03.jpg_0",
+      "FF23_Yazhiyuan06.jpg_0",
+      "FF24_zhuan01.jpg_0",
+      "FF22_zhuan02.jpg_0"
+    ],
+    "extensionsUsed": [],
+    "extensionsRequired": []
+  },
+  {
+    "id": "chinese-pavilion",
+    "title": "Chinese pavilion",
+    "sourceFile": "chinese_pavilion.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/chinese-pavilion/chinese_pavilion.glb",
+    "bytes": 4344904,
+    "sha256": "e748a5d2cb71970f800e0975cfa5864b5b4b312680c21eb0970c04fbcfca7517",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-15.22.0",
+    "author": "shineSUU (https://sketchfab.com/shineSUU)",
+    "sourceUrl": "https://sketchfab.com/3d-models/chinese-pavilion-b0f6c1fb43e744ec876faecaba3d4925",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "B",
+    "processingNote": "比例坐标异常且面数偏高；保留作备用亭阁，不作为当前主水榭。",
+    "intendedUse": "修正比例后的备用亭阁",
+    "previewMode": "raw",
+    "containsFbx": false,
+    "sourceFileCount": 0,
+    "externalTextureCount": 0,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 19,
+      "meshes": 16,
+      "primitives": 16,
+      "materials": 8,
+      "textures": 7,
+      "images": 7,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 62613
+    },
+    "bounds": {
+      "min": [
+        -1967.36,
+        0,
+        -12106.5999
+      ],
+      "max": [
+        1910.5199,
+        3846.3,
+        -3685.1799
+      ],
+      "size": [
+        3877.8799,
+        3846.3,
+        8421.4199
+      ],
+      "center": [
+        -28.42,
+        1923.15,
+        -7895.8899
+      ]
+    },
+    "meshNodes": [
+      "Object_3",
+      "Object_4",
+      "Object_5",
+      "Object_6",
+      "Object_7",
+      "Object_8",
+      "Object_9",
+      "Object_10",
+      "Object_11",
+      "Object_12",
+      "Object_13",
+      "Object_14",
+      "Object_15",
+      "Object_16",
+      "Object_17",
+      "Object_18"
+    ],
+    "extensionsUsed": [],
+    "extensionsRequired": []
+  },
+  {
+    "id": "chinese-pavilion-memoriam",
+    "title": "Chinese Pavilion Memoriam",
+    "sourceFile": "chinese_pavilion_memoriam.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/chinese-pavilion-memoriam/chinese_pavilion_memoriam.glb",
+    "bytes": 10040728,
+    "sha256": "64fdc5a51e58a74301a0785569b63ab94ec557dbd3069f29243328c971d4604c",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-12.68.0",
+    "author": "TenatiousV (https://sketchfab.com/Tenatious)",
+    "sourceUrl": "https://sketchfab.com/3d-models/chinese-pavilion-memoriam-87f4931714d7481baa54e5050f679be2",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "A",
+    "processingNote": "水榭、台基、长凳与岩石结构清晰，标准化后直接进入 runtime。",
+    "intendedUse": "水榭外观、台基、长凳与岩石来源",
+    "previewMode": "raw",
+    "containsFbx": true,
+    "sourceFileCount": 1,
+    "externalTextureCount": 20,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 28,
+      "meshes": 13,
+      "primitives": 13,
+      "materials": 8,
+      "textures": 18,
+      "images": 18,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 14632
+    },
+    "bounds": {
+      "min": [
+        -11.6778,
+        -0.9061,
+        -7.6724
+      ],
+      "max": [
+        11.6707,
+        4.7599,
+        8.4183
+      ],
+      "size": [
+        23.3485,
+        5.666,
+        16.0906
+      ],
+      "center": [
+        -0.0036,
+        1.9269,
+        0.373
+      ]
+    },
+    "meshNodes": [
+      "IncenseBox_LP_lambert1_0",
+      "Chinese_Pavilion_RoofLP_Wood_and_Tiles_0",
+      "ChinesePavilionTop_LP_Wood_and_Tiles_0",
+      "Chinese_PavilionTubes_LP_Wood_and_Tiles_0",
+      "LP_ChinesePavPillars_Wood_0",
+      "LP_ChinesePavWalls_Wood_0",
+      "LP_PavilionRings_Wood_0",
+      "RingSupports_LP_Wood_0",
+      "Landscape_Ground_0",
+      "Landscape_Water_0",
+      "Platform_Final_Platform_fine1:initialShadingGroup1_0",
+      "Bench_final1_Bench_final:initialShadingGroup1_0",
+      "Rock_LP_Rock_Final:initialShadingGroup1_0"
+    ],
+    "extensionsUsed": [],
+    "extensionsRequired": []
+  },
+  {
+    "id": "low-bridge",
+    "title": "Low Bridge",
+    "sourceFile": "low_bridge.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/low-bridge/low_bridge.glb",
+    "bytes": 4435580,
+    "sha256": "ded561b5b90cd6e7916892186b1e34779a2f5863b8b9887504687980d898fc23",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-12.66.0",
+    "author": "YanaBelaya (https://sketchfab.com/YanaBelaya)",
+    "sourceUrl": "https://sketchfab.com/3d-models/low-bridge-015406b34db64859a6d17fb8c825bf52",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "B",
+    "processingNote": "几何可用，但旧 Spec/Gloss 扩展需要工作副本兼容转换。",
+    "intendedUse": "水院低桥与独立简化碰撞",
+    "previewMode": "compatibility-copy",
+    "containsFbx": false,
+    "sourceFileCount": 1,
+    "externalTextureCount": 7,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 4,
+      "meshes": 2,
+      "primitives": 2,
+      "materials": 1,
+      "textures": 4,
+      "images": 4,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 9809
+    },
+    "bounds": {
+      "min": [
+        -52.3848,
+        7.4543,
+        -28.8627
+      ],
+      "max": [
+        52.3848,
+        55.0688,
+        28.7752
+      ],
+      "size": [
+        104.7695,
+        47.6145,
+        57.6379
+      ],
+      "center": [
+        0,
+        31.2615,
+        -0.0438
+      ]
+    },
+    "meshNodes": [
+      "Object_2",
+      "Object_3"
+    ],
+    "extensionsUsed": [
+      "KHR_materials_pbrSpecularGlossiness"
+    ],
+    "extensionsRequired": [
+      "KHR_materials_pbrSpecularGlossiness"
+    ]
+  },
+  {
+    "id": "traditional-chinese-siheyuan-courtyard",
+    "title": "Traditional Chinese Siheyuan Courtyard",
+    "sourceFile": "traditional_chinese_siheyuan_courtyard.glb",
+    "relativeSourcePath": "assets-source/manual-downloads/traditional-chinese-siheyuan-courtyard/traditional_chinese_siheyuan_courtyard.glb",
+    "bytes": 102934464,
+    "sha256": "a1c6a9734cd1ceccd444be71e9c34ba4b218758275da91bc09cd71fe23384746",
+    "format": "GLB",
+    "glbVersion": 2,
+    "generator": "Sketchfab-16.52.0",
+    "author": "andertan (https://sketchfab.com/andertan)",
+    "sourceUrl": "https://sketchfab.com/3d-models/traditional-chinese-siheyuan-courtyard-a18881525cfd4fe882e739c9c7cee752",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "status": "approved",
+    "classification": "approved",
+    "processingClass": "B",
+    "processingNote": "正式建筑质量高，但原始体积和三角面较大；保真接入后再执行 KTX2/Meshopt 与区域预算。",
+    "intendedUse": "正门、前厅、主屋、院墙、门窗与屋面主来源",
+    "previewMode": "raw",
+    "containsFbx": false,
+    "sourceFileCount": 0,
+    "externalTextureCount": 44,
+    "metrics": {
+      "scenes": 1,
+      "nodes": 36,
+      "meshes": 32,
+      "primitives": 32,
+      "materials": 27,
+      "textures": 44,
+      "images": 44,
+      "animations": 0,
+      "skins": 0,
+      "trianglesApprox": 595743
+    },
+    "bounds": {
+      "min": [
+        -8.5499,
+        -0.2244,
+        -5.7529
+      ],
+      "max": [
+        8.4479,
+        2.5775,
+        5.7486
+      ],
+      "size": [
+        16.9979,
+        2.8019,
+        11.5015
+      ],
+      "center": [
+        -0.051,
+        1.1765,
+        -0.0021
+      ]
+    },
+    "meshNodes": [
+      "Object_4",
+      "Object_5",
+      "Object_6",
+      "Object_7",
+      "Object_8",
+      "Object_9",
+      "Object_10",
+      "Object_11",
+      "Object_12",
+      "Object_13",
+      "Object_14",
+      "Object_15",
+      "Object_16",
+      "Object_17",
+      "Object_18",
+      "Object_19",
+      "Object_20",
+      "Object_21",
+      "Object_22",
+      "Object_23",
+      "Object_24",
+      "Object_25",
+      "Object_26",
+      "Object_27",
+      "Object_28",
+      "Object_29",
+      "Object_30",
+      "Object_31",
+      "Object_32",
+      "Object_33",
+      "Object_34",
+      "Object_35"
+    ],
+    "extensionsUsed": [
+      "KHR_materials_specular"
+    ],
+    "extensionsRequired": []
+  }
+]

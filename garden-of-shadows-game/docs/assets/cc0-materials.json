@@ -1,0 +1,340 @@
+[
+  {
+    "id": "polyhaven-worn_plaster_wall-1k",
+    "title": "Worn Plaster Wall",
+    "sourceUrl": "https://polyhaven.com/a/worn_plaster_wall",
+    "apiUrl": "https://api.polyhaven.com/files/worn_plaster_wall",
+    "author": "Dimitrios Savva",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "plaster-old"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/worn_plaster_wall/worn_plaster_wall_diff_1k.jpg",
+        "sourceMd5": "31aab3a5bf3859361cd423e15b9735bc",
+        "sourceSha256": "f769bee35504ff713e89e89d2b64c1eb3c373dd184973ac8706310f19fd63efe",
+        "runtimeUrl": "/assets/materials/worn_plaster_wall/worn_plaster_wall_diff_1k.ktx2",
+        "runtimeBytes": 1113628,
+        "runtimeSha256": "b1bd7d222939e0acaf844b01290cc311dfbd008b37f5e7aff3c0afa968a6ba86"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/worn_plaster_wall/worn_plaster_wall_nor_gl_1k.jpg",
+        "sourceMd5": "2e1cb2651163105acda653e9c9b9b7b8",
+        "sourceSha256": "5d1dc80a354fc7de3f0ada286176b56d50067c85c9f95140aadf7d5db15adee1",
+        "runtimeUrl": "/assets/materials/worn_plaster_wall/worn_plaster_wall_nor_gl_1k.ktx2",
+        "runtimeBytes": 765032,
+        "runtimeSha256": "70d21a52d26b85d567fc69e5fe45f147de0ddf610be1aec77363f0d285225855"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/worn_plaster_wall/worn_plaster_wall_arm_1k.jpg",
+        "sourceMd5": "c05a77f6150c8f25400ea124a5871179",
+        "sourceSha256": "e16208925a30c07d17d579c33132e4a8aae2881844cdd1736fc59a00b577b995",
+        "runtimeUrl": "/assets/materials/worn_plaster_wall/worn_plaster_wall_arm_1k.ktx2",
+        "runtimeBytes": 481036,
+        "runtimeSha256": "e04db377ede96938d7eed2c4aefa70f9a972567041df8122fad929058fce812b"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-white_rough_plaster-1k",
+    "title": "White Rough Plaster",
+    "sourceUrl": "https://polyhaven.com/a/white_rough_plaster",
+    "apiUrl": "https://api.polyhaven.com/files/white_rough_plaster",
+    "author": "Rob Tuytel",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "plaster-wet"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_rough_plaster/white_rough_plaster_diff_1k.jpg",
+        "sourceMd5": "a64b86b48c25fb2247142a177d82df98",
+        "sourceSha256": "8de3dbca955bc3c719863015b6542326d76e2004c5d4a1f60928525a2031a71a",
+        "runtimeUrl": "/assets/materials/white_rough_plaster/white_rough_plaster_diff_1k.ktx2",
+        "runtimeBytes": 1263066,
+        "runtimeSha256": "4a8f99134a9a65d039247d738ca37a4fe4fd84c452855e89ea5f4e2ddc0f4b35"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_rough_plaster/white_rough_plaster_nor_gl_1k.jpg",
+        "sourceMd5": "3908cf07f28f942983c12d36bda1792a",
+        "sourceSha256": "29420864bc82c81d0ca0f23420ddc669ad2ab74b6dd2fb6a2c93db4f315a033d",
+        "runtimeUrl": "/assets/materials/white_rough_plaster/white_rough_plaster_nor_gl_1k.ktx2",
+        "runtimeBytes": 1206827,
+        "runtimeSha256": "fa9383578a41d49b4030612f9d0c2c6db215813d0d6962518625865629045367"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/white_rough_plaster/white_rough_plaster_arm_1k.jpg",
+        "sourceMd5": "5845cfb49c47c0275c6b87c3e5694561",
+        "sourceSha256": "76fecb90505f14378ae6230e76d47f0162577acd0cf8ffd2ce68d4eb05c46b4b",
+        "runtimeUrl": "/assets/materials/white_rough_plaster/white_rough_plaster_arm_1k.ktx2",
+        "runtimeBytes": 811466,
+        "runtimeSha256": "6df190c0720a8e8b889fcbac5addb33531ee9725919172cf6291d9d81265f447"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-dark_wooden_planks-1k",
+    "title": "Dark Wooden Planks",
+    "sourceUrl": "https://polyhaven.com/a/dark_wooden_planks",
+    "apiUrl": "https://api.polyhaven.com/files/dark_wooden_planks",
+    "author": "Amal Kumar",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "wood-dark-dry"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_diff_1k.jpg",
+        "sourceMd5": "7ec8fe3e0b84289a4add3b10a54090bb",
+        "sourceSha256": "e8216baa6b2d701b5523fcb904d45570acf7b96d160ef815e96e2dbfa82bdd9b",
+        "runtimeUrl": "/assets/materials/dark_wooden_planks/dark_wooden_planks_diff_1k.ktx2",
+        "runtimeBytes": 1035346,
+        "runtimeSha256": "88eeb72cdd266093b2b5b926f9ff97bc891c9961c466dd70071d8f99d90c073a"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_nor_gl_1k.jpg",
+        "sourceMd5": "4093b4023a4270b3a06b762076106d58",
+        "sourceSha256": "87a7b26bc674477865d4589c6589200bfa649a6461422bf56f5600c05a470206",
+        "runtimeUrl": "/assets/materials/dark_wooden_planks/dark_wooden_planks_nor_gl_1k.ktx2",
+        "runtimeBytes": 669204,
+        "runtimeSha256": "3112338c60017b41bbe8903ce30b3ee23db3e3fa282bd40275de01570ff995db"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_arm_1k.jpg",
+        "sourceMd5": "5e5911f2c6d4fbce78c995ec7591eaa9",
+        "sourceSha256": "8cb87b3d886d26a3baf72a829e4fb3f0e2b97b5f43dad44bdd7fd7fe4d4ea762",
+        "runtimeUrl": "/assets/materials/dark_wooden_planks/dark_wooden_planks_arm_1k.ktx2",
+        "runtimeBytes": 812780,
+        "runtimeSha256": "e651d2398c3af7709b7e8fb3993aa516cfe79a3f61cde174778634b91f1f36d1"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-weathered_planks-1k",
+    "title": "Weathered Planks",
+    "sourceUrl": "https://polyhaven.com/a/weathered_planks",
+    "apiUrl": "https://api.polyhaven.com/files/weathered_planks",
+    "author": "Dario Barresi, Dimitrios Savva",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "wood-dark-wet",
+      "wood-painted-old"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_diff_1k.jpg",
+        "sourceMd5": "5d7c9e7088bfa54490ba03ba15b660d8",
+        "sourceSha256": "01c9a372cfd7a7bf471b59c2458ed3ccecc93448aebf7ba0cc5b3b5b6ed24349",
+        "runtimeUrl": "/assets/materials/weathered_planks/weathered_planks_diff_1k.ktx2",
+        "runtimeBytes": 832239,
+        "runtimeSha256": "a768b9ed783e05c3e9c39108e2a6e5e68ccf3f478ebe92b1bb8c3466a2ae7483"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_nor_gl_1k.jpg",
+        "sourceMd5": "119541f6b143f21f0a6e9774e9208905",
+        "sourceSha256": "381d298f3194ec4961b04b4912b9b6efea4b2ff7b914dac57e24c8b6b0be6a25",
+        "runtimeUrl": "/assets/materials/weathered_planks/weathered_planks_nor_gl_1k.ktx2",
+        "runtimeBytes": 758480,
+        "runtimeSha256": "2d07d05b5b6225b0c6bdcf312f2303385e0904f48cf9a9d9be41ecb2281e6d15"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_planks/weathered_planks_arm_1k.jpg",
+        "sourceMd5": "54f44833fd158b22c3419d416debc113",
+        "sourceSha256": "f0d81d945dbb267ed8b411af4db55141ae52b87313403667dd06aead9532fbef",
+        "runtimeUrl": "/assets/materials/weathered_planks/weathered_planks_arm_1k.ktx2",
+        "runtimeBytes": 570563,
+        "runtimeSha256": "d34ff2d99fdfb89eac38415e28a750bbc40aba930e6b8d1f21fcd3e3e98064eb"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-grey_roof_tiles-1k",
+    "title": "Grey Roof Tiles",
+    "sourceUrl": "https://polyhaven.com/a/grey_roof_tiles",
+    "apiUrl": "https://api.polyhaven.com/files/grey_roof_tiles",
+    "author": "Rob Tuytel",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "roof-grey"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_diff_1k.jpg",
+        "sourceMd5": "9a0d2c1ca66e79972c7c35cefa238cf7",
+        "sourceSha256": "f61107b70cf56074c9db09384a332620c94c678ed2baabfae78029a8242e49a3",
+        "runtimeUrl": "/assets/materials/grey_roof_tiles/grey_roof_tiles_diff_1k.ktx2",
+        "runtimeBytes": 1220587,
+        "runtimeSha256": "2bc463930eff2ff77f56cf3a846f81b941c7d18848461e28d6c11623afe37a1d"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_nor_gl_1k.jpg",
+        "sourceMd5": "95003919cdb2fcb2f499594bdf0ee827",
+        "sourceSha256": "99546fdc2978d0950a2c61fe94dbd4230bb7825944bb4e4e7ad586839fdc721d",
+        "runtimeUrl": "/assets/materials/grey_roof_tiles/grey_roof_tiles_nor_gl_1k.ktx2",
+        "runtimeBytes": 923501,
+        "runtimeSha256": "ca810b739b4b89c3baf6d4c26efd234503f85ed54fd18acff0bedbb016037dcd"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_roof_tiles/grey_roof_tiles_arm_1k.jpg",
+        "sourceMd5": "9c7eefaca8e99854cb1a3dc2d999ee9b",
+        "sourceSha256": "cd00bc65d20defa8560adbe908bf9027e0e39b8ccf954eeab9fca7a3c5674281",
+        "runtimeUrl": "/assets/materials/grey_roof_tiles/grey_roof_tiles_arm_1k.ktx2",
+        "runtimeBytes": 694245,
+        "runtimeSha256": "9c32becafb885a56b7843f5ebb9a08d29ec691dd7715d021a6a093f5fe2d5fa7"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-stone_tiles_02-1k",
+    "title": "Stone Tiles 02",
+    "sourceUrl": "https://polyhaven.com/a/stone_tiles_02",
+    "apiUrl": "https://api.polyhaven.com/files/stone_tiles_02",
+    "author": "Charlotte Baglioni",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "stone-old"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_02/stone_tiles_02_diff_1k.jpg",
+        "sourceMd5": "8d2ebfc3505efbb610aa5010d38d2df8",
+        "sourceSha256": "687ef4a6cc07fb680352cf26b0a2a6256d4c18d8084dcd59ac739bc509296e18",
+        "runtimeUrl": "/assets/materials/stone_tiles_02/stone_tiles_02_diff_1k.ktx2",
+        "runtimeBytes": 1150591,
+        "runtimeSha256": "fdf685cbd0a6d28d1e72cf29788e48b73c526645750bcedb3b5cd769ad5d4ea9"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_02/stone_tiles_02_nor_gl_1k.jpg",
+        "sourceMd5": "cca5bd87964b755cc85c01322e8d1a0e",
+        "sourceSha256": "ab19cc9baacb0bc30a219f841254beb6837412ddad9bfc9c052b5aa805d1c3f0",
+        "runtimeUrl": "/assets/materials/stone_tiles_02/stone_tiles_02_nor_gl_1k.ktx2",
+        "runtimeBytes": 1089619,
+        "runtimeSha256": "7ff3f72c855420356ea987f10428370f6cb9e46f248ed12d58b49ee88d5a964f"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_02/stone_tiles_02_arm_1k.jpg",
+        "sourceMd5": "b7d6c503145f4b57cd6e4442739036f8",
+        "sourceSha256": "5f19b8f986ec3fcabf29b125e225140066beb8f3bc687d62364968ac540514a9",
+        "runtimeUrl": "/assets/materials/stone_tiles_02/stone_tiles_02_arm_1k.ktx2",
+        "runtimeBytes": 665284,
+        "runtimeSha256": "d0a3f01aada8e7b64e5b4e8450cf91baead2af5ac30263358d55a0aca464d458"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-stone_tiles_03-1k",
+    "title": "Stone Tiles 03",
+    "sourceUrl": "https://polyhaven.com/a/stone_tiles_03",
+    "apiUrl": "https://api.polyhaven.com/files/stone_tiles_03",
+    "author": "eye-candy.xyz",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "stone-wet",
+      "mud-wet"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_03/stone_tiles_03_diff_1k.jpg",
+        "sourceMd5": "4330082c84aca4a7717c78f6c5f74def",
+        "sourceSha256": "e2fbb407d57182cdc50704659a0bc07e4d83677fed54b1c202018898d37a3509",
+        "runtimeUrl": "/assets/materials/stone_tiles_03/stone_tiles_03_diff_1k.ktx2",
+        "runtimeBytes": 1328537,
+        "runtimeSha256": "5e584f9b1efb45564f9dbede1b847cbb74bc2820b9da016e684b35efcd287213"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_03/stone_tiles_03_nor_gl_1k.jpg",
+        "sourceMd5": "03a8c9b7600ec750f05f7d390642ae28",
+        "sourceSha256": "c7f8fa0ccd76f9fc20a8f4ef18479ba0e4843bd0e21395c27ac5fcaa9bfef25f",
+        "runtimeUrl": "/assets/materials/stone_tiles_03/stone_tiles_03_nor_gl_1k.ktx2",
+        "runtimeBytes": 1291586,
+        "runtimeSha256": "2479da018504a93ae94c18a91dadadd0ecfa6a6599966f201394eddcc9079ee8"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles_03/stone_tiles_03_arm_1k.jpg",
+        "sourceMd5": "9288f50bac05c7b4e82acc3429b8a3c9",
+        "sourceSha256": "c0390ae15204190f5a2c7012d3ad6313ff62520e5cc6ae51a011d21509ef2848",
+        "runtimeUrl": "/assets/materials/stone_tiles_03/stone_tiles_03_arm_1k.ktx2",
+        "runtimeBytes": 871893,
+        "runtimeSha256": "35840e457e15cf46f7c0d5843b2371166c023479c2b1dadf34e2ed382fa0895a"
+      }
+    ]
+  },
+  {
+    "id": "polyhaven-mossy_rock-1k",
+    "title": "Mossy Rock",
+    "sourceUrl": "https://polyhaven.com/a/mossy_rock",
+    "apiUrl": "https://api.polyhaven.com/files/mossy_rock",
+    "author": "Rob Tuytel",
+    "license": "CC0-1.0",
+    "resolution": "1k",
+    "materialIds": [
+      "stone-moss"
+    ],
+    "status": "approved",
+    "maps": [
+      {
+        "slot": "diff",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mossy_rock/mossy_rock_diff_1k.jpg",
+        "sourceMd5": "a57fbbf55269eb64f8d40708fe3af26c",
+        "sourceSha256": "4dbf37f1b0465c9c8914213163923be159716f5b97fb6946437b6c5e143ef540",
+        "runtimeUrl": "/assets/materials/mossy_rock/mossy_rock_diff_1k.ktx2",
+        "runtimeBytes": 1321230,
+        "runtimeSha256": "9cc3d85e014fc81200584ea304b490d0118fe1af12274231db1535b79baca44d"
+      },
+      {
+        "slot": "nor_gl",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mossy_rock/mossy_rock_nor_gl_1k.jpg",
+        "sourceMd5": "59370f9b3d068271c2bccfb414dc325b",
+        "sourceSha256": "232cdd6a9fdfd01bb8bb1f8f604c53dbca79fa0d3d7995edf85c9945757aa8df",
+        "runtimeUrl": "/assets/materials/mossy_rock/mossy_rock_nor_gl_1k.ktx2",
+        "runtimeBytes": 1232487,
+        "runtimeSha256": "d8fada94697e06ee9518c61a2377c1c76543fa8b07aad62aab1b2766345f6ca3"
+      },
+      {
+        "slot": "arm",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mossy_rock/mossy_rock_arm_1k.jpg",
+        "sourceMd5": "aa606bf7dda9c12bfea7702ea0507d7b",
+        "sourceSha256": "1c1b8da603c93e863ccb68a8f4fcc6ff02774b83d9a6e9422c7d4aa77397b6a3",
+        "runtimeUrl": "/assets/materials/mossy_rock/mossy_rock_arm_1k.ktx2",
+        "runtimeBytes": 1126953,
+        "runtimeSha256": "527f5c8357b9346075687534ef899c38cf91238d615f16114fcb52ee625c1948"
+      }
+    ]
+  }
+]

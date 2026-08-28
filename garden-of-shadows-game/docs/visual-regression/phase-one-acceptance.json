@@ -1,0 +1,45 @@
+{
+  "status": "pending-user-visual-acceptance",
+  "scope": "phase-one formal visual gate only: spawn/front gate -> front hall -> west courtyard -> curved corridor -> repeated-window/moon-gate transition",
+  "requiredShots": [
+    {
+      "id": "spawn-front-view",
+      "anchor": "west-entry",
+      "query": "?visualTest=1&visualAnchor=west-entry&visualPitch=-0.04&renderer=webgl"
+    },
+    {
+      "id": "front-hall",
+      "anchor": "front-hall",
+      "query": "?visualTest=1&visualAnchor=front-hall&visualPitch=-0.05&renderer=webgl"
+    },
+    {
+      "id": "west-courtyard",
+      "anchor": "west-courtyard",
+      "query": "?visualTest=1&visualAnchor=west-courtyard&visualPitch=-0.05&renderer=webgl"
+    },
+    {
+      "id": "curved-corridor",
+      "anchor": "corridor-turn-one",
+      "query": "?visualTest=1&visualAnchor=corridor-turn-one&visualPitch=-0.04&renderer=webgl"
+    },
+    {
+      "id": "moon-gate-window",
+      "anchor": "loop-seventh-window",
+      "query": "?visualTest=1&visualAnchor=loop-seventh-window&visualPitch=-0.05&renderer=webgl"
+    }
+  ],
+  "capturedShots": [],
+  "metricsFile": "docs/visual-regression/after/capture-metrics.json",
+  "acceptanceRules": [
+    "The spawn/front view and front hall must be dominated by the audited Traditional Chinese Siheyuan model rather than BoxGeometry/CylinderGeometry architecture.",
+    "The west courtyard, corridor turn and repeated-window/moon-gate approach must be dominated by the audited Ancient Chinese Courtyard Park model rather than TYX_ARCH_Kit_A corridor modules.",
+    "The five phase-one screenshots must show a coherent Chinese architectural/garden route with obvious improvement over the old greybox screenshot.",
+    "No required shot may be an error/loading modal, missing-texture frame, debug-layout frame, or fallbackArchitecture capture.",
+    "Water court, pavilion, north-house and chapter-two expansion are explicitly outside this phase-one acceptance gate.",
+    "Visual acceptance is manual and cannot be inferred from build/test success alone."
+  ],
+  "notes": [
+    "Run npm run visual:capture after assets:prepare when local command execution is available. The script writes five PNG files and telemetry but never auto-approves them.",
+    "25 MiB per-file and 18 MiB preload values are publishing references, not reasons to replace formal architecture with greybox geometry."
+  ]
+}

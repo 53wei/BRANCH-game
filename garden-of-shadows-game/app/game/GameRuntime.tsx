@@ -6,12 +6,14 @@ import * as THREE from "three/webgpu";
 import { createCheckpoint } from "./campaign-save";
 import { DialogueRunner } from "./narrative/DialogueRunner";
 import { speakerProfiles } from "./narrative/speakers";
-import type { CampaignSave, ChapterCompletePayload, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
+import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
 import { AudioAtmosphere } from "./runtime/AudioAtmosphere";
 import { ObjectiveDirector, objectiveProgressKey, resolveActiveObjective } from "./runtime/ObjectiveDirector";
 import { PhysicsController, type PlayerPose } from "./runtime/PhysicsController";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
-import { WestCorridorScene, type SceneInteractable } from "./runtime/WestCorridorScene";
+import { TingYuXuanScene, type SceneInteractable } from "./runtime/TingYuXuanScene";
+import { createChapterCompletePayload, resolveChaseOutcome } from "./runtime/chapter-behavior";
+import { containsLayoutPoint, getLayoutAnchor, getLayoutTrigger, resolveLayoutTriggerDestination, tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
 type RuntimePhase = "loading" | "dialogue" | "playing" | "chase" | "failed" | "complete" | "error";
 
@@ -26,10 +28,15 @@ const unique = <T,>(values: T[]) => [...new Set(values)];
 const distance = (a: PlayerPose, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 
 export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps) {
+  const visualParams = typeof window === "undefined" ? undefined : new URLSearchParams(window.location.search);
+  const visualMode = process.env.NODE_ENV === "development" && visualParams?.get("visualTest") === "1";
+  const visualUi = visualParams?.get("visualUi") === "1";
+  const visualAnchorId = visualParams?.get("visualAnchor");
+  const visualPitch = Number(visualParams?.get("visualPitch") ?? -0.05);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<{
     renderer: Awaited<ReturnType<typeof createRenderer>>;
-    world: WestCorridorScene;
+    world: TingYuXuanScene;
     physics: PhysicsController;
     audio: AudioAtmosphere;
   } | undefined>(undefined);
@@ -38,7 +45,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   const yawRef = useRef(0);
   const pitchRef = useRef(0);
   const nearestRef = useRef<SceneInteractable | undefined>(undefined);
-  const chaseStartedAtRef = useRef(0);
+  const chaseElapsedRef = useRef(0);
   const phaseRef = useRef<RuntimePhase>("loading");
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
   const startDialogueRef = useRef<(id: string) => void>(() => undefined);
@@ -47,6 +54,8 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   const notebookRef = useRef(false);
   const directorRef = useRef(new ObjectiveDirector());
   const lastGuideUpdateRef = useRef(0);
+  const lastAreaLoadRef = useRef(0);
+  const areaLoadInFlightRef = useRef(false);
 
   const [phase, setPhaseState] = useState<RuntimePhase>("loading");
   const [backend, setBackend] = useState<RendererBackend>();
@@ -120,7 +129,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     runtime.audio.sting();
     const player = runtime.physics.pose();
     runtime.world.setOwnerVisible(true, new THREE.Vector3(player.x, 0, player.z + 7.5));
-    chaseStartedAtRef.current = performance.now();
+    chaseElapsedRef.current = 0;
     commitCheckpoint((current) => ({ ...current, anchorId: "loop-seventh-window", chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "active" } }));
     setSubtitle("没有脸的园主正在逼近。切到夫人的证词，穿过亮起的月洞门！");
     setBarkSpeaker("steward");
@@ -229,8 +238,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     const nextSave: CampaignSave = { ...saveRef.current, activeCheckpoint: finalCheckpoint, completedChapters: unique([...saveRef.current.completedChapters, chapter.id]), unlockedChapters: unique([...saveRef.current.unlockedChapters, "north-tower-ledger"]) };
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
-    const payload: ChapterCompletePayload = { chapterId: chapter.id, earnedFlags: finalCheckpoint.earnedFlags, contradictions: finalCheckpoint.contradictions, trustDecision: finalCheckpoint.trustDecisions["west-water-motive"] };
-    window.dispatchEvent(new CustomEvent<ChapterCompletePayload>("garden-of-shadows:chapter-complete", { detail: payload }));
+    window.dispatchEvent(new CustomEvent("garden-of-shadows:chapter-complete", { detail: createChapterCompletePayload(chapter.id, finalCheckpoint) }));
     document.exitPointerLock?.();
     runtimeRef.current?.world.setOwnerVisible(false);
     startDialogue("completion");
@@ -239,8 +247,9 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   const retryChase = useCallback(() => {
     const runtime = runtimeRef.current;
     if (!runtime) return;
-    runtime.physics.teleport({ x: 0, y: 0.9, z: -18 });
-    yawRef.current = 0;
+    const retry = getLayoutAnchor("chase-retry");
+    runtime.physics.teleport({ x: retry.position[0], y: retry.position[1], z: retry.position[2] });
+    yawRef.current = retry.yaw;
     runtime.world.setMemory("wife");
     runtime.physics.setMemory("wife");
     commitCheckpoint((current) => ({ ...current, memoryId: "wife" }));
@@ -262,16 +271,28 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     const boot = async () => {
       try {
         const renderer = await createRenderer(canvas, { forceWebGL: save.settings.renderer === "webgl", quality: save.settings.quality });
-        const restored = initialCheckpoint.position;
-        const physics = await PhysicsController.create({ x: restored?.[0] ?? 0, y: Math.max(restored?.[1] ?? 0.9, 0.9), z: restored?.[2] ?? 4.5 });
+        const restored = visualMode ? undefined : initialCheckpoint.position;
+        const anchor = getLayoutAnchor(visualMode && visualAnchorId ? visualAnchorId : (initialCheckpoint.anchorId || chapter.spawnAnchor));
+        const spawn = { x: restored?.[0] ?? anchor.position[0], y: Math.max(restored?.[1] ?? anchor.position[1], 0.9), z: restored?.[2] ?? anchor.position[2] };
+        const physics = await PhysicsController.create(spawn, tingYuXuanLayout.colliders);
         if (cancelled) { renderer.dispose(); physics.dispose(); return; }
-        const world = new WestCorridorScene(chapter.memories, save.settings.quality);
+        const world = await TingYuXuanScene.create(chapter.memories, save.settings.quality, renderer.renderer);
+        if (cancelled) { renderer.dispose(); physics.dispose(); world.dispose(); return; }
         const audio = new AudioAtmosphere();
         world.setMemory(initialCheckpoint.memoryId);
         physics.setMemory(initialCheckpoint.memoryId);
-        yawRef.current = initialCheckpoint.yaw ?? 0;
+        yawRef.current = visualMode ? anchor.yaw : (initialCheckpoint.yaw ?? anchor.yaw);
+        pitchRef.current = visualMode ? visualPitch : 0;
         runtimeRef.current = { renderer, world, physics, audio };
         setBackend(renderer.backend);
+        canvas.dataset.rendererBackend = renderer.backend;
+        void world.ensureAreaAssets({ x: spawn.x, z: spawn.z })
+          .then(() => { canvas.dataset.assetsReady = "true"; })
+          .catch((reason) => {
+            if (cancelled) return;
+            setError(reason instanceof Error ? reason.message : "场景区域资产加载失败");
+            setPhase("error");
+          });
 
         const resize = () => {
           const rect = canvas.getBoundingClientRect();
@@ -283,11 +304,14 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
         window.addEventListener("resize", resize);
 
         let previous = performance.now();
+        let telemetryWindowStarted = previous;
+        let telemetryFrames = 0;
         const clock = (now: number) => {
           const delta = Math.min((now - previous) / 1000, 0.05);
           previous = now;
           const activePhase = phaseRef.current;
           let pose = physics.pose();
+          if (process.env.NODE_ENV === "development") canvas.dataset.playerPose = `${pose.x.toFixed(3)},${pose.y.toFixed(3)},${pose.z.toFixed(3)}`;
           if (["playing", "chase"].includes(activePhase) && (document.pointerLockElement === canvas || touchModeRef.current)) {
             const keys = keysRef.current;
             const forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
@@ -296,6 +320,23 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             const sin = Math.sin(yawRef.current);
             const cos = Math.cos(yawRef.current);
             pose = physics.move({ x: (forward * -sin + strafe * cos) * speed * delta, y: -2.2 * delta, z: (forward * -cos - strafe * sin) * speed * delta });
+          }
+
+          if (now - lastAreaLoadRef.current > 450 && !areaLoadInFlightRef.current) {
+            lastAreaLoadRef.current = now;
+            areaLoadInFlightRef.current = true;
+            canvas.dataset.streaming = "true";
+            void world.ensureAreaAssets({ x: pose.x, z: pose.z })
+              .then(() => { canvas.dataset.assetsReady = "true"; })
+              .catch((reason) => {
+                if (cancelled) return;
+                setError(reason instanceof Error ? reason.message : "场景分区加载失败");
+                setPhase("error");
+              })
+              .finally(() => {
+                areaLoadInFlightRef.current = false;
+                canvas.dataset.streaming = "false";
+              });
           }
 
           const objective = resolveActiveObjective(chapter.objectives ?? [], checkpointRef.current);
@@ -319,14 +360,17 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             audio.bell(checkpointRef.current.memoryId === "gardener" ? "gardener" : "wife");
           }
 
-          if (objective?.objective.id === "west-arrival" && objective.step.id === "follow-lantern" && pose.z <= 1.15) {
+          if (objective?.objective.id === "west-arrival" && objective.step.id === "follow-lantern" && containsLayoutPoint(getLayoutTrigger("front-hall-to-west"), pose)) {
             directorRef.current.markProgress();
             commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, "west.arrived"]) }));
             startDialogueRef.current("wife-arrival");
           }
 
-          if (checkpointRef.current.memoryId === "gardener" && pose.z < -27.1) {
-            physics.teleport({ x: pose.x, y: 0.9, z: 3.6 });
+          const loopDestination = resolveLayoutTriggerDestination("gardener-corridor-loop", checkpointRef.current.memoryId, pose);
+          if (loopDestination) {
+            const destination = loopDestination;
+            physics.teleport({ x: destination.position[0], y: destination.position[1], z: destination.position[2] });
+            yawRef.current = destination.yaw;
             pose = physics.pose();
             setSubtitle(activePhase === "chase" ? "回廊又把你送回入口。园丁的证词里没有出口！" : "同一盏灯、同一扇漏窗——你回到了西廊入口。");
             setBarkSpeaker("gardener");
@@ -348,8 +392,11 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           if (nearestRef.current?.id !== nearest?.id) { nearestRef.current = nearest; setPrompt(nearest ? `[F] ${nearest.label}` : undefined); }
 
           if (activePhase === "chase") {
-            if (checkpointRef.current.memoryId === "wife" && pose.z < -26.25 && Math.abs(pose.x) < 1.65) finishChapter();
-            else if (world.ownerDistance(playerVector) < 1.15 || now - chaseStartedAtRef.current > 42_000) {
+            chaseElapsedRef.current += delta;
+            const exitDestination = resolveLayoutTriggerDestination("wife-moon-gate-exit", checkpointRef.current.memoryId, pose);
+            const chaseOutcome = resolveChaseOutcome({ reachedExit: Boolean(exitDestination), ownerDistance: world.ownerDistance(playerVector), elapsedMs: chaseElapsedRef.current * 1000 });
+            if (chaseOutcome === "escaped") finishChapter();
+            else if (chaseOutcome === "failed") {
               document.exitPointerLock?.();
               world.setOwnerVisible(false);
               setSubtitle("他没有杀死你，只把你的脸在记忆里擦掉了一次。");
@@ -358,12 +405,27 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           }
 
           renderer.renderer.render(world.scene, world.camera);
+          telemetryFrames += 1;
+          if (process.env.NODE_ENV === "development" && now - telemetryWindowStarted >= 500) {
+            const renderInfo = renderer.renderer.info.render as { calls?: number; triangles?: number; points?: number; lines?: number };
+            canvas.dataset.fps = (telemetryFrames * 1000 / (now - telemetryWindowStarted)).toFixed(1);
+            canvas.dataset.drawCalls = String(renderInfo.calls ?? 0);
+            canvas.dataset.triangles = String(renderInfo.triangles ?? 0);
+            canvas.dataset.points = String(renderInfo.points ?? 0);
+            canvas.dataset.visibleModels = world.visibleModelNames().join(",");
+            canvas.dataset.loadedAssetIds = world.loadedAssetIds().join(",");
+            canvas.dataset.loadedAssetBytes = String(world.loadedAssetBytes());
+            telemetryFrames = 0;
+            telemetryWindowStarted = now;
+          }
           animationFrame = window.requestAnimationFrame(clock);
         };
         animationFrame = window.requestAnimationFrame(clock);
 
+        canvas.dataset.runtimeReady = "true";
         const resumeId = initialCheckpoint.dialogueProgress?.sequenceId;
-        if (resumeId) startDialogueRef.current(resumeId);
+        if (visualMode) setPhase("playing");
+        else if (resumeId) startDialogueRef.current(resumeId);
         else if (!initialCheckpoint.earnedFlags.includes("prologue.dialogue.complete")) startDialogueRef.current("opening");
         else if (initialCheckpoint.chaseProgress["faceless-owner-west"] === "active") setPhase("failed");
         else if (initialCheckpoint.earnedFlags.includes("west.chapter.complete")) setPhase("complete");
@@ -388,7 +450,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
-  }, [chapter.memories, chapter.objectives, commitCheckpoint, finishChapter, initialCheckpoint, save.settings.masterVolume, save.settings.quality, save.settings.renderer, setPhase]);
+  }, [chapter.memories, chapter.objectives, chapter.spawnAnchor, commitCheckpoint, finishChapter, initialCheckpoint, save.settings.masterVolume, save.settings.quality, save.settings.renderer, setPhase, visualAnchorId, visualMode, visualPitch]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -427,12 +489,12 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   };
 
   return (
-    <main className={`runtime runtime-${checkpoint.memoryId}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" aria-label="西廊回环实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} />
+    <main className={`runtime runtime-${checkpoint.memoryId} runtime-phase-${phase}${visualMode ? " visual-regression-mode" : ""}${visualUi ? " visual-regression-ui" : ""}`}>
+      <canvas ref={canvasRef} className="runtime-canvas" aria-label="听雨轩连续园林实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" onClick={onExit} className="text-button">← 章节总览</button>
-        <div><span>序章＋第一章</span><strong>雨入听轩 · 西廊回环</strong></div>
+        <div><span>序章＋第一章</span><strong>雨入听轩 · 正门至曲廊</strong></div>
         <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"}</div>
       </header>
 
