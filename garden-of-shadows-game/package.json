@@ -8,10 +8,11 @@
   },
   "scripts": {
     "dev": "vinext dev",
-    "dialogue:compile": "npm run dialogue:compile:west && npm run dialogue:compile:north && npm run dialogue:compile:front",
+    "dialogue:compile": "npm run dialogue:compile:west && npm run dialogue:compile:north && npm run dialogue:compile:front && npm run dialogue:compile:pavilion",
     "dialogue:compile:west": "inkjs-compiler app/game/narrative/west-onboarding.ink -o app/game/narrative/west-onboarding.json",
     "dialogue:compile:north": "inkjs-compiler app/game/narrative/north-tower-ledger.ink -o app/game/narrative/north-tower-ledger.json",
     "dialogue:compile:front": "inkjs-compiler app/game/narrative/front-hall-guest.ink -o app/game/narrative/front-hall-guest.json",
+    "dialogue:compile:pavilion": "inkjs-compiler app/game/narrative/sealed-pavilion.ink -o app/game/narrative/sealed-pavilion.json",
     "validate:content": "vitest run app/game/narrative/dialogue.test.ts app/game/runtime/ObjectiveDirector.test.ts app/game/manifests/campaign.test.ts app/game/manifests/north-tower-ledger.test.ts",
     "prebuild": "npm run dialogue:compile && npm run validate:content",
     "build": "vinext build",

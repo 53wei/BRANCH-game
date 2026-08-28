@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createCheckpoint } from "./campaign-save";
 import { objectiveFor as frontObjectiveFor } from "./FrontHallRuntime";
 import { objectiveFor as northObjectiveFor } from "./NorthTowerRuntime";
+import { objectiveFor as pavilionObjectiveFor } from "./SealedPavilionRuntime";
 
 describe("runtime objective guidance", () => {
   it("keeps the north-tower trust decision anchored to the secret passage", () => {
@@ -51,6 +52,16 @@ describe("runtime objective guidance", () => {
 
     expect(frontObjectiveFor(checkpoint)).toMatchObject({
       targetId: "painted-door",
+      memoryId: "accountant",
+    });
+  });
+
+  it("guides the pavilion body comparison through all four testimonies", () => {
+    const checkpoint = createCheckpoint("sealed-pavilion", "wife");
+    checkpoint.earnedFlags = ["pavilion.door.confirmed", "pavilion.routes.ready", "pavilion.entered", "pavilion.body.wife", "pavilion.body.gardener"];
+
+    expect(pavilionObjectiveFor(checkpoint)).toMatchObject({
+      targetId: "body-scene",
       memoryId: "accountant",
     });
   });

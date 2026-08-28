@@ -8,8 +8,9 @@ import type { CampaignSave, GameSettings } from "./game/types";
 const GameRuntime = lazy(() => import("./game/GameRuntime").then((module) => ({ default: module.GameRuntime })));
 const NorthTowerRuntime = lazy(() => import("./game/NorthTowerRuntime").then((module) => ({ default: module.NorthTowerRuntime })));
 const FrontHallRuntime = lazy(() => import("./game/FrontHallRuntime").then((module) => ({ default: module.FrontHallRuntime })));
+const SealedPavilionRuntime = lazy(() => import("./game/SealedPavilionRuntime").then((module) => ({ default: module.SealedPavilionRuntime })));
 
-type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "front-hall-guest" | "settings";
+type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "front-hall-guest" | "sealed-pavilion" | "settings";
 
 const versionForChapter = (index: number) => {
   if (index <= 1) return "V0.1";
@@ -68,6 +69,18 @@ export default function Home() {
     setView("front-hall-guest");
   };
 
+  const startSealedPavilion = (restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== "sealed-pavilion") {
+      const checkpoint = { ...createCheckpoint("sealed-pavilion", "wife"), anchorId: "sealed-pavilion-entry", position: [0, 1.65, 7] as [number, number, number] };
+      persist({
+        ...save,
+        activeCheckpoint: checkpoint,
+        completedChapters: restart ? save.completedChapters.filter((id) => id !== "sealed-pavilion") : save.completedChapters,
+      });
+    }
+    setView("sealed-pavilion");
+  };
+
   if (view === "west-corridor-loop") {
     const chapter = getChapter("west-corridor-loop");
     if (!chapter) return null;
@@ -98,6 +111,16 @@ export default function Home() {
     );
   }
 
+  if (view === "sealed-pavilion") {
+    const chapter = getChapter("sealed-pavilion");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING CHAPTER 04</p><strong>正在叠合四种水榭现场…</strong></main>}>
+        <SealedPavilionRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      </Suspense>
+    );
+  }
+
   return (
     <main className="site-shell">
       <header className="site-nav">
@@ -122,6 +145,7 @@ export default function Home() {
             <button type="button" className="primary-button" onClick={() => startOnboarding()}>{save.activeCheckpoint.earnedFlags.includes("prologue.dialogue.complete") ? "继续勘验" : "开始序章"} <span>→</span></button>
             <button type="button" className="ghost-button" onClick={() => startNorthTower(true)}>从头测试第二章</button>
             <button type="button" className="ghost-button" onClick={() => startFrontHall(true)}>从头测试第三章</button>
+            <button type="button" className="ghost-button" onClick={() => startSealedPavilion(true)}>从头测试第四章</button>
             <button type="button" className="ghost-button" onClick={() => startOnboarding(true)}>从序章重新开始</button>
           </div>
           <small className="hero-meta">PC WEB · 实时 3D · 叙事解谜 · 16+</small>
@@ -147,12 +171,12 @@ export default function Home() {
         <div className="section-heading compact">
           <p className="eyebrow">CAMPAIGN · PROLOGUE + 4 CHAPTERS + FINALE</p>
           <h2>首案全章规划</h2>
-          <p>定稿结构为序章、四个正文章节与终章；当前第一、第二章均可独立进入验证。</p>
+          <p>定稿结构为序章、四个正文章节与终章；当前第一至第四章均可独立进入验证。</p>
         </div>
         <div className="chapter-list">
           {campaignManifest.chapters.map((chapter) => {
             const completed = save.completedChapters.includes(chapter.id);
-            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger" || chapter.id === "front-hall-guest";
+            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger" || chapter.id === "front-hall-guest" || chapter.id === "sealed-pavilion";
             return (
               <article key={chapter.id} className={`${playable ? "playable" : ""} ${completed ? "completed" : ""}`}>
                 <b>{String(chapter.index).padStart(2, "0")}</b>
@@ -161,6 +185,7 @@ export default function Home() {
                 {chapter.id === "west-corridor-loop" && <button type="button" onClick={() => setView("west-corridor-loop")} aria-label="进入西廊回环">→</button>}
                 {chapter.id === "north-tower-ledger" && <button type="button" onClick={() => startNorthTower()} aria-label="进入北楼暗账">→</button>}
                 {chapter.id === "front-hall-guest" && <button type="button" onClick={() => startFrontHall()} aria-label="进入前厅访客">→</button>}
+                {chapter.id === "sealed-pavilion" && <button type="button" onClick={() => startSealedPavilion()} aria-label="进入水榭密室">→</button>}
                 {chapter.index === 0 && <button type="button" onClick={() => startOnboarding(true)} aria-label="从序章开始">→</button>}
               </article>
             );
