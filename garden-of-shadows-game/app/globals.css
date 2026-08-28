@@ -118,6 +118,13 @@ a { color: inherit; text-decoration: none; }
 .runtime-gardener .vignette { background: radial-gradient(circle, transparent 38%, rgba(0,20,14,.56) 100%), linear-gradient(0deg, rgba(2,7,5,.72), transparent 22%); }
 .runtime-north-past .vignette { background: radial-gradient(circle, transparent 42%, rgba(39,28,15,.42) 100%), linear-gradient(0deg, rgba(18,12,5,.56), transparent 25%, rgba(159,123,63,.08)); }
 .runtime-accountant .memory-card { border-left-color: #73a9c6; }
+.runtime-painter .memory-card { border-left-color: #b88cba; }
+.runtime-front-hall .vignette { background: radial-gradient(circle, transparent 40%, rgba(20,8,25,.58) 100%), linear-gradient(0deg, rgba(5,3,8,.74), transparent 24%, rgba(110,58,92,.1)); }
+.front-ranking .choice-stack { grid-template-columns: 1fr 1fr; }
+.front-ranking .choice-stack button { display: grid; gap: 6px; }
+.front-ranking .choice-stack strong { color: #e0d6c2; font-weight: 400; }
+.front-ranking .choice-stack small { color: #827d73; line-height: 1.45; }
+.front-ranking .choice-stack button:disabled { opacity: .28; cursor: not-allowed; }
 .north-transition { position: absolute; z-index: 60; inset: 0; display: grid; place-items: center; overflow: hidden; pointer-events: none; background: rgba(2,7,7,.92); animation: north-transition-veil 2.6s ease-in-out both; }
 .north-transition::before, .north-transition::after { content: ""; position: absolute; left: 50%; top: 50%; width: 42vmin; height: 42vmin; border: 1px solid rgba(124,185,196,.34); border-radius: 50%; transform: translate(-50%, -50%); animation: borrowed-ripple 1.45s ease-out infinite; }
 .north-transition::after { animation-delay: .42s; }

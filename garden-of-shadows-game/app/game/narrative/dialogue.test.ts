@@ -3,8 +3,10 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { Story } from "inkjs";
 import { northDialogueSequences } from "../manifests/north-tower-objectives";
+import { frontHallDialogueSequences } from "../manifests/front-hall-objectives";
 import { westDialogueSequences } from "../manifests/west-onboarding";
 import northStory from "./north-tower-ledger.json";
+import frontStory from "./front-hall-guest.json";
 import westStory from "./west-onboarding.json";
 import { parseDialogueTags } from "./dialogue";
 import { speakerProfiles } from "./speakers";
@@ -65,6 +67,16 @@ describe("north tower dialogue", () => {
       const story = new Story(northStory);
       story.ChoosePathString(sequence.knotId);
       expect(walkEveryBranch(story, northStory, "north")).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("front hall dialogue", () => {
+  it("resolves every declared sequence and every Ink choice", () => {
+    for (const sequence of frontHallDialogueSequences) {
+      const story = new Story(frontStory);
+      story.ChoosePathString(sequence.knotId);
+      expect(walkEveryBranch(story, frontStory, "front")).toBeGreaterThan(0);
     }
   });
 });

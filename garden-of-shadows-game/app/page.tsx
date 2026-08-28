@@ -7,8 +7,9 @@ import type { CampaignSave, GameSettings } from "./game/types";
 
 const GameRuntime = lazy(() => import("./game/GameRuntime").then((module) => ({ default: module.GameRuntime })));
 const NorthTowerRuntime = lazy(() => import("./game/NorthTowerRuntime").then((module) => ({ default: module.NorthTowerRuntime })));
+const FrontHallRuntime = lazy(() => import("./game/FrontHallRuntime").then((module) => ({ default: module.FrontHallRuntime })));
 
-type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "settings";
+type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "front-hall-guest" | "settings";
 
 const versionForChapter = (index: number) => {
   if (index <= 1) return "V0.1";
@@ -55,6 +56,18 @@ export default function Home() {
     setView("north-tower-ledger");
   };
 
+  const startFrontHall = (restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== "front-hall-guest") {
+      const checkpoint = { ...createCheckpoint("front-hall-guest", "painter"), anchorId: "front-hall-entry" };
+      persist({
+        ...save,
+        activeCheckpoint: checkpoint,
+        completedChapters: restart ? save.completedChapters.filter((id) => id !== "front-hall-guest") : save.completedChapters,
+      });
+    }
+    setView("front-hall-guest");
+  };
+
   if (view === "west-corridor-loop") {
     const chapter = getChapter("west-corridor-loop");
     if (!chapter) return null;
@@ -71,6 +84,16 @@ export default function Home() {
     return (
       <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING CHAPTER 02</p><strong>正在载入北楼与借景时间线…</strong></main>}>
         <NorthTowerRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      </Suspense>
+    );
+  }
+
+  if (view === "front-hall-guest") {
+    const chapter = getChapter("front-hall-guest");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING CHAPTER 03</p><strong>正在展开四份前厅证词…</strong></main>}>
+        <FrontHallRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
       </Suspense>
     );
   }
@@ -98,6 +121,7 @@ export default function Home() {
           <div className="hero-actions">
             <button type="button" className="primary-button" onClick={() => startOnboarding()}>{save.activeCheckpoint.earnedFlags.includes("prologue.dialogue.complete") ? "继续勘验" : "开始序章"} <span>→</span></button>
             <button type="button" className="ghost-button" onClick={() => startNorthTower(true)}>从头测试第二章</button>
+            <button type="button" className="ghost-button" onClick={() => startFrontHall(true)}>从头测试第三章</button>
             <button type="button" className="ghost-button" onClick={() => startOnboarding(true)}>从序章重新开始</button>
           </div>
           <small className="hero-meta">PC WEB · 实时 3D · 叙事解谜 · 16+</small>
@@ -128,7 +152,7 @@ export default function Home() {
         <div className="chapter-list">
           {campaignManifest.chapters.map((chapter) => {
             const completed = save.completedChapters.includes(chapter.id);
-            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger";
+            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger" || chapter.id === "front-hall-guest";
             return (
               <article key={chapter.id} className={`${playable ? "playable" : ""} ${completed ? "completed" : ""}`}>
                 <b>{String(chapter.index).padStart(2, "0")}</b>
@@ -136,6 +160,7 @@ export default function Home() {
                 <em>{completed ? "已完成" : playable ? "可游玩" : chapter.status === "prototype" ? "已接入对话" : "已规划"}</em>
                 {chapter.id === "west-corridor-loop" && <button type="button" onClick={() => setView("west-corridor-loop")} aria-label="进入西廊回环">→</button>}
                 {chapter.id === "north-tower-ledger" && <button type="button" onClick={() => startNorthTower()} aria-label="进入北楼暗账">→</button>}
+                {chapter.id === "front-hall-guest" && <button type="button" onClick={() => startFrontHall()} aria-label="进入前厅访客">→</button>}
                 {chapter.index === 0 && <button type="button" onClick={() => startOnboarding(true)} aria-label="从序章开始">→</button>}
               </article>
             );

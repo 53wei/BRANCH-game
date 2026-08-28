@@ -78,7 +78,11 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
     name: "柳生",
     side: "right",
     themeColor: "#9a739f",
-    portraits: {},
-    defaultPortrait: "",
+    voiceId: "zh-CN-YunxiNeural",
+    portraits: {
+      distant: "/media/portraits/painter-distant.webp",
+      unsettled: "/media/portraits/painter-unsettled.webp",
+    },
+    defaultPortrait: "distant",
   },
 };
