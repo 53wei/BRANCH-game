@@ -42,18 +42,24 @@ const transitionCopy: Record<NorthTransitionKind, { eyebrow: string; title: stri
   "to-present": { eyebrow: "借景 · 七年以后", title: "过去已经发生，现在必须让路", detail: "雨声回来以前，假山的位置先变了。" },
 };
 
-const objectiveFor = (checkpoint: CheckpointState) => {
+export const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
-  if (!flags.includes("north.reached.upper-floor")) return { title: "登上北楼", detail: "沿一层尽头找到楼梯，按 F 进入二层账房。", targetId: "north-stairs" };
-  if (!flags.includes("north.ledger.inspected")) return { title: "先查账，再查窗", detail: "走到账房深处，检查钱先生声称整夜没有离开的账桌。", targetId: "ledger-desk" };
-  if (!flags.includes("north.window.inspected")) return { title: "找到借景窗", detail: "保持账房证词，在二层左侧检查发出蓝光的窗框。", targetId: "borrowed-window" };
-  if (!flags.includes("north.borrowed-view.crossed")) return { title: "跨过时间切口", detail: "再次触碰借景窗，进入案发前的东院。", targetId: "borrowed-window" };
-  if (!flags.includes("north.past.trail-inspected")) return { title: "追踪不该存在的珠痕", detail: "不要急着搬石头；先检查过去庭院泥地里的算盘珠痕。", targetId: "past-beads" };
-  if (!flags.includes("north.rockery.moved")) return { title: "移动过去的假山", detail: "在“过去”靠近完整假山，按 F 改变它的位置。", targetId: "past-rockery" };
-  if (!flags.includes("north.present.route-open")) return { title: "回到现在验证结果", detail: "返回庭院入口的借景框，按 F 切回现在。", targetId: "borrowed-window-return" };
-  if (!flags.includes("north.contradiction.scratches")) return { title: "核对窗框划痕", detail: "先用账房证词勘验，再按 Tab 切到夫人证词复查。", targetId: "window-scratches" };
-  if (!flags.includes("north.contradiction.passage")) return { title: "核对秘密通道", detail: "先用账房证词勘验，再按 Tab 切到园丁证词复查。", targetId: "secret-passage" };
-  return { title: "采用一份工作假设", detail: "两条矛盾已经成立，完成信任选择。", targetId: undefined };
+  if (!flags.includes("north.reached.upper-floor")) return { title: "登上北楼", detail: "沿一层尽头找到楼梯，按 F 进入二层账房。", targetId: "north-stairs", memoryId: "accountant" as const, timeline: "present" as const, zone: "lower" as const };
+  if (!flags.includes("north.ledger.inspected")) return { title: "先查账，再查窗", detail: "走到账房深处，检查钱先生声称整夜没有离开的账桌。", targetId: "ledger-desk", memoryId: "accountant" as const, timeline: "present" as const, zone: "upper" as const };
+  if (!flags.includes("north.window.inspected")) return { title: "找到借景窗", detail: "保持账房证词，在二层左侧检查发出蓝光的窗框。", targetId: "borrowed-window", memoryId: "accountant" as const, timeline: "present" as const, zone: "upper" as const };
+  if (!flags.includes("north.borrowed-view.crossed")) return { title: "跨过时间切口", detail: "再次触碰借景窗，进入案发前的东院。", targetId: "borrowed-window", memoryId: "accountant" as const, timeline: "present" as const, zone: "upper" as const };
+  if (!flags.includes("north.past.trail-inspected")) return { title: "追踪不该存在的珠痕", detail: "不要急着搬石头；先检查过去庭院泥地里的算盘珠痕。", targetId: "past-beads", memoryId: "accountant" as const, timeline: "past" as const, zone: "courtyard" as const };
+  if (!flags.includes("north.rockery.moved")) return { title: "移动过去的假山", detail: "在“过去”靠近完整假山，按 F 改变它的位置。", targetId: "past-rockery", memoryId: "accountant" as const, timeline: "past" as const, zone: "courtyard" as const };
+  if (!flags.includes("north.present.route-open")) return { title: "回到现在验证结果", detail: "返回庭院入口的借景框，按 F 切回现在。", targetId: "borrowed-window-return", memoryId: "accountant" as const, timeline: "past" as const, zone: "courtyard" as const };
+  if (!flags.includes("north.contradiction.scratches")) {
+    const memoryId = (checkpoint.observedBy["window-scratches"] ?? []).includes("accountant") ? "wife" as const : "accountant" as const;
+    return { title: "核对窗框划痕", detail: "先用账房证词勘验，再按 Tab 切到夫人证词复查。", targetId: "window-scratches", memoryId, timeline: "present" as const, zone: "courtyard" as const };
+  }
+  if (!flags.includes("north.contradiction.passage")) {
+    const memoryId = (checkpoint.observedBy["secret-passage"] ?? []).includes("accountant") ? "gardener" as const : "accountant" as const;
+    return { title: "核对秘密通道", detail: "先用账房证词勘验，再按 Tab 切到园丁证词复查。", targetId: "secret-passage", memoryId, timeline: "present" as const, zone: "courtyard" as const };
+  }
+  return { title: "采用一份工作假设", detail: "回到已经打开的暗道口，按 F 完成信任选择。", targetId: "secret-passage", memoryId: "accountant" as const, timeline: "present" as const, zone: "courtyard" as const };
 };
 
 export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerRuntimeProps) {
@@ -83,6 +89,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
   const startDialogueRef = useRef<(id: string) => void>(() => undefined);
   const transitionRef = useRef<NorthTransition | undefined>(undefined);
+  const lastGuideUpdateRef = useRef(0);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const checkpointRef = useRef(checkpoint);
@@ -97,6 +104,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
   const [transitionKind, setTransitionKind] = useState<NorthTransitionKind>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
+  const [guideDistance, setGuideDistance] = useState<number>();
+  const [guideAngle, setGuideAngle] = useState(0);
   const [error, setError] = useState("");
 
   const setPhase = useCallback((next: NorthPhase) => { phaseRef.current = next; setPhaseState(next); }, []);
@@ -345,6 +354,33 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     }
   }, [addFlags, beginTransition, changeTimeline, observeEvidence, startDialogue]);
 
+  const locateObjective = useCallback(() => {
+    if (phaseRef.current !== "playing") return;
+    const runtime = runtimeRef.current;
+    if (!runtime) return;
+    const objective = objectiveFor(checkpointRef.current);
+    const target = runtime.world.interactables.find((item) => item.id === objective.targetId);
+    if (!target) return;
+    memoryRef.current = objective.memoryId;
+    setMemoryState(objective.memoryId);
+    runtime.world.setMemory(objective.memoryId);
+    timelineRef.current = objective.timeline;
+    setTimelineState(objective.timeline);
+    runtime.world.setTimeline(objective.timeline, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
+    zoneRef.current = objective.zone;
+    setZoneState(objective.zone);
+    playerRef.current.set(target.position.x, target.position.y, target.position.z + 1.35);
+    runtime.world.constrain(playerRef.current, objective.zone);
+    const dx = target.position.x - playerRef.current.x;
+    const dz = target.position.z - playerRef.current.z;
+    yawRef.current = Math.atan2(-dx, -dz);
+    nearestRef.current = target;
+    promptIdRef.current = target.id;
+    setPrompt(target.id === "secret-passage" && checkpointRef.current.contradictions.includes("secret-passage") ? "按 F 在暗道口作出判断" : target.label);
+    commitCheckpoint((current) => ({ ...current, memoryId: objective.memoryId }));
+    setSubtitle(`测试定位完成：已切到${memoryName[objective.memoryId]}并抵达“${objective.title}”触发范围，按 F 或点击中央提示继续。`);
+  }, [commitCheckpoint]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -380,6 +416,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         if (event.code === "ArrowRight") yawRef.current -= 0.08;
       }
       if (event.code === "KeyF") interact();
+      if (event.code === "KeyH" && !event.repeat) locateObjective();
       if (event.code === "Tab" && phaseRef.current === "playing") {
         event.preventDefault();
         const index = memoryOrder.indexOf(memoryRef.current);
@@ -468,7 +505,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         );
         const nearest = available
           .map((item) => ({ item, distance: item.position.distanceTo(playerRef.current) }))
-          .filter(({ distance }) => distance < 2.25)
+          .filter(({ distance }) => distance < 3.1)
           .sort((a, b) => a.distance - b.distance)[0]?.item;
         nearestRef.current = nearest;
         const nextPromptId = phaseRef.current === "playing" ? nearest?.id ?? "" : "";
@@ -487,6 +524,13 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         const objective = objectiveFor(checkpointRef.current);
         const target = world.interactables.find((item) => item.id === objective.targetId);
         world.setGuidanceTarget(target?.position);
+        if (target && now - lastGuideUpdateRef.current > 120) {
+          lastGuideUpdateRef.current = now;
+          const dx = target.position.x - playerRef.current.x;
+          const dz = target.position.z - playerRef.current.z;
+          setGuideDistance(Math.hypot(dx, dz));
+          setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(dx, -dz) - yawRef.current));
+        }
         renderer.renderer.render(world.scene, world.camera);
       });
 
@@ -511,7 +555,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
       runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
-  }, [changeMemory, chapter.id, chapter.memories, interact, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
+  }, [changeMemory, chapter.id, chapter.memories, interact, locateObjective, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
 
   const objective = objectiveFor(checkpoint);
   const evidenceCount = checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length;
@@ -570,6 +614,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
           <ol>
             {testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeTestStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}
           </ol>
+          <button type="button" className="qa-locate-button" onClick={locateObjective}>H · 定位当前测试点</button>
         </div>
       </section>
 
@@ -586,9 +631,10 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
         {investigationTraces.length > 0 && <div className="investigation-traces">{investigationTraces.map((trace) => <i key={trace}>{trace}</i>)}</div>}
       </section>
 
-      {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
+      {guideDistance !== undefined && phase === "playing" && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
+      {prompt && phase === "playing" && <button type="button" className="interaction-prompt" onClick={interact}>{prompt} · 点击也可触发</button>}
       {subtitle && phase === "playing" && <div className="bark-subtitle"><p><b>勘验记录</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验/穿越 · Tab 切换证词 · Shift 加速</div>
+      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验/穿越 · Tab 切换证词 · H 定位测试点 · Shift 加速</div>
 
       {phase === "playing" && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>开始控制<br /><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
 

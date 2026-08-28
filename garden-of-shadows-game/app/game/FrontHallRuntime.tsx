@@ -23,25 +23,25 @@ const memoryOrder: MemoryId[] = ["painter", "wife", "gardener", "accountant"];
 const memoryName: Record<string, string> = { painter: "柳生证词", wife: "夫人证词", gardener: "园丁证词", accountant: "账房证词" };
 const marks = ["front.mark.painter", "front.mark.wife", "front.mark.gardener", "front.mark.accountant"];
 
-const objectiveFor = (checkpoint: CheckpointState) => {
+export const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
-  if (!flags.includes("front.mark.painter")) return { title: "检查未完成的画", detail: "保持柳生证词，沿主走廊找到画架。", targetId: "painter-easel" as const };
+  if (!flags.includes("front.mark.painter")) return { title: "检查未完成的画", detail: "保持柳生证词，沿主走廊找到画架。", targetId: "painter-easel" as const, memoryId: "painter" as const };
   if (!flags.includes("front.contradiction.painted-door")) {
     const observed = checkpoint.observedBy["painted-door"] ?? [];
     return observed.includes("painter")
-      ? { title: "用账房证词核对画中门", detail: "按 Tab 切到账房证词，在同一幅画前再次按 F。", targetId: "painted-door" as const }
-      : { title: "记录画中多出的门", detail: "保持柳生证词，在画架右侧勘验那扇现实中不存在的门。", targetId: "painted-door" as const };
+      ? { title: "用账房证词核对画中门", detail: "按 Tab 切到账房证词，在同一幅画前再次按 F。", targetId: "painted-door" as const, memoryId: "accountant" as const }
+      : { title: "记录画中多出的门", detail: "保持柳生证词，在画架右侧勘验那扇现实中不存在的门。", targetId: "painted-door" as const, memoryId: "painter" as const };
   }
   if (!flags.includes("front.contradiction.vanishing-corridor")) {
     const observed = checkpoint.observedBy["vanishing-corridor"] ?? [];
     return observed.includes("painter")
-      ? { title: "用夫人证词恢复来路", detail: "按 Tab 切到夫人证词，在白墙原位再次按 F。", targetId: "vanishing-corridor" as const }
-      : { title: "让走廊在身后消失", detail: "切回柳生证词，走进中庭后回头检查白墙。", targetId: "vanishing-corridor" as const };
+      ? { title: "用夫人证词恢复来路", detail: "按 Tab 切到夫人证词，在白墙原位再次按 F。", targetId: "vanishing-corridor" as const, memoryId: "wife" as const }
+      : { title: "让走廊在身后消失", detail: "切回柳生证词，走进中庭后回头检查白墙。", targetId: "vanishing-corridor" as const, memoryId: "painter" as const };
   }
-  if (!flags.includes("front.mark.wife")) return { title: "找回丢失的玉佩", detail: "按 Tab 切到夫人证词，进入右侧偏厅。", targetId: "wife-jade" as const };
-  if (!flags.includes("front.mark.gardener")) return { title: "取出园艺剪", detail: "按 Tab 切到园丁证词，检查中庭左侧假山。", targetId: "gardener-shears" as const };
-  if (!flags.includes("front.mark.accountant")) return { title: "找到夹页", detail: "按 Tab 切到账房证词，检查中庭右侧案台。", targetId: "accountant-page" as const };
-  return { title: "开启四面锁", detail: "四枚印记齐全。走到东院门前，按 F 排列证词。", targetId: "fourfold-lock" as const };
+  if (!flags.includes("front.mark.wife")) return { title: "找回丢失的玉佩", detail: "按 Tab 切到夫人证词，进入右侧偏厅。", targetId: "wife-jade" as const, memoryId: "wife" as const };
+  if (!flags.includes("front.mark.gardener")) return { title: "取出园艺剪", detail: "按 Tab 切到园丁证词，检查中庭左侧假山。", targetId: "gardener-shears" as const, memoryId: "gardener" as const };
+  if (!flags.includes("front.mark.accountant")) return { title: "找到夹页", detail: "按 Tab 切到账房证词，检查中庭右侧案台。", targetId: "accountant-page" as const, memoryId: "accountant" as const };
+  return { title: "开启四面锁", detail: "四枚印记齐全。走到东院门前，按 F 排列证词。", targetId: "fourfold-lock" as const, memoryId: checkpoint.memoryId };
 };
 
 export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRuntimeProps) {
@@ -65,6 +65,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   const onSaveRef = useRef(onSave);
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
   const startDialogueRef = useRef<(id: string) => void>(() => undefined);
+  const lastGuideUpdateRef = useRef(0);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const [phase, setPhaseState] = useState<FrontPhase>(save.completedChapters.includes(chapter.id) ? "complete" : "loading");
@@ -78,6 +79,8 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
   const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [rankingMost, setRankingMost] = useState<MemoryId>();
   const [transitionMemory, setTransitionMemory] = useState<MemoryId>();
+  const [guideDistance, setGuideDistance] = useState<number>();
+  const [guideAngle, setGuideAngle] = useState(0);
   const [error, setError] = useState("");
 
   const setPhase = useCallback((next: FrontPhase) => { phaseRef.current = next; setPhaseState(next); }, []);
@@ -223,6 +226,31 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
     else if (item.id === "fourfold-lock") startDialogue("front-lock");
   }, [observeContradiction, startDialogue]);
 
+  const locateObjective = useCallback(() => {
+    if (phaseRef.current !== "playing") return;
+    const runtime = runtimeRef.current;
+    if (!runtime) return;
+    const objective = objectiveFor(checkpointRef.current);
+    const target = runtime.world.interactables.find((item) => item.id === objective.targetId);
+    if (!target) return;
+    const nextMemory = objective.memoryId;
+    if (memoryRef.current !== nextMemory) {
+      memoryRef.current = nextMemory;
+      setMemoryState(nextMemory);
+      runtime.world.setMemory(nextMemory);
+    }
+    playerRef.current.set(target.position.x, 1.65, Math.min(7.8, target.position.z + 1.35));
+    runtime.world.constrain(playerRef.current, nextMemory);
+    const dx = target.position.x - playerRef.current.x;
+    const dz = target.position.z - playerRef.current.z;
+    yawRef.current = Math.atan2(-dx, -dz);
+    nearestRef.current = target;
+    promptIdRef.current = target.id;
+    setPrompt(target.label);
+    persistCheckpoint((current) => ({ ...current, memoryId: nextMemory }));
+    setSubtitle(`测试定位完成：已切到${memoryName[nextMemory]}并抵达“${objective.title}”触发范围，按 F 或点击中央提示继续。`);
+  }, [persistCheckpoint]);
+
   const chooseRanking = useCallback((choice: MemoryId) => {
     if (!rankingMost) { setRankingMost(choice); return; }
     if (choice === rankingMost) return;
@@ -259,6 +287,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
         if (event.code === "ArrowRight") yawRef.current -= .08;
       }
       if (event.code === "KeyF") interact();
+      if (event.code === "KeyH" && !event.repeat) locateObjective();
       if (event.code === "Tab" && phaseRef.current === "playing") { event.preventDefault(); const index = memoryOrder.indexOf(memoryRef.current); changeMemory(memoryOrder[(index + 1) % memoryOrder.length]); }
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
@@ -299,12 +328,20 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
         const nextArea = playerRef.current.z > 0 ? "慢时前厅" : playerRef.current.z < -8 ? "快时中庭" : "主走廊";
         if (nextArea !== areaRef.current) { areaRef.current = nextArea; setArea(nextArea); }
         const available = world.availableInteractables(memoryRef.current, checkpointRef.current.earnedFlags);
-        const nearest = available.map((item) => ({ item, distance: item.position.distanceTo(playerRef.current) })).filter(({ distance }) => distance < 2.35).sort((a, b) => a.distance - b.distance)[0]?.item;
+        const nearest = available.map((item) => ({ item, distance: item.position.distanceTo(playerRef.current) })).filter(({ distance }) => distance < 3.1).sort((a, b) => a.distance - b.distance)[0]?.item;
         nearestRef.current = nearest;
         const nextPromptId = phaseRef.current === "playing" ? nearest?.id ?? "" : "";
         if (nextPromptId !== promptIdRef.current) { promptIdRef.current = nextPromptId; setPrompt(nearest?.label); }
         const objective = objectiveFor(checkpointRef.current);
-        world.setGuidanceTarget(world.interactables.find((item) => item.id === objective.targetId)?.position);
+        const target = world.interactables.find((item) => item.id === objective.targetId)?.position;
+        world.setGuidanceTarget(target);
+        if (target && now - lastGuideUpdateRef.current > 120) {
+          lastGuideUpdateRef.current = now;
+          const dx = target.x - playerRef.current.x;
+          const dz = target.z - playerRef.current.z;
+          setGuideDistance(Math.hypot(dx, dz));
+          setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(dx, -dz) - yawRef.current));
+        }
         renderer.renderer.render(world.scene, world.camera);
       });
       if (save.completedChapters.includes(chapter.id)) setPhase("complete");
@@ -323,7 +360,7 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
       runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
-  }, [changeMemory, chapter.id, chapter.memories, interact, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
+  }, [changeMemory, chapter.id, chapter.memories, interact, locateObjective, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
 
   const objective = objectiveFor(checkpoint);
   const markCount = marks.filter((flag) => checkpoint.earnedFlags.includes(flag)).length;
@@ -350,13 +387,14 @@ export function FrontHallRuntime({ chapter, save, onSave, onExit }: FrontHallRun
       </div>
       <section className="objective-card" aria-live="polite">
         <span>CURRENT OBJECTIVE</span><strong>{objective.title}</strong><p>{objective.detail}</p>
-        <div className="chapter-test-route"><b>第三章测试路线 · {testSteps.filter((step) => step.done).length}/{testSteps.length}</b><ol>{testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}</ol></div>
+        <div className="chapter-test-route"><b>第三章测试路线 · {testSteps.filter((step) => step.done).length}/{testSteps.length}</b><ol>{testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}</ol><button type="button" className="qa-locate-button" onClick={locateObjective}>H · 定位当前测试点</button></div>
       </section>
       <section className="case-progress"><span>FOURFOLD LOCK</span><strong>{markCount} / 4 枚印记</strong><small>空间矛盾 {checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length} / {chapter.contradictions.length}</small></section>
       <section className="memory-card"><span>ACTIVE TESTIMONY</span><strong>{memoryName[memory]}</strong><small>{area === "慢时前厅" ? "时间流速 ×0.62：脚步与钟摆都被等待拖慢。" : area === "快时中庭" ? "时间流速 ×1.28：离开的记忆正在催促你。" : memory === "painter" ? "偏厅低重力；跨入中庭后，柳生的来路会变成白墙。" : "Tab 切换柳生、夫人、园丁、账房四份证词。"}</small></section>
-      {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
+      {guideDistance !== undefined && phase === "playing" && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
+      {prompt && phase === "playing" && <button type="button" className="interaction-prompt" onClick={interact}>{prompt} · 点击也可触发</button>}
       {subtitle && phase === "playing" && <div className="bark-subtitle"><p><b>勘验记录</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验 · Tab 切换四份证词 · Shift 加速</div>
+      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验 · Tab 切换证词 · H 定位测试点 · Shift 加速</div>
       {phase === "playing" && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>开始控制<br /><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
       {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={frontStory} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => persistCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => persistCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
       {phase === "ranking" && (
