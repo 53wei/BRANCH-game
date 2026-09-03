@@ -3,105 +3,214 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
 import { createCheckpoint } from "./campaign-save";
-import { DialogueRunner } from "./narrative/DialogueRunner";
-import northStory from "./narrative/north-tower-ledger.json";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
+import { CameraRig } from "./mechanics/CameraRig";
+import { InteractionController, INTERACTION_RANGE_CALIBRATION } from "./mechanics/InteractionController";
+import { registerArchitectureCollisionCoverage } from "./runtime/architecture-collision-runtime";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
-import { NorthTowerScene, type NorthTimeline, type NorthTowerInteractable, type NorthTowerZone } from "./runtime/NorthTowerScene";
-
-type NorthPhase = "loading" | "dialogue" | "transition" | "playing" | "complete" | "error";
-type NorthTransitionKind = "stairs" | "to-past" | "to-present";
-
-interface NorthTransition {
-  kind: NorthTransitionKind;
-  startedAt: number;
-  duration: number;
-  from: THREE.Vector3;
-  to: THREE.Vector3;
-  fromYaw: number;
-  toYaw: number;
-  targetZone: NorthTowerZone;
-  midpointDone: boolean;
-  onMidpoint?: () => void;
-  onComplete?: () => void;
-}
+import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/PhysicsController";
+import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
+import { TingYuXuanScene } from "./runtime/TingYuXuanScene";
+import { PlayerAvatar } from "./runtime/PlayerAvatar";
+import { NORTH_DEPARTURE_DOCUMENT } from "./runtime/document-content";
+import { DialogueRunner } from "./narrative/DialogueRunner";
+import { compileInkSource } from "./narrative/ink-runtime";
+import northInkSource from "./narrative/north-tower-ledger.ink?raw";
+import { CaseFilePanel } from "./ui/CaseFilePanel";
+import { DocumentViewer } from "./ui/DocumentViewer";
+import { NarrativeInline } from "./narrative/NarrativeInline";
+import { guidanceLevelForElapsed } from "./runtime/guidance-config";
+import { getGameplayAnchor, resolveGameplayRegionForPoint } from "./runtime/tingyuxuan-gameplay-map";
+import { tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
 interface NorthTowerRuntimeProps {
   chapter: ChapterManifest;
   save: CampaignSave;
   onSave: (save: CampaignSave) => void;
   onExit: () => void;
+  onContinue?: () => void;
 }
 
+type NorthPhase = "loading" | "playing" | "complete" | "error";
+type EvidenceId = "sixth-teacup" | "departure-record" | "artist-viewpoint" | "fifth-person-board";
+
 const unique = <T,>(values: T[]) => [...new Set(values)];
-const memoryOrder: MemoryId[] = ["accountant", "wife", "gardener"];
-const memoryName: Record<string, string> = { accountant: "账房证词", wife: "夫人证词", gardener: "园丁证词" };
-const transitionCopy: Record<NorthTransitionKind, { eyebrow: string; title: string; detail: string }> = {
-  stairs: { eyebrow: "北楼 · 一层至二层", title: "木梯记住了第二个人的脚步", detail: "每向上一阶，算盘声就少一颗。" },
-  "to-past": { eyebrow: "借景 · 案发当夜", title: "跨过窗框，雨停在半空", detail: "空间没有把你送到别处，只把你送回它愿意承认的时间。" },
-  "to-present": { eyebrow: "借景 · 七年以后", title: "过去已经发生，现在必须让路", detail: "雨声回来以前，假山的位置先变了。" },
+const memoryOrder: MemoryId[] = ["wife", "accountant", "painter"];
+const memoryName: Record<string, string> = {
+  wife: "沈夫人的认知",
+  accountant: "钱先生的认知",
+  painter: "柳生的认知",
+};
+const evidenceFlags = [
+  "north.evidence.sixth-cup",
+  "north.evidence.departure-record",
+  "north.evidence.rain-figure",
+] as const;
+const NORTH_STORY_CONTENT = compileInkSource("north-tower-ledger", northInkSource);
+
+const evidenceAnchor = (id: EvidenceId) => {
+  const anchorId = id === "sixth-teacup" ? "B_TEA_TABLE"
+    : id === "departure-record" ? "B_LEDGER"
+      : id === "artist-viewpoint" ? "B_IMAGE_EVIDENCE"
+        : "B_MISSING_ROOM";
+  return getGameplayAnchor(anchorId);
+};
+
+const resumeNorthDialogueId = (checkpoint: CheckpointState): string | undefined => {
+  if (checkpoint.dialogueProgress?.sequenceId) return checkpoint.dialogueProgress.sequenceId;
+  const flags = checkpoint.earnedFlags;
+  if (!flags.includes("north.dialogue.opening-complete")) return "north-opening";
+  if (flags.includes("north.evidence.sixth-cup") && !flags.includes("north.dialogue.cup-reaction-complete")) return "north-cup-confirmed";
+  if (flags.includes("north.dialogue.cup-reaction-complete") && !flags.includes("north.dialogue.record-intro-complete")) return "north-record-intro";
+  if (flags.includes("north.evidence.departure-record") && !flags.includes("north.dialogue.record-reaction-complete")) return "north-record-confirmed";
+  if (flags.includes("north.dialogue.record-reaction-complete") && !flags.includes("north.dialogue.image-intro-complete")) return "north-image-intro";
+  if (flags.includes("north.evidence.rain-figure") && !flags.includes("north.dialogue.image-reaction-complete")) return "north-image-confirmed";
+  return undefined;
 };
 
 const objectiveFor = (checkpoint: CheckpointState) => {
   const flags = checkpoint.earnedFlags;
-  if (!flags.includes("north.reached.upper-floor")) return { title: "登上北楼", detail: "沿一层尽头找到楼梯，按 F 进入二层账房。", targetId: "north-stairs" };
-  if (!flags.includes("north.ledger.inspected")) return { title: "先查账，再查窗", detail: "走到账房深处，检查钱先生声称整夜没有离开的账桌。", targetId: "ledger-desk" };
-  if (!flags.includes("north.window.inspected")) return { title: "找到借景窗", detail: "保持账房证词，在二层左侧检查发出蓝光的窗框。", targetId: "borrowed-window" };
-  if (!flags.includes("north.borrowed-view.crossed")) return { title: "跨过时间切口", detail: "再次触碰借景窗，进入案发前的东院。", targetId: "borrowed-window" };
-  if (!flags.includes("north.past.trail-inspected")) return { title: "追踪不该存在的珠痕", detail: "不要急着搬石头；先检查过去庭院泥地里的算盘珠痕。", targetId: "past-beads" };
-  if (!flags.includes("north.rockery.moved")) return { title: "移动过去的假山", detail: "在“过去”靠近完整假山，按 F 改变它的位置。", targetId: "past-rockery" };
-  if (!flags.includes("north.present.route-open")) return { title: "回到现在验证结果", detail: "返回庭院入口的借景框，按 F 切回现在。", targetId: "borrowed-window-return" };
-  if (!flags.includes("north.contradiction.scratches")) return { title: "核对窗框划痕", detail: "先用账房证词勘验，再按 Tab 切到夫人证词复查。", targetId: "window-scratches" };
-  if (!flags.includes("north.contradiction.passage")) return { title: "核对秘密通道", detail: "先用账房证词勘验，再按 Tab 切到园丁证词复查。", targetId: "secret-passage" };
-  return { title: "采用一份工作假设", detail: "两条矛盾已经成立，完成信任选择。", targetId: undefined };
+  if (!flags.includes("north.evidence.sixth-cup")) {
+    return { title: "先确认多出来的生活痕迹", detail: "主院茶桌上有六只杯子。先证明第六只确实被人用过。", hint: "先数杯子，再看杯沿与杯底是否有刚留下的水痕。", targetId: "sixth-teacup" as const };
+  }
+  if (!flags.includes("north.evidence.departure-record")) {
+    return { title: "去看被改过的纸面事实", detail: "按 Tab 切到钱先生的认知，去主宅内侧检查离园记录的补墨和压痕。", hint: "纸面上后补的墨色，与原字并不完全一样。", targetId: "departure-record" as const };
+  }
+  if (!flags.includes("north.evidence.rain-figure")) {
+    return { title: "复现柳生的观看位置", detail: "按 Tab 切到柳生的认知，在旧画旁对准远处框景，再按 F 固定人影。", hint: "站在旧画旁，缓慢转动视线，让远处人影落进画框中心。", targetId: "artist-viewpoint" as const };
+  }
+  if (!flags.includes("north.fifth-person.confirmed")) {
+    return { title: "把三件事实放在一起", detail: "回到主宅深处的案卷板，只回答一个问题：案发当晚有没有第五个人？", hint: "茶杯、离园记录和雨夜人影都确认后，再回案卷板。", targetId: "fifth-person-board" as const };
+  }
+  return { title: "第五人确实存在", detail: "本章到这里为止。身份仍然未知。", hint: "", targetId: undefined };
 };
 
-export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerRuntimeProps) {
+interface EvidenceVisuals {
+  root: THREE.Group;
+  teaAnchor: THREE.Group;
+  ledgerAnchor: THREE.Group;
+  painting: THREE.Mesh;
+  figure: THREE.Group;
+  synthesisAnchor: THREE.Group;
+}
+
+async function buildEvidenceVisuals(world: TingYuXuanScene): Promise<EvidenceVisuals> {
+  const root = new THREE.Group();
+  root.name = "B_Chapter02_EvidenceLayer";
+
+  const tea = evidenceAnchor("sixth-teacup").position;
+  const teaAnchor = new THREE.Group();
+  teaAnchor.name = "B_TeaTable_FormalAssetAnchor";
+  teaAnchor.position.set(tea[0], 0, tea[2]);
+  // Never substitute cylinders for tableware in formal play. The authored Master
+  // environment carries the physical room; this anchor only owns interaction and
+  // a local light until a licensed tea-set asset is added to the manifest.
+  const teaLight = new THREE.PointLight("#d8b777", 1.8, 3.4, 1.8);
+  teaLight.position.y = 1.0;
+  teaAnchor.add(teaLight);
+  world.registerRangeLimitedPointLight(teaLight);
+  root.add(teaAnchor);
+
+  const ledger = evidenceAnchor("departure-record").position;
+  const ledgerAnchor = new THREE.Group();
+  ledgerAnchor.name = "B_DepartureRecord_FormalAssetAnchor";
+  ledgerAnchor.position.set(ledger[0], 0.82, ledger[2]);
+  root.add(ledgerAnchor);
+
+  const paintingPosition = evidenceAnchor("artist-viewpoint").position;
+  const paintingTexture = await new THREE.TextureLoader().loadAsync("/media/cg/story-v1/cg-03-liusheng-fifth-figure-v1.png");
+  paintingTexture.colorSpace = THREE.SRGBColorSpace;
+  const paintingMaterial = new THREE.MeshStandardMaterial({ map: paintingTexture, roughness: 0.78, transparent: true, opacity: 0.64, side: THREE.DoubleSide });
+  const painting = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.6), paintingMaterial);
+  painting.name = "B_PaintingEvidence_AuthoredArtwork";
+  painting.position.set(paintingPosition[0], 1.18, paintingPosition[2]);
+  painting.rotation.y = 0.4;
+  root.add(painting);
+
+  const figure = new THREE.Group();
+  figure.name = "B_RainFigure_ViewDependent_Anchor";
+  figure.position.set(paintingPosition[0] - 3.1, 0.7, paintingPosition[2] - 3.7);
+  root.add(figure);
+
+  const board = evidenceAnchor("fifth-person-board").position;
+  const synthesisAnchor = new THREE.Group();
+  synthesisAnchor.name = "B_FifthPerson_CaseFileAnchor";
+  synthesisAnchor.position.set(board[0], 1.05, board[2]);
+  root.add(synthesisAnchor);
+
+  world.proceduralDressing.add(root);
+  return { root, teaAnchor, ledgerAnchor, painting, figure, synthesisAnchor };
+}
+
+function setEvidenceMemory(visuals: EvidenceVisuals, memory: MemoryId, aligned: boolean) {
+  const paintingMaterial = visuals.painting.material as THREE.MeshStandardMaterial;
+  paintingMaterial.opacity = memory === "painter" ? (aligned ? 0.98 : 0.72) : 0.26;
+  visuals.teaAnchor.visible = memory === "wife";
+  visuals.ledgerAnchor.visible = memory === "accountant";
+  visuals.synthesisAnchor.visible = true;
+}
+
+export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }: NorthTowerRuntimeProps) {
   const [initialCheckpoint] = useState<CheckpointState>(() => {
     if (save.activeCheckpoint.chapterId === chapter.id) {
-      return { ...save.activeCheckpoint, memoryId: memoryOrder.includes(save.activeCheckpoint.memoryId) ? save.activeCheckpoint.memoryId : "accountant" };
+      const memoryId = memoryOrder.includes(save.activeCheckpoint.memoryId) ? save.activeCheckpoint.memoryId : "wife";
+      return { ...save.activeCheckpoint, memoryId, anchorId: save.activeCheckpoint.anchorId || "ROUTE_05_B_MAIN_COURT" };
     }
-    return { ...createCheckpoint(chapter.id, "accountant"), anchorId: chapter.spawnAnchor };
+    return {
+      ...createCheckpoint(chapter.id, "wife"),
+      anchorId: "ROUTE_05_B_MAIN_COURT",
+      activeObjectiveId: "north-life-evidence",
+      objectiveStepId: "inspect-sixth-cup",
+    };
   });
-  const initialPosition: [number, number, number] = initialCheckpoint.position ?? [0, 1.65, 7];
-  const initialZone: NorthTowerZone = initialPosition[0] < -5 ? "courtyard" : initialPosition[1] > 3 ? "upper" : "lower";
+  const initialMemory = initialCheckpoint.memoryId;
+  const initialPhase: NorthPhase = initialCheckpoint.earnedFlags.includes("north.fifth-person.confirmed") ? "complete" : "loading";
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const runtimeRef = useRef<{ renderer: Awaited<ReturnType<typeof createRenderer>>; world: NorthTowerScene } | undefined>(undefined);
+  const runtimeRef = useRef<{
+    renderer: Awaited<ReturnType<typeof createRenderer>>;
+    world: TingYuXuanScene;
+    physics: PhysicsController;
+    cameraRig: CameraRig;
+    interaction: InteractionController;
+    playerAvatar: PlayerAvatar;
+    visuals: EvidenceVisuals;
+  } | undefined>(undefined);
   const keysRef = useRef(new Set<string>());
-  const keyboardFallbackRef = useRef(false);
-  const playerRef = useRef(new THREE.Vector3(...initialPosition));
-  const yawRef = useRef(initialCheckpoint.yaw ?? 0);
+  const yawRef = useRef(initialCheckpoint.yaw ?? getGameplayAnchor("ROUTE_05_B_MAIN_COURT").yaw);
   const pitchRef = useRef(0);
-  const nearestRef = useRef<NorthTowerInteractable | undefined>(undefined);
-  const promptIdRef = useRef("");
-  const memoryRef = useRef<MemoryId>(initialCheckpoint.memoryId);
-  const timelineRef = useRef<NorthTimeline>("present");
-  const zoneRef = useRef<NorthTowerZone>(initialZone);
-  const phaseRef = useRef<NorthPhase>("loading");
+  const memoryRef = useRef<MemoryId>(initialMemory);
+  const phaseRef = useRef<NorthPhase>(initialPhase);
+  const checkpointRef = useRef(initialCheckpoint);
   const saveRef = useRef(save);
   const onSaveRef = useRef(onSave);
+  const keyboardFallbackRef = useRef(false);
+  const viewAlignedRef = useRef(false);
+  const caseFileOpenRef = useRef(false);
+  const documentOpenRef = useRef(false);
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
-  const startDialogueRef = useRef<(id: string) => void>(() => undefined);
-  const transitionRef = useRef<NorthTransition | undefined>(undefined);
+  const guidanceKeyRef = useRef("");
+  const guidanceElapsedRef = useRef(0);
+  const guidanceLevelRef = useRef(0);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
-  const checkpointRef = useRef(checkpoint);
-  const [phase, setPhaseState] = useState<NorthPhase>(save.completedChapters.includes(chapter.id) ? "complete" : "loading");
+  const [phase, setPhaseState] = useState<NorthPhase>(initialPhase);
   const [backend, setBackend] = useState<RendererBackend>();
-  const [memory, setMemoryState] = useState<MemoryId>(initialCheckpoint.memoryId);
-  const [timeline, setTimelineState] = useState<NorthTimeline>("present");
-  const [zone, setZoneState] = useState<NorthTowerZone>(initialZone);
+  const [memory, setMemory] = useState<MemoryId>(initialMemory);
   const [prompt, setPrompt] = useState<string>();
-  const [subtitle, setSubtitle] = useState("算盘珠自己落下，像有人在黑暗里核对你的脚步。");
-  const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
-  const [transitionKind, setTransitionKind] = useState<NorthTransitionKind>();
+  const [subtitle, setSubtitle] = useState("西侧旧园的脚印把你带进主宅。现在先查清：今晚到底有没有多出来一个人。");
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
+  const areaRef = useRef("AREA_B");
+  const [area, setArea] = useState("AREA_B");
   const [error, setError] = useState("");
+  const [guidanceLevel, setGuidanceLevel] = useState(0);
+  const [showCaseFile, setShowCaseFileState] = useState(false);
+  const [showDepartureDocument, setShowDepartureDocument] = useState(false);
+  const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
 
+  useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [save, onSave]);
   const setPhase = useCallback((next: NorthPhase) => { phaseRef.current = next; setPhaseState(next); }, []);
-  useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [onSave, save]);
-
   const requestPointerLock = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -110,15 +219,35 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     setKeyboardFallback(true);
     const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
-    window.setTimeout(() => {
-      if (document.pointerLockElement !== canvas) setHasPointerLock(false);
-    }, 120);
   }, []);
 
+  const setCaseFileOpen = useCallback((next: boolean) => {
+    caseFileOpenRef.current = next;
+    setShowCaseFileState(next);
+    keysRef.current.clear();
+    runtimeRef.current?.interaction.clearFocus();
+    if (next) document.exitPointerLock?.();
+    else if (phaseRef.current === "playing" && !documentOpenRef.current) requestPointerLock();
+  }, [requestPointerLock]);
+
+  const setDepartureDocumentOpen = useCallback((next: boolean) => {
+    documentOpenRef.current = next;
+    setShowDepartureDocument(next);
+    keysRef.current.clear();
+    runtimeRef.current?.interaction.clearFocus();
+    if (next) document.exitPointerLock?.();
+    else if (phaseRef.current === "playing" && !caseFileOpenRef.current) requestPointerLock();
+  }, [requestPointerLock]);
+
   const commitCheckpoint = useCallback((producer: (current: CheckpointState) => CheckpointState) => {
+    const pose = runtimeRef.current?.physics.pose();
     const current = checkpointRef.current;
-    const position = playerRef.current;
-    const next = producer({ ...current, position: [position.x, position.y, position.z], yaw: yawRef.current, updatedAt: new Date().toISOString() });
+    const next = producer({
+      ...current,
+      position: pose ? [pose.x, pose.y, pose.z] : current.position,
+      yaw: yawRef.current,
+      updatedAt: new Date().toISOString(),
+    });
     checkpointRef.current = next;
     setCheckpoint(next);
     const nextSave = { ...saveRef.current, activeCheckpoint: next };
@@ -127,51 +256,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     return next;
   }, []);
 
-  const addFlags = useCallback((...flags: string[]) => commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, ...flags]) })), [commitCheckpoint]);
-
-  const changeMemory = useCallback((next: MemoryId) => {
-    memoryRef.current = next;
-    setMemoryState(next);
-    runtimeRef.current?.world.setMemory(next);
-    commitCheckpoint((current) => ({ ...current, memoryId: next }));
-    setSubtitle(`同一个位置，现在由${memoryName[next] ?? "另一份证词"}重新描述。`);
-  }, [commitCheckpoint]);
-
-  const changeTimeline = useCallback((next: NorthTimeline) => {
-    timelineRef.current = next;
-    setTimelineState(next);
-    runtimeRef.current?.world.setTimeline(next, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
-  }, []);
-
-  const beginTransition = useCallback((options: {
-    kind: NorthTransitionKind;
-    duration: number;
-    targetZone: NorthTowerZone;
-    targetPosition: [number, number, number];
-    targetYaw?: number;
-    onMidpoint?: () => void;
-    onComplete?: () => void;
-  }) => {
-    keysRef.current.clear();
-    document.exitPointerLock?.();
-    transitionRef.current = {
-      kind: options.kind,
-      startedAt: performance.now(),
-      duration: options.duration,
-      from: playerRef.current.clone(),
-      to: new THREE.Vector3(...options.targetPosition),
-      fromYaw: yawRef.current,
-      toYaw: options.targetYaw ?? yawRef.current,
-      targetZone: options.targetZone,
-      midpointDone: false,
-      onMidpoint: options.onMidpoint,
-      onComplete: options.onComplete,
-    };
-    setTransitionKind(options.kind);
-    promptIdRef.current = "";
-    setPrompt(undefined);
-    setPhase("transition");
-  }, [setPhase]);
+  const addFlag = useCallback((flag: string) => commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, flag]) })), [commitCheckpoint]);
+  const setObjective = useCallback((objectiveId: string, stepId: string) => commitCheckpoint((current) => ({ ...current, activeObjectiveId: objectiveId, objectiveStepId: stepId })), [commitCheckpoint]);
 
   const startDialogue = useCallback((id: string) => {
     const sequence = chapter.dialogueSequences?.find((item) => item.id === id);
@@ -179,35 +265,82 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     dialogueRef.current = sequence;
     setActiveDialogue(sequence);
     keysRef.current.clear();
+    runtimeRef.current?.interaction.clearFocus();
     document.exitPointerLock?.();
-    setPhase("dialogue");
-  }, [chapter.dialogueSequences, setPhase]);
-  useEffect(() => { startDialogueRef.current = startDialogue; }, [startDialogue]);
+    commitCheckpoint((current) => ({
+      ...current,
+      dialogueProgress: current.dialogueProgress?.sequenceId === id ? current.dialogueProgress : undefined,
+      pointerLockPending: true,
+    }));
+  }, [chapter.dialogueSequences, commitCheckpoint]);
 
   const applyDialogueCommand = useCallback((command: DialogueCommand) => {
-    if (command.type === "flag:set") addFlags(command.flag);
-    else if (command.type === "memory:unlock") addFlags(`memory.${command.memoryId}.unlocked`);
-    else if (command.type === "objective:start") commitCheckpoint((current) => ({ ...current, activeObjectiveId: command.objectiveId, objectiveStepId: command.stepId }));
-    else if (command.type === "objective:step") commitCheckpoint((current) => ({ ...current, objectiveStepId: command.stepId }));
-    else if (command.type === "trust:set") commitCheckpoint((current) => ({
+    if (command.type === "objective:start") {
+      setObjective(command.objectiveId, command.stepId);
+    } else if (command.type === "objective:step") {
+      commitCheckpoint((current) => ({ ...current, objectiveStepId: command.stepId }));
+    } else if (command.type === "flag:set") {
+      addFlag(command.flag);
+    } else if (command.type === "memory:unlock") {
+      addFlag(`memory.${command.memoryId}.unlocked`);
+    }
+  }, [addFlag, commitCheckpoint, setObjective]);
+
+  const finishDepartureDocument = useCallback(() => {
+    setDepartureDocumentOpen(false);
+    if (checkpointRef.current.earnedFlags.includes("north.evidence.departure-record")) return;
+    addFlag("north.evidence.departure-record");
+    setSubtitle("");
+    startDialogue("north-record-confirmed");
+  }, [addFlag, setDepartureDocumentOpen, startDialogue]);
+
+  const changeMemory = useCallback((next: MemoryId) => {
+    memoryRef.current = next;
+    setMemory(next);
+    runtimeRef.current?.world.setMemory(next);
+    runtimeRef.current?.interaction.clearFocus();
+    viewAlignedRef.current = false;
+    if (runtimeRef.current) setEvidenceMemory(runtimeRef.current.visuals, next, false);
+    commitCheckpoint((current) => ({
       ...current,
-      trustDecisions: { ...current.trustDecisions, [command.nodeId]: command.choiceId },
-      earnedFlags: unique([...current.earnedFlags, "north.trust.decided", command.outputFlag]),
+      memoryId: next,
+      reconstructionTrace: {
+        ...current.reconstructionTrace,
+        cognitionUsage: {
+          ...current.reconstructionTrace.cognitionUsage,
+          [next]: (current.reconstructionTrace.cognitionUsage[next] ?? 0) + 1,
+        },
+      },
     }));
-  }, [addFlags, commitCheckpoint]);
+    setSubtitle(next === "wife"
+      ? "沈夫人的认知让生活使用痕迹更醒目。茶杯、座位和被收起的东西比纸面更稳定。"
+      : next === "accountant"
+        ? "钱先生的认知强调被写下来的事实。改字、补墨和压痕会变得更清楚。"
+        : "柳生的认知依赖观看位置。你必须站对地方，额外的人影才会成立。"
+    );
+  }, [commitCheckpoint]);
 
   const finishChapter = useCallback(() => {
-    const finalCheckpoint = commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, "north.chapter.complete", "campaign.witness.accountant"]), dialogueProgress: undefined }));
+    if (phaseRef.current === "complete") return;
+    const finalCheckpoint = commitCheckpoint((current) => ({
+      ...current,
+      anchorId: "ROUTE_06_B_NORTHEAST_LINK",
+      mechanics: { ...current.mechanics, safeAnchorId: "ROUTE_06_B_NORTHEAST_LINK" },
+      activeObjectiveId: undefined,
+      objectiveStepId: undefined,
+      earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags, "north.fifth-person.confirmed"]),
+    }));
     const nextSave: CampaignSave = {
       ...saveRef.current,
       activeCheckpoint: finalCheckpoint,
       completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      unlockedChapters: unique([...saveRef.current.unlockedChapters, "front-hall-guest"]),
+      unlockedChapters: unique([...saveRef.current.unlockedChapters, "missing-room"]),
     };
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
+    document.exitPointerLock?.();
     setPhase("complete");
-  }, [chapter.id, commitCheckpoint, setPhase]);
+  }, [chapter.completionFlags, chapter.id, commitCheckpoint, setPhase]);
 
   const completeDialogue = useCallback((sequence: DialogueSequence) => {
     dialogueRef.current = undefined;
@@ -215,416 +348,296 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit }: NorthTowerR
     commitCheckpoint((current) => ({
       ...current,
       dialogueProgress: undefined,
-      seenDialogueLines: current.seenDialogueLines,
+      pointerLockPending: false,
       earnedFlags: sequence.completionFlag ? unique([...current.earnedFlags, sequence.completionFlag]) : current.earnedFlags,
     }));
-    if (sequence.id === "north-rockery") {
-      addFlags("north.rockery.moved");
-      runtimeRef.current?.world.setTimeline("past", true);
-      setSubtitle("假山向侧面移开。这个动作已经发生在过去，现在会记住它。");
-      setPhase("playing");
+
+    if (sequence.id === "north-opening") {
+      setSubtitle("");
       requestPointerLock();
-      return;
-    }
-    if (sequence.id === "north-passage") {
-      setSubtitle("两条矛盾已经互相咬合。先看看暗道如何变化，再在暗道口按 F 采用一份工作假设。");
-      setPhase("playing");
+    } else if (sequence.id === "north-cup-confirmed") {
+      startDialogue("north-record-intro");
+    } else if (sequence.id === "north-record-intro") {
+      setSubtitle("");
       requestPointerLock();
-      return;
-    }
-    if (sequence.id === "north-trust") {
-      const chosen = checkpointRef.current.trustDecisions["north-route-owner"] as MemoryId | undefined;
-      if (chosen && memoryOrder.includes(chosen)) changeMemory(chosen);
-      window.setTimeout(() => startDialogueRef.current("north-completion"), 120);
-      return;
-    }
-    if (sequence.id === "north-completion") {
+    } else if (sequence.id === "north-record-confirmed") {
+      startDialogue("north-image-intro");
+    } else if (sequence.id === "north-image-intro") {
+      setSubtitle("");
+      requestPointerLock();
+    } else if (sequence.id === "north-image-confirmed") {
+      setSubtitle("");
+      requestPointerLock();
+    } else if (sequence.id === "north-completion") {
       finishChapter();
+    }
+  }, [commitCheckpoint, finishChapter, requestPointerLock, startDialogue]);
+
+  const handleEvidence = useCallback((id: EvidenceId) => {
+    const flags = checkpointRef.current.earnedFlags;
+    if (id === "sixth-teacup") {
+      if (flags.includes("north.evidence.sixth-cup")) return;
+      addFlag("north.evidence.sixth-cup");
+      setSubtitle("");
+      startDialogue("north-cup-confirmed");
       return;
     }
-    setPhase("playing");
-    requestPointerLock();
-  }, [addFlags, changeMemory, commitCheckpoint, finishChapter, requestPointerLock, setPhase]);
-
-  const observeEvidence = useCallback((id: "window-scratches" | "secret-passage") => {
-    const contradiction = chapter.contradictions.find((item) => item.id === id);
-    if (!contradiction) return;
-    const currentMemory = memoryRef.current;
-    const next = commitCheckpoint((current) => {
-      const observed = unique([...(current.observedBy[id] ?? []), currentMemory]);
-      const confirmed = contradiction.requiredIndependentTestimonies.every((required) => observed.includes(required));
-      return {
-        ...current,
-        observedBy: { ...current.observedBy, [id]: observed },
-        contradictions: confirmed ? unique([...current.contradictions, id]) : current.contradictions,
-        earnedFlags: confirmed ? unique([...current.earnedFlags, contradiction.outputFlag]) : current.earnedFlags,
-      };
-    });
-    const observedCount = next.observedBy[id]?.length ?? 0;
-    if (next.contradictions.includes(id)) {
-      setSubtitle(id === "window-scratches" ? "两份证词都留下同一组翻越痕。第一条矛盾成立。" : "暗道与回环占据同一位置。第二条矛盾成立。 ");
-      if (id === "window-scratches" && !next.earnedFlags.includes("north.dialogue.scratches")) startDialogue("north-scratches");
-      if (id === "secret-passage" && !next.earnedFlags.includes("north.dialogue.passage")) startDialogue("north-passage");
-    } else {
-      const other = id === "window-scratches" ? "夫人" : "园丁";
-      setSubtitle(`已记录 ${observedCount}/2。按 Tab 切到${other}证词，在同一位置复查。`);
+    if (id === "departure-record") {
+      if (!flags.includes("north.evidence.sixth-cup")) { setSubtitle("先确认茶桌上多出来的生活痕迹。"); return; }
+      if (memoryRef.current !== "accountant") { setSubtitle("先切到钱先生的认知。这里要检查的是纸面事实。"); return; }
+      if (flags.includes("north.evidence.departure-record")) return;
+      setDepartureDocumentOpen(true);
+      return;
     }
-  }, [chapter.contradictions, commitCheckpoint, startDialogue]);
-
-  const interact = useCallback(() => {
-    if (phaseRef.current !== "playing") return;
-    const item = nearestRef.current;
-    if (!item) return;
-    if (item.id === "north-stairs") {
-      beginTransition({
-        kind: "stairs",
-        duration: 2600,
-        targetZone: "upper",
-        targetPosition: [0, 4.72, -6.2],
-        targetYaw: 0,
-        onComplete: () => {
-          addFlags("north.reached.upper-floor");
-          setSubtitle("脚步声停在二层。先去账桌核对最后一笔，再相信那扇窗。");
-        },
-      });
-    } else if (item.id === "ledger-desk") {
-      const askedLedger = checkpointRef.current.earnedFlags.includes("north.inquiry.ledger");
-      addFlags("north.ledger.inspected");
-      setSubtitle(askedLedger
-        ? "你问过的子时三刻就在末页，墨色却比前几页新。钱先生在事后补过这本账。"
-        : "窗框修缮款被整页撕走，只剩装订线上的蓝色纸屑。那扇窗不是无关紧要的景。"
-      );
-    } else if (item.id === "borrowed-window") {
-      if (!checkpointRef.current.earnedFlags.includes("north.window.inspected")) {
-        addFlags("north.window.inspected");
-        setSubtitle("窗内假山完整，窗外雨水却已经积了七年。再触碰一次，跨过时间切口。");
-        startDialogue("north-window");
-      } else if (!checkpointRef.current.earnedFlags.includes("north.borrowed-view.crossed")) {
-        beginTransition({
-          kind: "to-past",
-          duration: 2100,
-          targetZone: "courtyard",
-          targetPosition: [-7.5, 1.65, -11.6],
-          targetYaw: -Math.PI / 2,
-          onMidpoint: () => changeTimeline("past"),
-          onComplete: () => {
-            addFlags("north.borrowed-view.crossed");
-            setSubtitle("雨声停了。先别碰假山——泥里有一串从北楼滚来的圆形浅痕。");
-          },
-        });
-      }
-    } else if (item.id === "past-beads") {
-      addFlags("north.past.trail-inspected");
-      setSubtitle("算盘珠痕绕过假山，最后消失在墙根。账房的物件比他的证词先到了东院。");
-      startDialogue("north-past");
-    } else if (item.id === "past-rockery") {
-      if (!checkpointRef.current.earnedFlags.includes("north.dialogue.rockery")) startDialogue("north-rockery");
-    } else if (item.id === "borrowed-window-return") {
-      const position = playerRef.current;
-      beginTransition({
-        kind: "to-present",
-        duration: 1900,
-        targetZone: "courtyard",
-        targetPosition: [position.x, 1.65, position.z],
-        onMidpoint: () => changeTimeline("present"),
-        onComplete: () => {
-          addFlags("north.present.route-open");
-          runtimeRef.current?.world.setTimeline("present", true);
-          setSubtitle("雨重新落下。假山已经记住你的动作，墙下露出一股向内吸气的暗风。");
-        },
-      });
-    } else if (item.id === "window-scratches" || item.id === "secret-passage") {
-      if (item.id === "secret-passage"
-        && checkpointRef.current.contradictions.includes("secret-passage")
-        && checkpointRef.current.earnedFlags.includes("north.dialogue.passage")
-        && !checkpointRef.current.earnedFlags.includes("north.dialogue.trust")) {
-        startDialogue("north-trust");
-      } else {
-        observeEvidence(item.id);
-      }
+    if (id === "artist-viewpoint") {
+      if (!flags.includes("north.evidence.departure-record")) { setSubtitle("先把文字记录的修改痕迹固定下来。"); return; }
+      if (memoryRef.current !== "painter") { setSubtitle("按 Tab 切到柳生的认知。这里需要复现他的观看位置。"); return; }
+      if (!viewAlignedRef.current) { setSubtitle("位置差不多，但角度还不对。慢慢转动镜头，让远处人影落进画框中心。"); return; }
+      if (flags.includes("north.evidence.rain-figure")) return;
+      addFlag("north.evidence.rain-figure");
+      setSubtitle("");
+      startDialogue("north-image-confirmed");
+      return;
     }
-  }, [addFlags, beginTransition, changeTimeline, observeEvidence, startDialogue]);
+    const ready = evidenceFlags.every((flag) => checkpointRef.current.earnedFlags.includes(flag));
+    if (!ready) { setSubtitle("还缺事实。茶杯、离园记录和旧画里的人影都要先查清。"); return; }
+    setSubtitle("");
+    startDialogue("north-completion");
+  }, [addFlag, setDepartureDocumentOpen, startDialogue]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let cancelled = false;
-    const world = new NorthTowerScene(chapter.memories, save.settings.quality);
-    world.setMemory(memoryRef.current);
-    world.setTimeline(timelineRef.current, checkpointRef.current.earnedFlags.includes("north.rockery.moved"));
 
-    const resize = () => {
-      const runtime = runtimeRef.current;
-      if (!runtime) return;
-      const width = canvas.clientWidth || window.innerWidth;
-      const height = canvas.clientHeight || window.innerHeight;
-      world.camera.aspect = width / Math.max(1, height);
-      world.camera.updateProjectionMatrix();
-      runtime.renderer.resize(width, height, window.devicePixelRatio);
+    const boot = async () => {
+      try {
+        const renderer = await createRenderer(canvas, { forceWebGL: save.settings.renderer === "webgl", quality: save.settings.quality });
+        const spawnAnchor = getGameplayAnchor("ROUTE_05_B_MAIN_COURT");
+        const restored = initialCheckpoint.position;
+        const spawn = {
+          x: restored?.[0] ?? spawnAnchor.position[0],
+          y: Math.max(restored?.[1] ?? spawnAnchor.position[1], PLAYER_BODY_CALIBRATION.capsuleGroundedCentreY),
+          z: restored?.[2] ?? spawnAnchor.position[2],
+        };
+        const physics = await PhysicsController.create(spawn, tingYuXuanLayout.colliders);
+        if (cancelled) { physics.dispose(); renderer.dispose(); return; }
+        const world = await TingYuXuanScene.create(chapter.memories, save.settings.quality, renderer.renderer);
+        registerArchitectureCollisionCoverage(world, physics, canvas);
+        if (cancelled) { physics.dispose(); world.dispose(); renderer.dispose(); return; }
+        // Do not inject broad Mesh Box3 values as player collision.
+        const cameraRig = new CameraRig(world.camera, physics, { smoothTime: save.settings.stableCamera ? 0.11 : 0.16 });
+        const interaction = new InteractionController();
+        const playerAvatar = new PlayerAvatar();
+        world.proceduralDressing.add(playerAvatar.root);
+        const visuals = await buildEvidenceVisuals(world);
+        const evidenceItems: Array<{ id: EvidenceId; label: string }> = [
+          { id: "sixth-teacup", label: "[F] 检查第六只茶杯" },
+          { id: "departure-record", label: "[F] 核对离园记录" },
+          { id: "artist-viewpoint", label: "[F] 固定柳生框景中的人影" },
+          { id: "fifth-person-board", label: "[F] 整理已经查清的三件事" },
+        ];
+        evidenceItems.forEach((item) => {
+          const anchor = evidenceAnchor(item.id);
+          const position = new THREE.Vector3(anchor.position[0], item.id === "artist-viewpoint" ? 1.15 : 0.9, anchor.position[2]);
+          interaction.registerPoint({
+            id: item.id,
+            type: "evidence",
+            label: item.label,
+            maxDistance: item.id === "artist-viewpoint" ? INTERACTION_RANGE_CALIBRATION.viewpoint : INTERACTION_RANGE_CALIBRATION.standardEvidence,
+            enabledWhen: () => phaseRef.current === "playing",
+            onInteract: () => handleEvidence(item.id),
+          }, position, INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+        });
+        world.setMemory(memoryRef.current);
+        setEvidenceMemory(visuals, memoryRef.current, false);
+        yawRef.current = initialCheckpoint.yaw ?? spawnAnchor.yaw;
+        cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
+        runtimeRef.current = { renderer, world, physics, cameraRig, interaction, playerAvatar, visuals };
+        setBackend(renderer.backend);
+        canvas.dataset.architectureMode = world.architectureMode();
+        canvas.dataset.gameplayArea = "AREA_B";
+
+        const resize = () => {
+          const rect = canvas.getBoundingClientRect();
+          renderer.resize(rect.width, rect.height, window.devicePixelRatio);
+          world.camera.aspect = rect.width / Math.max(rect.height, 1);
+          world.camera.updateProjectionMatrix();
+        };
+        resize();
+        window.addEventListener("resize", resize);
+
+        let previous = performance.now();
+        renderer.renderer.setAnimationLoop((now: number) => {
+          const delta = Math.min((now - previous) / 1000, 0.05);
+          previous = now;
+          let pose = physics.pose();
+          if (phaseRef.current === "playing" && !caseFileOpenRef.current && !documentOpenRef.current && !dialogueRef.current) {
+            const forward = Number(keysRef.current.has("KeyW")) - Number(keysRef.current.has("KeyS"));
+            const strafe = Number(keysRef.current.has("KeyD")) - Number(keysRef.current.has("KeyA"));
+            const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
+            yawRef.current -= turn * 1.8 * delta;
+            const speed = keysRef.current.has("ShiftLeft") ? PLAYER_PHYSICS_CALIBRATION.fastWalkSpeed : PLAYER_PHYSICS_CALIBRATION.walkSpeed;
+            const sin = Math.sin(yawRef.current);
+            const cos = Math.cos(yawRef.current);
+            pose = physics.move({
+              x: (forward * -sin + strafe * cos) * speed * delta,
+              y: 0,
+              z: (forward * -cos - strafe * sin) * speed * delta,
+            }, delta);
+          }
+          const player = new THREE.Vector3(pose.x, pose.y, pose.z);
+          const avatarMoving = phaseRef.current === "playing" && !caseFileOpenRef.current && !documentOpenRef.current && !dialogueRef.current && (keysRef.current.has("KeyW") || keysRef.current.has("KeyA") || keysRef.current.has("KeyS") || keysRef.current.has("KeyD"));
+          playerAvatar.update(pose, yawRef.current, avatarMoving, delta);
+          cameraRig.syncExploration(player, yawRef.current, pitchRef.current);
+          cameraRig.update(delta);
+          world.update(delta, player, false);
+
+          const painterAnchor = evidenceAnchor("artist-viewpoint");
+          const painterPos = new THREE.Vector3(painterAnchor.position[0], 1.1, painterAnchor.position[2]);
+          const nearFrame = player.distanceTo(painterPos) < 2.8;
+          const cameraForward = new THREE.Vector3();
+          world.camera.getWorldDirection(cameraForward);
+          const toFigure = visuals.figure.position.clone().sub(world.camera.position).normalize();
+          const aligned = memoryRef.current === "painter" && nearFrame && cameraForward.dot(toFigure) > 0.965;
+          if (aligned !== viewAlignedRef.current) {
+            viewAlignedRef.current = aligned;
+            setEvidenceMemory(visuals, memoryRef.current, aligned);
+          }
+
+          const focus = caseFileOpenRef.current || documentOpenRef.current || dialogueRef.current ? undefined : interaction.focus(world.camera, world.camera.position);
+          setPrompt(focus?.definition.label);
+          const currentObjective = objectiveFor(checkpointRef.current);
+          const guidanceKey = currentObjective.targetId ?? "";
+          if (guidanceKey !== guidanceKeyRef.current) {
+            guidanceKeyRef.current = guidanceKey;
+            guidanceElapsedRef.current = 0;
+            guidanceLevelRef.current = 0;
+            setGuidanceLevel(0);
+          } else if (phaseRef.current === "playing" && !caseFileOpenRef.current && !documentOpenRef.current && !dialogueRef.current && saveRef.current.settings.guidanceAssist && guidanceKey) {
+            guidanceElapsedRef.current += delta;
+            const nextLevel = guidanceLevelForElapsed(guidanceElapsedRef.current);
+            if (nextLevel > guidanceLevelRef.current) {
+              guidanceLevelRef.current = nextLevel;
+              setGuidanceLevel(nextLevel);
+              if (nextLevel === 2) setSubtitle(currentObjective.hint);
+            }
+          }
+          if (currentObjective.targetId && saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3) {
+            const targetAnchor = evidenceAnchor(currentObjective.targetId);
+            world.setGuidanceTarget(new THREE.Vector3(targetAnchor.position[0], 0, targetAnchor.position[2]));
+          } else {
+            world.setGuidanceTarget(undefined);
+          }
+          const currentArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
+          if (currentArea !== areaRef.current) {
+            areaRef.current = currentArea;
+            setArea(currentArea);
+          }
+          canvas.dataset.playerPose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)},${pose.z.toFixed(2)}`;
+          canvas.dataset.playerAvatarVisible = String(playerAvatar.root.visible && playerAvatar.root.parent !== null);
+          canvas.dataset.gameplayArea = currentArea;
+          canvas.dataset.grounded = String(physics.isGrounded());
+          renderer.renderer.render(world.scene, world.camera);
+        });
+
+        if (phaseRef.current !== "complete") {
+          setPhase("playing");
+          const resumeDialogueId = resumeNorthDialogueId(initialCheckpoint);
+          if (resumeDialogueId) startDialogue(resumeDialogueId);
+          else if (initialCheckpoint.earnedFlags.includes("north.dialogue.completion-complete") && !initialCheckpoint.earnedFlags.includes("north.fifth-person.confirmed")) finishChapter();
+          else requestPointerLock();
+        }
+        return () => window.removeEventListener("resize", resize);
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : "无法初始化主宅调查场景");
+        setPhase("error");
+      }
     };
 
+    let resizeCleanup: (() => void) | undefined;
+    void boot().then((cleanup) => { resizeCleanup = cleanup; });
+    return () => {
+      cancelled = true;
+      resizeCleanup?.();
+      const runtime = runtimeRef.current;
+      runtime?.renderer.renderer.setAnimationLoop(null);
+      runtime?.interaction.dispose();
+      runtime?.cameraRig.dispose();
+      runtime?.physics.dispose();
+      runtime?.world.dispose();
+      runtime?.renderer.dispose();
+      runtimeRef.current = undefined;
+    };
+  }, [chapter.memories, finishChapter, handleEvidence, initialCheckpoint, requestPointerLock, save.settings.quality, save.settings.renderer, save.settings.stableCamera, setPhase, startDialogue]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      keysRef.current.add(event.code);
-      if (phaseRef.current === "playing" && !event.repeat) {
-        const tapInput = new THREE.Vector3(
-          event.code === "KeyD" ? 1 : event.code === "KeyA" ? -1 : 0,
-          0,
-          event.code === "KeyS" ? 1 : event.code === "KeyW" ? -1 : 0,
-        );
-        if (tapInput.lengthSq() > 0) {
-          tapInput.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(0.18);
-          playerRef.current.add(tapInput);
-          world.constrain(playerRef.current, zoneRef.current);
-        }
-        if (event.code === "ArrowLeft") yawRef.current += 0.08;
-        if (event.code === "ArrowRight") yawRef.current -= 0.08;
+      if (["ArrowLeft", "ArrowRight", "Tab", "Space", "KeyN"].includes(event.code)) event.preventDefault();
+      if (event.repeat || phaseRef.current !== "playing") return;
+      if (documentOpenRef.current || dialogueRef.current) return;
+      if (event.code === "KeyN") {
+        setCaseFileOpen(!caseFileOpenRef.current);
+        return;
       }
-      if (event.code === "KeyF") interact();
-      if (event.code === "Tab" && phaseRef.current === "playing") {
-        event.preventDefault();
+      if (caseFileOpenRef.current) return;
+      if (event.code === "Space") {
+        runtimeRef.current?.physics.requestJump();
+        return;
+      }
+      keysRef.current.add(event.code);
+      if (event.code === "KeyF") runtimeRef.current?.interaction.interact();
+      if (event.code === "Tab") {
         const index = memoryOrder.indexOf(memoryRef.current);
         changeMemory(memoryOrder[(index + 1) % memoryOrder.length]);
       }
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
-    const onWindowBlur = () => {
-      keysRef.current.clear();
-      keyboardFallbackRef.current = false;
-      setKeyboardFallback(false);
-    };
     const onMouseMove = (event: MouseEvent) => {
-      if (document.pointerLockElement !== canvas || phaseRef.current !== "playing") return;
+      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || caseFileOpenRef.current || documentOpenRef.current || dialogueRef.current) return;
       yawRef.current -= event.movementX * 0.0022;
-      pitchRef.current = THREE.MathUtils.clamp(pitchRef.current - event.movementY * 0.0019, -1.25, 1.25);
+      pitchRef.current = THREE.MathUtils.clamp(pitchRef.current - event.movementY * 0.0019, -1.12, 1.04);
     };
-    const onLockChange = () => setHasPointerLock(document.pointerLockElement === canvas);
-
-    window.addEventListener("resize", resize);
+    const onBlur = () => { keysRef.current.clear(); keyboardFallbackRef.current = false; setKeyboardFallback(false); };
+    const onLockChange = () => setHasPointerLock(document.pointerLockElement === canvasRef.current);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
-    window.addEventListener("blur", onWindowBlur);
     window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("blur", onBlur);
     document.addEventListener("pointerlockchange", onLockChange);
-
-    void createRenderer(canvas, { forceWebGL: save.settings.renderer === "webgl", quality: save.settings.quality }).then((renderer) => {
-      if (cancelled) { renderer.dispose(); return; }
-      runtimeRef.current = { renderer, world };
-      setBackend(renderer.backend);
-      resize();
-      let previous = performance.now();
-      renderer.renderer.setAnimationLoop((now: number) => {
-        const delta = Math.min((now - previous) / 1000, 0.05);
-        previous = now;
-        const activeTransition = transitionRef.current;
-        if (phaseRef.current === "transition" && activeTransition) {
-          const progress = THREE.MathUtils.clamp((now - activeTransition.startedAt) / activeTransition.duration, 0, 1);
-          const eased = progress * progress * (3 - 2 * progress);
-          playerRef.current.lerpVectors(activeTransition.from, activeTransition.to, eased);
-          if (activeTransition.kind === "stairs") playerRef.current.y += Math.sin(progress * Math.PI * 9) * 0.025;
-          yawRef.current = THREE.MathUtils.lerp(activeTransition.fromYaw, activeTransition.toYaw, eased);
-          if (!activeTransition.midpointDone && progress >= 0.5) {
-            activeTransition.midpointDone = true;
-            activeTransition.onMidpoint?.();
-          }
-          if (progress >= 1) {
-            const onComplete = activeTransition.onComplete;
-            playerRef.current.copy(activeTransition.to);
-            yawRef.current = activeTransition.toYaw;
-            zoneRef.current = activeTransition.targetZone;
-            setZoneState(activeTransition.targetZone);
-            transitionRef.current = undefined;
-            setTransitionKind(undefined);
-            promptIdRef.current = "";
-            setPrompt(undefined);
-            onComplete?.();
-            setPhase("playing");
-            requestPointerLock();
-          }
-        }
-        if (phaseRef.current === "playing") {
-          const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
-          yawRef.current -= turn * 1.8 * delta;
-          const input = new THREE.Vector3(
-            (keysRef.current.has("KeyD") ? 1 : 0) - (keysRef.current.has("KeyA") ? 1 : 0),
-            0,
-            (keysRef.current.has("KeyS") ? 1 : 0) - (keysRef.current.has("KeyW") ? 1 : 0),
-          );
-          if (input.lengthSq() > 0) {
-            input.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRef.current).multiplyScalar(delta * (keysRef.current.has("ShiftLeft") ? 5.4 : 3.25));
-            playerRef.current.add(input);
-            world.constrain(playerRef.current, zoneRef.current);
-          }
-        }
-        world.camera.position.copy(playerRef.current);
-        world.camera.rotation.set(pitchRef.current, yawRef.current, 0);
-        world.update(delta);
-
-        const available = world.availableInteractables(
-          memoryRef.current,
-          timelineRef.current,
-          zoneRef.current,
-          checkpointRef.current.earnedFlags.includes("north.rockery.moved"),
-          checkpointRef.current.earnedFlags,
-        );
-        const nearest = available
-          .map((item) => ({ item, distance: item.position.distanceTo(playerRef.current) }))
-          .filter(({ distance }) => distance < 2.25)
-          .sort((a, b) => a.distance - b.distance)[0]?.item;
-        nearestRef.current = nearest;
-        const nextPromptId = phaseRef.current === "playing" ? nearest?.id ?? "" : "";
-        if (nextPromptId !== promptIdRef.current) {
-          promptIdRef.current = nextPromptId;
-          const promptLabel = nearest?.id === "borrowed-window" && checkpointRef.current.earnedFlags.includes("north.window.inspected")
-            ? "按 F 跨过借景框"
-            : nearest?.id === "secret-passage"
-              && checkpointRef.current.earnedFlags.includes("north.dialogue.passage")
-              && !checkpointRef.current.earnedFlags.includes("north.dialogue.trust")
-              ? "按 F 在暗道口作出判断"
-              : nearest?.label;
-          setPrompt(promptLabel);
-        }
-
-        const objective = objectiveFor(checkpointRef.current);
-        const target = world.interactables.find((item) => item.id === objective.targetId);
-        world.setGuidanceTarget(target?.position);
-        renderer.renderer.render(world.scene, world.camera);
-      });
-
-      if (save.completedChapters.includes(chapter.id)) setPhase("complete");
-      else if (checkpointRef.current.earnedFlags.includes("north.dialogue.opening")) setPhase("playing");
-      else startDialogueRef.current("north-opening");
-    }).catch((reason: unknown) => {
-      setError(reason instanceof Error ? reason.message : "无法初始化北楼场景");
-      setPhase("error");
-    });
-
     return () => {
-      cancelled = true;
-      window.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("blur", onBlur);
       document.removeEventListener("pointerlockchange", onLockChange);
-      transitionRef.current = undefined;
-      world.dispose();
-      runtimeRef.current?.renderer.dispose();
-      runtimeRef.current = undefined;
     };
-  }, [changeMemory, chapter.id, chapter.memories, interact, requestPointerLock, save.completedChapters, save.settings.quality, save.settings.renderer, setPhase]);
+  }, [changeMemory, setCaseFileOpen]);
 
   const objective = objectiveFor(checkpoint);
-  const evidenceCount = checkpoint.contradictions.filter((id) => chapter.contradictions.some((item) => item.id === id)).length;
-  const testSteps = [
-    { label: "沿灯笼走到楼梯并按 F 上楼", done: checkpoint.earnedFlags.includes("north.reached.upper-floor") },
-    { label: "检查二层账桌留下的补写痕迹", done: checkpoint.earnedFlags.includes("north.ledger.inspected") },
-    { label: "在账房证词中检查蓝色借景窗", done: checkpoint.earnedFlags.includes("north.window.inspected") },
-    { label: "穿过借景框，进入案发前的东院", done: checkpoint.earnedFlags.includes("north.borrowed-view.crossed") },
-    { label: "沿泥地追踪算盘珠留下的浅痕", done: checkpoint.earnedFlags.includes("north.past.trail-inspected") },
-    { label: "移动完整假山，再从窗框回到现在", done: checkpoint.earnedFlags.includes("north.present.route-open") },
-    { label: "账房＋夫人核对窗框划痕", done: checkpoint.contradictions.includes("window-scratches") },
-    { label: "账房＋园丁核对假山暗道", done: checkpoint.contradictions.includes("secret-passage") },
-    { label: "回到暗道口作出信任选择", done: checkpoint.earnedFlags.includes("north.chapter.complete") },
-  ];
-  const completedTestSteps = testSteps.filter((step) => step.done).length;
-  const activeTestStep = testSteps.findIndex((step) => !step.done);
-  const investigationTraces = [
-    checkpoint.earnedFlags.includes("north.inquiry.ledger") ? "末页补写" : checkpoint.earnedFlags.includes("north.inquiry.window") ? "窗景异时" : undefined,
-    checkpoint.earnedFlags.includes("north.window.focus.scratches") ? "窗框硬痕" : checkpoint.earnedFlags.includes("north.window.focus.time") ? "冻结雨滴" : undefined,
-    checkpoint.earnedFlags.includes("north.past.clue.beads") ? "算盘珠痕" : checkpoint.earnedFlags.includes("north.past.clue.rain") ? "时间残影" : undefined,
-    checkpoint.earnedFlags.includes("north.rockery.choice.ledger") ? "缺失石料款" : checkpoint.earnedFlags.includes("north.rockery.choice.direct") ? "记忆改路" : undefined,
-  ].filter((trace): trace is string => Boolean(trace));
-  const trustChoice = checkpoint.trustDecisions["north-route-owner"];
-  const completionOutcome = trustChoice === "gardener"
-    ? "你让暗道重新坍塌，带血的园艺剪从石缝中滑出。它证明园丁隐瞒了东西，却仍不能替账房洗清路线。"
-    : trustChoice === "wife"
-      ? "你保留了夫人在二层的影子，账页间的私信把情感动机带进案件，但暗道仍证明钱先生说了谎。"
-      : "你保留了账房版本的暗道，一本总数被改过的私账留在出口。钱先生隐瞒的不只是路线，还有一笔让人消失的支出。";
-
   return (
-    <main className={`runtime runtime-${memory} runtime-north-${timeline}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} onClick={() => { if (phase === "playing") requestPointerLock(); }} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} aria-label="第二章北楼暗账三维场景" />
+    <main className={`runtime runtime-${memory}`} data-renderer={backend}>
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="第二章主宅调查场景" onClick={() => phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && requestPointerLock()} />
       <div className="vignette" aria-hidden="true" />
-      {transitionKind && (
-        <div className={`north-transition north-transition-${transitionKind}`} role="status" aria-live="polite">
-          <i aria-hidden="true" />
-          <div>
-            <span>{transitionCopy[transitionKind].eyebrow}</span>
-            <strong>{transitionCopy[transitionKind].title}</strong>
-            <p>{transitionCopy[transitionKind].detail}</p>
-          </div>
-        </div>
-      )}
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
-        <div><span>CHAPTER 02</span><strong>北楼暗账</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"} · {zone === "lower" ? "北楼一层" : zone === "upper" ? "北楼二层" : "东院假山"}</div>
+        <div><span>第二章</span><strong>多出来的人</strong></div>
+        <div className="runtime-status"><i className="status-dot" /> {area === "AREA_B" ? "主宅" : "园中"}</div>
       </div>
-
-      <section className="objective-card" aria-live="polite">
-        <span>CURRENT OBJECTIVE</span>
-        <strong>{objective.title}</strong>
-        <p>{objective.detail}</p>
-        <div className="chapter-test-route">
-          <b>第二章测试路线 · {completedTestSteps}/{testSteps.length}</b>
-          <ol>
-            {testSteps.map((step, index) => <li key={step.label} className={step.done ? "done" : index === activeTestStep ? "active" : ""}><i>{step.done ? "✓" : index + 1}</i>{step.label}</li>)}
-          </ol>
-        </div>
-      </section>
-
-      <section className="case-progress">
-        <span>TIME / EVIDENCE</span>
-        <strong>{timeline === "past" ? "过去 · 假山完整" : "现在 · 雨后废墟"}</strong>
-        <small>空间矛盾 {evidenceCount} / {chapter.contradictions.length}</small>
-      </section>
-
-      <section className="memory-card">
-        <span>ACTIVE TESTIMONY</span>
-        <strong>{memoryName[memory] ?? memory}</strong>
-        <small>按 Tab 在账房、夫人、园丁证词间切换。借景窗只存在于账房证词。</small>
-        {investigationTraces.length > 0 && <div className="investigation-traces">{investigationTraces.map((trace) => <i key={trace}>{trace}</i>)}</div>}
-      </section>
-
-      {prompt && phase === "playing" && <div className="interaction-prompt">{prompt}</div>}
-      {subtitle && phase === "playing" && <div className="bark-subtitle"><p><b>勘验记录</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · F 勘验/穿越 · Tab 切换证词 · Shift 加速</div>
-
-      {phase === "playing" && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>开始控制<br /><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
-
-      {activeDialogue && (
-        <DialogueRunner
-          key={activeDialogue.id}
-          sequence={activeDialogue}
-          storyContent={northStory}
-          settings={save.settings}
-          restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined}
-          seenLineIds={checkpoint.seenDialogueLines}
-          onCommand={applyDialogueCommand}
-          onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))}
-          onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))}
-          onComplete={() => completeDialogue(activeDialogue)}
-        />
-      )}
-
-      {phase === "complete" && !activeDialogue && (
-        <NorthModal eyebrow="CHAPTER 02 COMPLETE" title="北楼的账暂时平了">
-          <p>{completionOutcome}</p>
-          <blockquote>过去移动的假山已经改变现在；两条空间矛盾与你采用的解释均已写入存档。</blockquote>
-          <button type="button" className="primary-button" onClick={onExit}>返回章节总览</button>
-        </NorthModal>
-      )}
-
-      {phase === "error" && (
-        <NorthModal eyebrow="可恢复错误" title="北楼场景未能启动">
-          <p>{error}</p>
-          <button type="button" className="primary-button" onClick={onExit}>返回章节总览</button>
-        </NorthModal>
-      )}
+      {phase !== "complete" && !activeDialogue && <section className="objective-card" aria-live="polite"><span>当前问题</span><strong>{objective.title}</strong><p>{objective.detail}</p>{guidanceLevel >= 1 && <small>提示：{objective.hint}</small>}</section>}
+      {!activeDialogue && <section className="memory-card"><span>当前证词 · TAB 切换</span><strong>{memoryName[memory] ?? memory}</strong><small>每个人只记得自己看见、写下或保留下来的那一部分。</small></section>}
+      {prompt && phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && <div className="interaction-prompt">{prompt}</div>}
+      {save.settings.subtitles && subtitle && phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && <div className="bark-subtitle"><NarrativeInline kind="interaction" text={subtitle} /></div>}
+      {phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续调查<br /><small>回到主宅雨夜</small></button>}
+      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={NORTH_STORY_CONTENT} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {showDepartureDocument && <DocumentViewer document={NORTH_DEPARTURE_DOCUMENT} onClose={finishDepartureDocument} />}
+      {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第二章 · 多出来的人" onClose={() => setCaseFileOpen(false)} />}
+      {phase === "complete" && <NorthModal eyebrow="第二章结束" title="被所有人删掉的第五个人是谁？"><img className="chapter-cg-inline" src="/media/cg/story-v1/cg-03-liusheng-fifth-figure-v1.png" alt="柳生雨夜画中只有特定观看角度才能成立的人影" /><p>侧路脚印、第六只反复使用过的茶杯、被改过的离园记录和柳生的雨夜画稿已经被放在一起。</p><blockquote>老周留下了一把北墙旧锁的备份钥匙。下一步不是继续猜凶手，而是去找这个人在听雨轩里真正生活过的位置。</blockquote>{onContinue && <button type="button" className="primary-button" onClick={onContinue}>继续第三章：不存在的房间</button>}<button type="button" className="text-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
+      {phase === "error" && <NorthModal eyebrow="可恢复错误" title="主宅场景未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
     </main>
   );
 }
 
 function NorthModal({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
-  return <div className="runtime-modal-backdrop"><section className="runtime-modal" role="dialog" aria-modal="true"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{children}</section></div>;
+  return <div className="runtime-modal-backdrop"><section className="runtime-modal"><span>{eyebrow}</span><h2>{title}</h2>{children}</section></div>;
 }

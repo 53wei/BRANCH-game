@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 2,
+  "activeCheckpoint": {
+    "schemaVersion": 2,
+    "layoutVersion": "campaign-v2",
+    "chapterId": "prologue-rain",
+    "anchorId": "ROUTE_01_START",
+    "memoryId": "baseline",
+    "mechanics": {
+      "currentCognition": "protagonist",
+      "discoveredEvidence": [],
+      "unlockedInterpretations": [],
+      "puzzleStates": {},
+      "anchorSlot": { "borrowedObjectId": null },
+      "openedDoors": [],
+      "narrativeGates": [],
+      "safeAnchorId": "ROUTE_01_START"
+    },
+    "reconstructionTrace": {
+      "discoveredOptionalEvidence": [],
+      "solvedWithCognition": {},
+      "anchoredFragments": [],
+      "preservedContradictions": [],
+      "finalAssemblyFragments": []
+    },
+    "finalAssemblyState": {
+      "factSkeletonFlags": [],
+      "selectedFragments": [],
+      "complete": false
+    },
+    "earnedFlags": [],
+    "contradictions": [],
+    "observedBy": {},
+    "trustDecisions": {},
+    "nameAnchors": [],
+    "chaseProgress": {},
+    "objectiveProgress": {},
+    "seenDialogueLines": [],
+    "hintLevels": {},
+    "pointerLockPending": false,
+    "updatedAt": "1970-01-01T00:00:00.000Z"
+  },
+  "completedChapters": [],
+  "unlockedChapters": ["prologue-rain"],
+  "endingIds": [],
+  "settings": {
+    "quality": "high",
+    "renderer": "auto",
+    "stableCamera": false,
+    "subtitles": true,
+    "guidanceAssist": true,
+    "masterVolume": 0.8,
+    "dialogueSpeed": "normal"
+  },
+  "tutorial": {
+    "controls": {
+      "seen": false,
+      "autoShow": true
+    }
+  }
+}

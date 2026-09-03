@@ -14,11 +14,23 @@ const referenceStaticBytes = 25 * 1024 * 1024;
 
 const assets = [
   {
+    id: "tyx-master-scene",
+    file: "TYX_Master_Scene.glb",
+    output: "public/assets/fidelity/TYX_Master_Scene.glb",
+    sources: ["project-authored"],
+    preload: true,
+    sourceRelativePath: "../TingYuXuan_Master.glb",
+    workingRelativePath: "assets-source/blender-working/fidelity/TYX_Master_Scene.glb",
+    preserveUncompressed: true,
+    optimizationStage: "final-master-source-faithful-runtime",
+    requiredNodes: ["A_OuterGarden_Environment", "B_CoreGarden_Primary", "A_MountainBackdrop_Group"],
+  },
+  {
     id: "tyx-arch-siheyuan-source-a",
     file: "TYX_ARCH_Siheyuan_Source_A.glb",
     output: "public/assets/fidelity/architecture/TYX_ARCH_Siheyuan_Source_A.glb",
     sources: ["traditional-chinese-siheyuan-courtyard"],
-    preload: true,
+    preload: false,
     sourceRelativePath: "assets-source/manual-downloads/traditional-chinese-siheyuan-courtyard/traditional_chinese_siheyuan_courtyard.glb",
     workingRelativePath: "assets-source/blender-working/fidelity/TYX_ARCH_Siheyuan_Source_A.glb",
     // Phase-one visual validation must begin with the audited source geometry

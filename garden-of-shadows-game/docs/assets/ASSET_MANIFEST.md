@@ -1,5 +1,7 @@
 # 已下载 3D 资产清单
 
+> Gameplay Runtime 的正式空间输入已切换为工作区项目自有资产 `TingYuXuan_Master.glb`，运行时 ID 为 `tyx-master-scene`，交付副本为 `/assets/fidelity/TYX_Master_Scene.glb`。下表继续记录构成 Master 的第三方来源资产与许可链。
+
 > 由 npm run assets:inventory 从本地只读原件生成。原件不进入 Git，SHA-256 用于确认 Source → Working → Runtime 链路。
 
 | ID | 标题 | 大小 | 网格 | 材质 | 纹理 | 约三角面 | 许可 | 处理级别 | 预期用途 | 状态 |
@@ -17,4 +19,3 @@
 - 所有转换写入 assets-source/blender-working/，正式文件只写入 public/assets/。
 - 本表 `approved` 仅表示第三方来源、许可与原件审计通过，不等同于主场景视觉验收；正式发布状态以 `release-approval.json` 与五张第一阶段截图验收为准。
 - 每个运行时文件必须能追溯到本表 SHA-256；许可、作者、来源或哈希缺失时不得标记 approved。
-

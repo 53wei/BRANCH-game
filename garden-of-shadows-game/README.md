@@ -4,6 +4,17 @@ PC Web 叙事解谜游戏。当前版本仍是 `V0.1R` 开发阶段，不是 V1.
 
 主要输入：`WASD` 移动、鼠标观察、`F` 勘验、`Tab` 切换证词、`M` 打开勘误簿；对话使用鼠标、空格或回车推进。
 
+## Source of Truth
+
+重构与正式内容严格按以下优先级执行：
+
+1. 工作区根目录 `游园惊梦_完整剧情母剧本_V5.0.md`：剧情事实与完整文本；
+2. 工作区根目录 `游园惊梦_整体重构执行母文档_V1.0.md`：玩家问题、设计解决方案与最终形态；
+3. 工作区根目录 `游园惊梦_重构TASK执行计划_V1.0.md`：工程顺序、Task 范围与验收；
+4. 当前/旧 Runtime、Ink、bark、hardcoded string 只能作为实现现状，不得覆盖前三项。
+
+执行纪律见 `docs/restructure/EXECUTION_PROTOCOL.md`，版本哈希锁见 `docs/restructure/SOURCE_VERSIONS.json`。剧情冲突以 V5 为准；TASK 与母文档直接冲突时停止冲突项并记录，不现场猜测或补写主线。
+
 ## 本地运行
 
 要求 Node.js 22.13+。
@@ -21,6 +32,14 @@ npm run typecheck
 npm run lint
 npm run build
 ```
+
+Windows 一键启动 Demo 包：
+
+```bash
+npm run build:portable
+```
+
+玩家无需安装 Node.js；解压产物后双击带图标的 `游园惊梦.exe`。完整发布流程见 [Windows 一键启动 Demo 发布](./docs/release/windows-portable-demo.md)。
 
 ## 当前实现
 

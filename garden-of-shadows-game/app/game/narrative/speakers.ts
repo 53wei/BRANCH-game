@@ -22,9 +22,30 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
     },
     defaultPortrait: "calm",
   },
+  "young-zhaoying": {
+    id: "young-zhaoying",
+    name: "年轻赵映",
+    side: "left",
+    themeColor: "#d7c99e",
+    voiceId: "zh-CN-Xiaochen:DragonHDLatestNeural",
+    portraits: {
+      calm: "/media/portraits/zhaoying-calm.webp",
+      guarded: "/media/portraits/zhaoying-guarded.webp",
+      alarmed: "/media/portraits/zhaoying-alarmed.webp",
+    },
+    defaultPortrait: "guarded",
+  },
+  master: {
+    id: "master",
+    name: "沈老爷",
+    side: "right",
+    themeColor: "#b8a782",
+    portraits: {},
+    defaultPortrait: "",
+  },
   steward: {
     id: "steward",
-    name: "老管家",
+    name: "老周",
     side: "right",
     themeColor: "#b79a66",
     voiceId: "zh-CN-YunyangNeural",
@@ -32,12 +53,15 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
       courteous: "/media/portraits/steward-courteous.webp",
       knowing: "/media/portraits/steward-knowing.webp",
       threatening: "/media/portraits/steward-threatening.webp",
+      // Authored ink uses mood "guilty"; the dedicated asset is still an asset
+      // BLOCK, so it resolves to the closest existing portrait for now.
+      guilty: "/media/portraits/steward-knowing.webp",
     },
     defaultPortrait: "courteous",
   },
   wife: {
     id: "wife",
-    name: "顾蘅秋",
+    name: "沈夫人",
     side: "right",
     themeColor: "#b8899a",
     voiceId: "zh-CN-XiaoyiNeural",
@@ -50,7 +74,7 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
   },
   gardener: {
     id: "gardener",
-    name: "周守圃",
+    name: "老周",
     side: "right",
     themeColor: "#6e9b83",
     voiceId: "zh-CN-YunjianNeural",

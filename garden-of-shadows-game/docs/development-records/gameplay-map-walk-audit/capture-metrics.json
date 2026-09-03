@@ -1,0 +1,186 @@
+{
+  "generatedAt": "2026-09-03T10:49:57.013Z",
+  "baseUrl": "http://localhost:43952/",
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "policy": {
+    "fpsReference": 60,
+    "fpsStableFloor": 45,
+    "note": "FPS is a measurement, not an auto-approval substitute for visual review."
+  },
+  "shots": [],
+  "walkAudit": {
+    "status": "complete",
+    "target": "ROUTE_COMPLETE",
+    "reached": "ROUTE_07_C_ENTRY",
+    "reachedPose": [
+      -21.45,
+      0.893,
+      14.461
+    ],
+    "reachedGrounded": true,
+    "reachedArea": "AREA_C",
+    "reachedNearest": "ROUTE_07_C_ENTRY",
+    "milestoneLog": [
+      {
+        "id": "ROUTE_02_A_ENTRY",
+        "playerPose": [
+          7.508,
+          0.89,
+          39.4
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY"
+      },
+      {
+        "id": "ROUTE_03_A_LOOP",
+        "playerPose": [
+          3.185,
+          0.89,
+          40.763
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_03_A_LOOP"
+      },
+      {
+        "id": "ROUTE_04_A_EAST_EXIT",
+        "playerPose": [
+          2.057,
+          0.892,
+          31.823
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_04_A_EAST_EXIT"
+      },
+      {
+        "id": "ROUTE_05_B_MAIN_COURT",
+        "playerPose": [
+          -1,
+          0.9,
+          24
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT"
+      },
+      {
+        "id": "ROUTE_06_B_NORTHEAST_LINK",
+        "playerPose": [
+          -10.993,
+          0.89,
+          19.432
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK"
+      },
+      {
+        "id": "ROUTE_07_C_ENTRY",
+        "playerPose": [
+          -21.45,
+          0.893,
+          14.461
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY"
+      }
+    ],
+    "playerPose": [
+      -21.45,
+      0.89,
+      14.461
+    ],
+    "grounded": true,
+    "gameplayArea": "AREA_C",
+    "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+    "loopTeleport": true,
+    "exitHandoff": true,
+    "error": "",
+    "milestones": [
+      {
+        "id": "ROUTE_02_A_ENTRY",
+        "playerPose": [
+          7.508,
+          0.89,
+          39.4
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY",
+        "elapsedMs": 19676
+      },
+      {
+        "id": "ROUTE_03_A_LOOP",
+        "playerPose": [
+          3.185,
+          0.89,
+          40.763
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_03_A_LOOP",
+        "elapsedMs": 21547
+      },
+      {
+        "id": "ROUTE_04_A_EAST_EXIT",
+        "playerPose": [
+          2.057,
+          0.892,
+          31.823
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_04_A_EAST_EXIT",
+        "elapsedMs": 26442
+      },
+      {
+        "id": "ROUTE_05_B_MAIN_COURT",
+        "playerPose": [
+          -1,
+          0.9,
+          24
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT",
+        "elapsedMs": 26442
+      },
+      {
+        "id": "ROUTE_06_B_NORTHEAST_LINK",
+        "playerPose": [
+          -10.993,
+          0.89,
+          19.432
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK",
+        "elapsedMs": 30534
+      },
+      {
+        "id": "ROUTE_07_C_ENTRY",
+        "playerPose": [
+          -21.45,
+          0.893,
+          14.461
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "elapsedMs": 34822
+      }
+    ],
+    "durationMs": 36008,
+    "file": "docs/development-records/gameplay-map-walk-audit/walk-audit-complete.png",
+    "bytes": 1528885,
+    "sha256": "07b424348a4091c542f0bd38f5cf2fef411b5a9dc2d1a9dec01c089fc54f65ca"
+  }
+}

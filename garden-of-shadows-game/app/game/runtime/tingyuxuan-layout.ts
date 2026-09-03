@@ -1,5 +1,15 @@
 import type { MemoryId } from "../types";
 import type { RuntimeAssetId } from "./RuntimeAssetLoader";
+import {
+  GAMEPLAY_ANCHOR_REFERENCE_Y,
+  GAMEPLAY_GROUND_Y,
+  getGameplayAnchor,
+  TINGYUXUAN_GAMEPLAY_MAP_VERSION,
+  TINGYUXUAN_MAIN_GATE_THRESHOLD_HEIGHT,
+  WORLD_METERS_PER_UNIT,
+  tingYuXuanGameplayAnchors,
+  tingYuXuanGameplayColliders,
+} from "./tingyuxuan-gameplay-map";
 
 export type Vec3 = readonly [number, number, number];
 
@@ -14,7 +24,15 @@ export interface LayoutCollider {
   id: string;
   center: Vec3;
   halfExtents: Vec3;
-  memoryIds?: MemoryId[];
+  rotationY?: number;
+  category?: "ground" | "route-ground" | "world-boundary" | "architecture" | "progression-lock" | "memory-wall";
+  memoryIds?: readonly MemoryId[];
+  initiallyEnabled?: boolean;
+  specialStructure?: {
+    kind: "door-frame" | "moon-gate" | "threshold" | "stair-approach";
+    sourceReference: string;
+    passage: "required" | "restricted" | "none";
+  };
 }
 
 export interface LayoutTrigger {
@@ -38,6 +56,7 @@ export interface LayoutPlacement {
   load: "preload" | "deferred";
   zone: LayoutZone;
   loadZones?: readonly LayoutZone[];
+  hiddenNodeNames?: readonly string[];
 }
 
 export interface LayoutZoneLoadVolume {
@@ -54,74 +73,57 @@ export interface LayoutInteractable {
   kind: "contradiction" | "portal";
 }
 
-export const TINGYUXUAN_LAYOUT_VERSION = "tingyuxuan-v1.2";
+export const TINGYUXUAN_LAYOUT_VERSION = TINGYUXUAN_GAMEPLAY_MAP_VERSION;
+
+const gameplayAlias = (id: string, sourceId: Parameters<typeof getGameplayAnchor>[0], role: LayoutAnchor["role"]): LayoutAnchor => {
+  const source = getGameplayAnchor(sourceId);
+  return { id, position: source.position, yaw: source.yaw, role };
+};
 
 const anchors: LayoutAnchor[] = [
-  { id: "west-entry", position: [1.5, 0.9, 37.5], yaw: 0, role: "spawn" },
-  { id: "front-gate", position: [0, 0.9, 25], yaw: 0, role: "camera" },
-  { id: "front-hall", position: [0, 0.9, 23.25], yaw: 0, role: "camera" },
-  { id: "west-courtyard", position: [-8, 0.9, 12], yaw: 0, role: "checkpoint" },
-  { id: "west-waterline", position: [-8, 0.9, 6], yaw: 0, role: "checkpoint" },
-  { id: "corridor-turn-one", position: [-8, 0.9, -2], yaw: -Math.PI / 2, role: "checkpoint" },
-  { id: "corridor-turn-two", position: [2, 0.9, -4], yaw: 0, role: "checkpoint" },
-  { id: "loop-seventh-window", position: [2, 0.9, -17], yaw: 0, role: "checkpoint" },
-  { id: "chase-retry", position: [2, 0.9, -10], yaw: 0, role: "checkpoint" },
-  { id: "wife-moon-gate", position: [2, 0.9, -20], yaw: 0, role: "checkpoint" },
-  { id: "west-safe-courtyard", position: [2, 0.9, -23], yaw: -0.25, role: "checkpoint" },
-  { id: "water-court", position: [8, 1.05, -26], yaw: 0.2, role: "camera" },
-  { id: "pavilion-view", position: [3.8, 1.2, -24], yaw: -0.65, role: "camera" },
-  { id: "bridge-approach", position: [5.6, 0.9, -24.6], yaw: -0.35, role: "checkpoint" },
-  { id: "water-pavilion-entry", position: [9.2, 0.9, -30.5], yaw: Math.PI, role: "checkpoint" },
-  { id: "pavilion-landmark", position: [10, 0, -32], yaw: Math.PI, role: "landmark" },
-  { id: "rockery-side-route", position: [14, 0.9, -17], yaw: -Math.PI / 2, role: "checkpoint" },
-  { id: "rockery-mouth", position: [10.8, 0.9, -18.8], yaw: -0.75, role: "camera" },
-  { id: "east-pavilion-landmark", position: [18, 0, -9], yaw: -Math.PI / 2, role: "landmark" },
-  { id: "north-tower-entry", position: [10, 0.9, 9], yaw: Math.PI, role: "checkpoint" },
-  { id: "north-court", position: [10, 0.9, 15], yaw: Math.PI, role: "camera" },
-  { id: "interior-entry", position: [-13, 0.9, 17], yaw: Math.PI / 2, role: "checkpoint" },
-  { id: "inner-court", position: [-9.5, 0.9, 18], yaw: -Math.PI / 2, role: "camera" },
+  ...tingYuXuanGameplayAnchors.map((anchor): LayoutAnchor => ({
+    id: anchor.id,
+    position: anchor.position,
+    yaw: anchor.yaw,
+    role: anchor.id === "ROUTE_01_START" ? "spawn" : anchor.id.startsWith("ROUTE_") ? "checkpoint" : "landmark",
+  })),
+  // Compatibility aliases preserve story/save IDs while all positions now
+  // resolve onto Runtime Gameplay Map V1 instead of the deprecated layout.
+  gameplayAlias("west-entry", "ROUTE_01_START", "spawn"),
+  gameplayAlias("front-gate", "ROUTE_02_A_ENTRY", "camera"),
+  gameplayAlias("front-hall", "A_BASELINE", "camera"),
+  gameplayAlias("west-courtyard", "ROUTE_02_A_ENTRY", "checkpoint"),
+  gameplayAlias("west-waterline", "A_FALSE_PATH", "checkpoint"),
+  gameplayAlias("corridor-turn-one", "A_LOOP_RETURN", "checkpoint"),
+  gameplayAlias("corridor-turn-two", "A_LOOP_RETURN", "checkpoint"),
+  gameplayAlias("loop-seventh-window", "A_LOOP_RETURN", "checkpoint"),
+  gameplayAlias("chase-retry", "A_BASELINE", "checkpoint"),
+  gameplayAlias("wife-moon-gate", "ROUTE_04_A_EAST_EXIT", "checkpoint"),
+  gameplayAlias("west-safe-courtyard", "ROUTE_05_B_MAIN_COURT", "checkpoint"),
+  gameplayAlias("water-court", "C_WATER_EDGE", "camera"),
+  gameplayAlias("pavilion-view", "C_FINAL_PAVILION", "camera"),
+  gameplayAlias("bridge-approach", "C_WOODEN_STEPS", "checkpoint"),
+  gameplayAlias("water-pavilion-entry", "C_FALL_POINT", "checkpoint"),
+  gameplayAlias("pavilion-landmark", "C_FINAL_PAVILION", "landmark"),
+  gameplayAlias("rockery-side-route", "ROUTE_06_B_NORTHEAST_LINK", "checkpoint"),
+  gameplayAlias("rockery-mouth", "ROUTE_06_B_NORTHEAST_LINK", "camera"),
+  gameplayAlias("east-pavilion-landmark", "ROUTE_07_C_ENTRY", "landmark"),
+  gameplayAlias("north-tower-entry", "ROUTE_05_B_MAIN_COURT", "checkpoint"),
+  gameplayAlias("north-court", "B_TEA_TABLE", "camera"),
+  gameplayAlias("interior-entry", "B_MISSING_ROOM", "checkpoint"),
+  gameplayAlias("inner-court", "B_LEDGER", "camera"),
 ];
 
-const colliders: LayoutCollider[] = [
-  { id: "terrain", center: [2, -0.18, 4], halfExtents: [24, 0.2, 40] },
-  { id: "front-east-wall", center: [4.2, 1.5, 25], halfExtents: [0.18, 1.5, 5] },
-  { id: "front-west-wall", center: [-4.2, 1.5, 25], halfExtents: [0.18, 1.5, 5] },
-  { id: "front-gate-left", center: [-3.1, 1.5, 30], halfExtents: [1.2, 1.5, 0.18] },
-  { id: "front-gate-right", center: [3.1, 1.5, 30], halfExtents: [1.2, 1.5, 0.18] },
-  { id: "front-hall-east", center: [4.2, 1.5, 17], halfExtents: [0.18, 1.5, 3] },
-  { id: "front-hall-west", center: [-4.2, 1.5, 17], halfExtents: [0.18, 1.5, 3] },
-  { id: "west-court-west-wall", center: [-12.2, 1.5, 10], halfExtents: [0.18, 1.5, 6] },
-  { id: "west-court-north-wall", center: [-8, 1.5, 16], halfExtents: [4.2, 1.5, 0.18] },
-  { id: "west-corridor-left", center: [-9.8, 1.5, 4], halfExtents: [0.18, 1.5, 8] },
-  { id: "west-corridor-right", center: [-6.2, 1.5, 4], halfExtents: [0.18, 1.5, 8] },
-  { id: "cross-corridor-north", center: [-3, 1.5, -2.2], halfExtents: [2.8, 1.5, 0.18] },
-  { id: "cross-corridor-south", center: [-3, 1.5, -5.8], halfExtents: [2.8, 1.5, 0.18] },
-  { id: "loop-corridor-left", center: [0.2, 1.5, -13], halfExtents: [0.18, 1.5, 7.2] },
-  { id: "loop-corridor-right", center: [3.8, 1.5, -13], halfExtents: [0.18, 1.5, 7.2] },
-  { id: "moon-gate-left", center: [-0.15, 1.7, -21], halfExtents: [0.85, 1.7, 0.22] },
-  { id: "moon-gate-right", center: [4.15, 1.7, -21], halfExtents: [0.85, 1.7, 0.22] },
-  { id: "moon-gate-top", center: [2, 3.08, -21], halfExtents: [1.3, 0.33, 0.22] },
-  // West bank is split to leave a deliberate 3.8 m bridge-approach opening.
-  { id: "pond-west-north", center: [4.6, 0.8, -21.95], halfExtents: [0.2, 0.8, 0.45] },
-  { id: "pond-west-south", center: [4.6, 0.8, -31.35], halfExtents: [0.2, 0.8, 5.15] },
-  { id: "pond-east", center: [15.4, 0.8, -29], halfExtents: [0.2, 0.8, 7.5] },
-  { id: "pond-north", center: [10, 0.8, -21.5], halfExtents: [5.6, 0.8, 0.2] },
-  { id: "pond-south", center: [10, 0.8, -36.5], halfExtents: [5.6, 0.8, 0.2] },
-  { id: "north-house", center: [10, 1.8, 11], halfExtents: [5.4, 1.8, 2.3] },
-  { id: "inner-house", center: [-13, 1.8, 18], halfExtents: [4.8, 1.8, 3.2] },
-  { id: "rockery-block-a", center: [12.4, 1.4, -14.8], halfExtents: [1.3, 1.4, 1.7] },
-  { id: "rockery-block-b", center: [15.3, 1.2, -18.5], halfExtents: [1.2, 1.2, 1.5] },
-  { id: "rockery-block-c", center: [11.7, 1.1, -19.2], halfExtents: [0.9, 1.1, 1.2] },
-];
+const colliders: LayoutCollider[] = tingYuXuanGameplayColliders.map((collider) => ({ ...collider }));
 
 const triggers: LayoutTrigger[] = [
-  { id: "front-hall-to-west", center: [-7.8, 1.2, 13.6], halfExtents: [1.7, 1.8, 1.2], kind: "arrival" },
-  { id: "gardener-corridor-loop", center: [2, 1.2, -20.25], halfExtents: [1.45, 1.8, 0.55], kind: "memory-loop", memoryIds: ["gardener"], destinationAnchorId: "west-courtyard" },
-  { id: "wife-moon-gate-exit", center: [2, 1.2, -21.75], halfExtents: [1.25, 1.8, 0.55], kind: "chapter-exit", memoryIds: ["wife"], destinationAnchorId: "west-safe-courtyard" },
-  { id: "rockery-chapter-two-route", center: [15.5, 1.2, -15.5], halfExtents: [1.2, 1.8, 1.2], kind: "chapter-route", destinationAnchorId: "rockery-side-route" },
+  { id: "front-hall-to-west", center: [6.5, 1.2, 45.8], halfExtents: [1.5, 1.8, 1.5], kind: "arrival" },
+  { id: "gardener-corridor-loop", center: [1.8, 1.2, 41.2], halfExtents: [1.45, 1.8, 0.65], kind: "memory-loop", memoryIds: ["gardener"], destinationAnchorId: "A_BASELINE" },
+  { id: "wife-moon-gate-exit", center: [1.9, 1.2, 31.2], halfExtents: [1.25, 1.8, 0.65], kind: "chapter-exit", memoryIds: ["wife"], destinationAnchorId: "ROUTE_05_B_MAIN_COURT" },
+  { id: "rockery-chapter-two-route", center: [-11.5, 1.2, 19.2], halfExtents: [1.2, 1.8, 1.2], kind: "chapter-route", destinationAnchorId: "ROUTE_07_C_ENTRY" },
 ];
 
-const placements: LayoutPlacement[] = [
+export const tingYuXuanLegacyPlacements: LayoutPlacement[] = [
   // Phase-one formal visual layer: source geometry is preserved. The complete
   // Siheyuan supplies the gate/front-hall compound; Courtyard Park supplies
   // the west-garden and corridor transition instead of the old greybox kit.
@@ -152,6 +154,89 @@ const placements: LayoutPlacement[] = [
   { id: "cc0-fern-a", assetId: "tyx-nat-quaternius-set-a", nodeName: "Quaternius_Fern_A", position: [12.1, 0, -22.6], rotationY: 1.3, scale: [1.2, 1.2, 1.2], load: "deferred", zone: "water-court" },
 ];
 
+// Runtime metres are calibrated from authored architecture instead of the old
+// thumbnail-scale 0.2 import. MOD_A_WallGate_10m has a 3.3674-unit clear
+// opening and MOD_A_WallStraight_16m is 4.6034 units high. At 0.64 they become
+// a 2.155 m door and a 2.946 m garden wall. The X/Z translation keeps the
+// placed TYX_MAIN_GATE_SOUTH centre at (9.3, 39.4), while Y=6.767 puts its
+// authored base on gameplay ground.
+export const TINGYUXUAN_MASTER_SCALE_CALIBRATION = {
+  metersPerWorldUnit: WORLD_METERS_PER_UNIT,
+  gameplayGroundY: GAMEPLAY_GROUND_Y,
+  anchorReferenceY: GAMEPLAY_ANCHOR_REFERENCE_Y,
+  sourceScale: 0.2,
+  runtimeScale: 0.64,
+  scaleFactor: 3.2,
+  characterHeight: 1.693,
+  wallHeight: 2.946,
+  doorHeight: 2.155,
+  thresholdHeight: TINGYUXUAN_MAIN_GATE_THRESHOLD_HEIGHT,
+  fixedGateCenter: [9.3, 39.4] as const,
+  measuredReferences: {
+    adult: { meters: 1.693, source: "character calibration" },
+    doorClear: { meters: 2.155, source: "MOD_A_WallGate_10m" },
+    gardenWall: { meters: 2.946, source: "MOD_A_WallStraight_16m" },
+    gateThreshold: { meters: 0.09, source: "TYX_MAIN_GATE_SOUTH" },
+  },
+} as const;
+
+export const TINGYUXUAN_MASTER_ROOT_TRANSFORM = {
+  position: [-17.26, 6.767, -182.68] as Vec3,
+  rotationY: Math.PI / 2,
+  scale: [0.64, 0.64, 0.64] as Vec3,
+} as const;
+
+// Blender visibility flags are not represented by core glTF nodes. These roots
+// were hidden source/backup objects in the final .blend and must not reappear in
+// the browser as duplicate formal architecture.
+export const TINGYUXUAN_MASTER_HIDDEN_NODES = [
+  // A_ExpandedBoundary is authored visible in the final .blend and contains
+  // TYX_MAIN_GATE_SOUTH plus the placed full-height boundary modules. It must
+  // remain visible; only the hidden MOD_A_* source templates stay out of glTF.
+  // Preserve the authored outer terrain/mountain and transition planting.
+  // They are part of the Master Scene's visual envelope and must remain visible
+  // in normal gameplay; collision is handled separately by Runtime physics.
+  "B_CoreGarden_Backup",
+  "CONN_SourcePavingTile",
+  "Cube",
+  // Do not hide generic Sketchfab/skfb wrapper roots: in the authored Master
+  // they can own visible descendants. Hiding a wrapper hides the whole subtree
+  // and can make an entire imported building/garden group disappear.
+  // Two source-garden meshes occupy the ROUTE_01 camera/player corridor
+  // (runtime bounds x 8.66–10.53, z 46.76–48.81). They are entrance willow
+  // trunk/canopy pieces, not architecture, and obscure both Zhao Ying and the
+  // wall gate in the required spawn composition.
+  "1d6d0730.o",
+  "1d6d5ce0.o",
+  // GLTFLoader sanitizes the same node names for Object3D lookup.
+  "1d6d0730o",
+  "1d6d5ce0o",
+  // This paired outer-garden plant mesh is exported as one long trunk set plus
+  // one translucent foliage-card set. At ROUTE_01 the cards lie almost flat in
+  // front of the camera and render as large tan polygons instead of vegetation.
+  // Keep the authored wall/buildings and remove only the broken plant pair.
+  "1d621248.o",
+  "1d639b88.o",
+  "1d621248o",
+  "1d639b88o",
+] as const;
+
+const placements: LayoutPlacement[] = [{
+  id: "master-scene",
+  assetId: "tyx-master-scene",
+  ...TINGYUXUAN_MASTER_ROOT_TRANSFORM,
+  load: "preload",
+  zone: "front-gate",
+  hiddenNodeNames: TINGYUXUAN_MASTER_HIDDEN_NODES,
+}];
+
+export const TINGYUXUAN_LAYOUT_AUDIT = {
+  keep: ["roots", "memory-layers", "procedural-atmosphere"],
+  remap: ["legacy story aliases onto Gameplay Map V1"],
+  deprecate: ["legacy formal architecture placements"],
+  unknown: ["provisional chapter anchors until chapter walkthrough"],
+} as const;
+
 // Streaming is driven by gameplay-space volumes rather than arbitrary chapter
 // milestones. The whole TingYuXuan topology can now stream in without forcing
 // every large visual asset into the entrance preload.
@@ -165,12 +250,12 @@ export const TINGYUXUAN_RUNTIME_ZONES: readonly LayoutZone[] = [
 ] as const;
 
 export const tingYuXuanZoneLoadVolumes: readonly LayoutZoneLoadVolume[] = [
-  { zone: "west-courtyard", center: [-5.5, 7], radius: 18 },
-  { zone: "corridor", center: [-1.5, -10], radius: 18 },
-  { zone: "rockery", center: [13.5, -17], radius: 12 },
-  { zone: "water-court", center: [10, -29], radius: 17 },
-  { zone: "north-house", center: [10, 11], radius: 11 },
-  { zone: "inner-house", center: [-13, 18], radius: 11 },
+  { zone: "west-courtyard", center: [7, 42.5], radius: 14 },
+  { zone: "corridor", center: [2.5, 40], radius: 9 },
+  { zone: "rockery", center: [-12, 19], radius: 8 },
+  { zone: "water-court", center: [-22, 10], radius: 13 },
+  { zone: "north-house", center: [-3, 24], radius: 8 },
+  { zone: "inner-house", center: [-8, 25], radius: 7 },
 ] as const;
 
 export const resolveLayoutZonesForPoint = (point: { x: number; z: number }): LayoutZone[] => {
@@ -203,9 +288,9 @@ export const tingYuXuanFallbackPlacements: LayoutPlacement[] = [
 ];
 
 const interactables: LayoutInteractable[] = [
-  { id: "waterline-direction", label: "勘验逆向水痕", position: [-8, 1.1, 6], memoryIds: ["wife", "gardener"], kind: "contradiction" },
-  { id: "corridor-count", label: "核对重复漏窗", position: [2.8, 1.2, -14], memoryIds: ["wife", "gardener"], kind: "contradiction" },
-  { id: "wife-moon-gate", label: "穿过夫人记忆里的月洞门", position: [2, 1.2, -21], memoryIds: ["wife"], kind: "portal" },
+  { id: "waterline-direction", label: "勘验墙脚与侧路痕迹", position: [4.1, 1.1, 42.9], memoryIds: ["wife", "gardener"], kind: "contradiction" },
+  { id: "corridor-count", label: "核对重复地标", position: [1.8, 1.2, 41.2], memoryIds: ["wife", "gardener"], kind: "contradiction" },
+  { id: "wife-moon-gate", label: "穿过西院东侧门洞", position: [1.9, 1.2, 31.2], memoryIds: ["wife"], kind: "portal" },
 ];
 
 export const tingYuXuanLayout = {

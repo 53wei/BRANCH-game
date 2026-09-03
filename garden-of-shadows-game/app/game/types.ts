@@ -1,8 +1,10 @@
+import type { MechanicSaveState } from "./mechanics/types";
+
 export type ChapterStatus = "playable" | "prototype" | "planned";
 export type MemoryId = "baseline" | "wife" | "gardener" | "accountant" | "painter" | "zhaoying";
 export type ContradictionKind = "geometry" | "time" | "object" | "identity" | "causality";
-export type EndingId = "truth" | "borrowed-name" | "river-lantern";
-export type SpeakerId = "narrator" | "zhaoying" | "steward" | "wife" | "gardener" | "accountant" | "painter";
+export type EndingId = "domestic" | "spatial" | "documentary" | "pictorial" | "composite";
+export type SpeakerId = "narrator" | "zhaoying" | "young-zhaoying" | "master" | "steward" | "wife" | "gardener" | "accountant" | "painter";
 export type DialoguePresentation = "stage" | "bark";
 export type GuidanceChannel = "objective" | "direction" | "world-marker" | "outline" | "light" | "audio";
 
@@ -20,6 +22,12 @@ export interface EndingRule {
   title: string;
   description: string;
   requiredFlags: string[];
+  /** Optional campaign metric contract used to derive the final stability mode. */
+  metrics?: {
+    cognition?: Extract<MemoryId, "wife" | "gardener" | "accountant" | "painter">;
+    minimumLead?: number;
+    balancedMaxSpread?: number;
+  };
   requiredContradictions?: number;
   requiredNameAnchors?: number;
   hidden?: boolean;
@@ -162,6 +170,23 @@ export interface ChaseSegment {
   narrativeReveal: string;
 }
 
+export interface ReconstructionTraceState {
+  discoveredOptionalEvidence: string[];
+  solvedWithCognition: Record<string, string[]>;
+  /** How often the player actively relied on each cognition while investigating. */
+  cognitionUsage: Partial<Record<MemoryId, number>>;
+  anchoredFragments: string[];
+  preservedContradictions: string[];
+  finalAssemblyFragments: string[];
+}
+
+export interface FinalAssemblyState {
+  factSkeletonFlags: string[];
+  selectedFragments: string[];
+  endingLens?: EndingId;
+  complete: boolean;
+}
+
 export interface CheckpointState {
   schemaVersion: 2;
   layoutVersion: string;
@@ -170,6 +195,9 @@ export interface CheckpointState {
   position?: [number, number, number];
   yaw?: number;
   memoryId: MemoryId;
+  mechanics: MechanicSaveState;
+  reconstructionTrace: ReconstructionTraceState;
+  finalAssemblyState: FinalAssemblyState;
   earnedFlags: string[];
   contradictions: string[];
   observedBy: Record<string, MemoryId[]>;
@@ -193,6 +221,12 @@ export interface CampaignSave {
   unlockedChapters: string[];
   endingIds: EndingId[];
   settings: GameSettings;
+  tutorial: {
+    controls: {
+      seen: boolean;
+      autoShow: boolean;
+    };
+  };
 }
 
 export interface GameSettings {
@@ -200,6 +234,7 @@ export interface GameSettings {
   renderer: "auto" | "webgl";
   stableCamera: boolean;
   subtitles: boolean;
+  guidanceAssist: boolean;
   masterVolume: number;
   dialogueSpeed: "slow" | "normal" | "fast" | "instant";
 }

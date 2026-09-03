@@ -41,11 +41,11 @@ for (const id of requiredIds) {
 }
 
 const requires = {
-  "spawn-front-view": "siheyuan-front-compound",
-  "front-hall": "siheyuan-front-compound",
-  "west-courtyard": "courtyard-park-west-garden",
-  "curved-corridor": "courtyard-park-west-garden",
-  "moon-gate-window": "courtyard-park-west-garden",
+  "spawn-front-view": "master-scene",
+  "front-hall": "master-scene",
+  "west-courtyard": "master-scene",
+  "curved-corridor": "master-scene",
+  "moon-gate-window": "master-scene",
 };
 for (const [id, model] of Object.entries(requires)) {
   const visible = captured.get(id)?.telemetry?.visibleModels ?? [];

@@ -1,75 +1,134 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useState } from "react";
-import { createCheckpoint, createDefaultSave, loadCampaignSave, resetGardenSave, storeCampaignSave } from "./game/campaign-save";
-import { campaignManifest, getChapter } from "./game/manifests/campaign";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { createCheckpoint, createDefaultSave, createNewGameSave, inheritInvestigationState, loadCampaignSave, resetGardenSave, restartFromPrologue, storeCampaignSave } from "./game/campaign-save";
+import { getChapter } from "./game/manifests/campaign";
+import { createIsolatedQaChapterSave, isQaChapterId, QA_CHAPTER_QUERY, QA_FIRST_RUN_QUERY } from "./game/qa-session";
+import { StoryCGGallery } from "./game/narrative/StoryCGGallery";
 import type { CampaignSave, GameSettings } from "./game/types";
 
 const GameRuntime = lazy(() => import("./game/GameRuntime").then((module) => ({ default: module.GameRuntime })));
 const NorthTowerRuntime = lazy(() => import("./game/NorthTowerRuntime").then((module) => ({ default: module.NorthTowerRuntime })));
+const MissingRoomRuntime = lazy(() => import("./game/MissingRoomRuntime").then((module) => ({ default: module.MissingRoomRuntime })));
+const YouDidNotReturnRuntime = lazy(() => import("./game/YouDidNotReturnRuntime").then((module) => ({ default: module.YouDidNotReturnRuntime })));
+const FifthTingYuXuanRuntime = lazy(() => import("./game/FifthTingYuXuanRuntime").then((module) => ({ default: module.FifthTingYuXuanRuntime })));
+const NarrativeChapterRuntime = lazy(() => import("./game/NarrativeChapterRuntime").then((module) => ({ default: module.NarrativeChapterRuntime })));
+const PrologueRuntime = lazy(() => import("./game/PrologueRuntime").then((module) => ({ default: module.PrologueRuntime })));
 
-type View = "hub" | "west-corridor-loop" | "north-tower-ledger" | "settings";
-
-const versionForChapter = (index: number) => {
-  if (index <= 1) return "V0.1";
-  if (index <= 3) return "V0.2";
-  if (index <= 6) return "V0.3";
-  return "V0.4";
-};
+type View = "hub" | "prologue-rain" | "west-corridor-loop" | "north-tower-ledger" | "missing-room" | "deleted-person" | "you-did-not-return" | "fifth-tingyuxuan" | "chapters" | "gallery" | "settings";
+type HomeMenuId = "01" | "02" | "03" | "04" | "05";
 
 export default function Home() {
   const [save, setSave] = useState<CampaignSave>(() => createDefaultSave());
   const [view, setView] = useState<View>("hub");
-  const [ready, setReady] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<HomeMenuId>("02");
+  const qaSessionRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
-      if (process.env.NODE_ENV === "development" && params.get("visualTest") === "1") {
+      const isDevelopment = process.env.NODE_ENV === "development";
+
+      if (isDevelopment && params.get(QA_FIRST_RUN_QUERY) === "1") {
+        resetGardenSave();
+        const fresh = createDefaultSave();
+        storeCampaignSave(fresh);
+        setSave(fresh);
+        setView("prologue-rain");
+        return;
+      }
+
+      const devChapter = isDevelopment ? params.get(QA_CHAPTER_QUERY) : null;
+      if (devChapter && isQaChapterId(devChapter)) {
+        qaSessionRef.current = true;
+        setSave(createIsolatedQaChapterSave(devChapter));
+        setView(devChapter as View);
+        return;
+      }
+
+      if (isDevelopment && params.get("visualTest") === "1") {
+        qaSessionRef.current = true;
+        const visualSave = createDefaultSave();
+        const visualSettings = {
+          ...visualSave.settings,
+          renderer: params.get("renderer") === "webgl" ? "webgl" as const : "auto" as const,
+          quality: "high" as const,
+          masterVolume: 0,
+          subtitles: false,
+        };
+        if (params.get("visualChapter") === "prologue-rain") {
+          setSave({
+            ...visualSave,
+            activeCheckpoint: { ...createCheckpoint("prologue-rain", "baseline"), anchorId: "ROUTE_01_START" },
+            settings: visualSettings,
+          });
+          setView("prologue-rain");
+          return;
+        }
         const anchorId = params.get("visualAnchor") ?? "front-gate";
         const checkpoint = {
           ...createCheckpoint("west-corridor-loop", "wife"),
           anchorId,
           earnedFlags: ["prologue.dialogue.complete"],
         };
-        const visualSave = createDefaultSave();
         setSave({
           ...visualSave,
           activeCheckpoint: checkpoint,
-          settings: {
-            ...visualSave.settings,
-            renderer: params.get("renderer") === "webgl" ? "webgl" : "auto",
-            quality: "high",
-            masterVolume: 0,
-            subtitles: false,
-          },
+          settings: visualSettings,
         });
         setView("west-corridor-loop");
-        setReady(true);
         return;
       }
       setSave(loadCampaignSave());
-      setReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
   const persist = (next: CampaignSave) => {
     setSave(next);
-    storeCampaignSave(next);
+    if (!qaSessionRef.current) storeCampaignSave(next);
   };
 
-  const startOnboarding = (restart = false) => {
-    if (restart) {
-      const checkpoint = { ...createCheckpoint("west-corridor-loop", "wife"), anchorId: "west-entry" };
-      persist({ ...save, activeCheckpoint: checkpoint, completedChapters: save.completedChapters.filter((id) => !["prologue-rain", "west-corridor-loop"].includes(id)) });
+  const startChapterOne = (restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== "west-corridor-loop") {
+      const checkpoint = {
+        ...inheritInvestigationState(save.activeCheckpoint, createCheckpoint("west-corridor-loop", "wife")),
+        anchorId: "ROUTE_02_A_ENTRY",
+        earnedFlags: [...new Set([...save.activeCheckpoint.earnedFlags, "prologue.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"])],
+        activeObjectiveId: "west-arrival",
+        objectiveStepId: "follow-lantern",
+      };
+      persist({ ...save, activeCheckpoint: checkpoint, completedChapters: restart ? save.completedChapters.filter((id) => id !== "west-corridor-loop") : save.completedChapters });
     }
     setView("west-corridor-loop");
   };
 
+  const startOnboarding = (restart = false) => {
+    if (restart) {
+      persist(restartFromPrologue(save));
+      setView("prologue-rain");
+      return;
+    }
+    const staleDefaultAnchor = save.activeCheckpoint.chapterId === "prologue-rain" && save.activeCheckpoint.anchorId !== "ROUTE_01_START" && !save.activeCheckpoint.position;
+    if (save.activeCheckpoint.chapterId !== "prologue-rain" || save.completedChapters.includes("prologue-rain") || staleDefaultAnchor) {
+      const checkpoint = { ...createCheckpoint("prologue-rain", "baseline"), anchorId: "ROUTE_01_START" };
+      persist({
+        ...save,
+        activeCheckpoint: checkpoint,
+        completedChapters: save.completedChapters.filter((id) => id !== "prologue-rain"),
+      });
+    }
+    setView("prologue-rain");
+  };
+
+  const startNewGame = () => {
+    persist(createNewGameSave(save));
+    setView("prologue-rain");
+  };
+
   const startNorthTower = (restart = false) => {
     if (restart || save.activeCheckpoint.chapterId !== "north-tower-ledger") {
-      const checkpoint = { ...createCheckpoint("north-tower-ledger", "accountant"), anchorId: "north-tower-entry" };
+      const checkpoint = { ...inheritInvestigationState(save.activeCheckpoint, createCheckpoint("north-tower-ledger", "wife")), anchorId: "ROUTE_05_B_MAIN_COURT", activeObjectiveId: "north-life-evidence", objectiveStepId: "inspect-sixth-cup", earnedFlags: [...save.activeCheckpoint.earnedFlags] };
       persist({
         ...save,
         activeCheckpoint: checkpoint,
@@ -79,12 +138,80 @@ export default function Home() {
     setView("north-tower-ledger");
   };
 
+  const startMissingRoom = (restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== "missing-room") {
+      const checkpoint = { ...inheritInvestigationState(save.activeCheckpoint, createCheckpoint("missing-room", "gardener")), anchorId: "ROUTE_06_B_NORTHEAST_LINK", earnedFlags: [...save.activeCheckpoint.earnedFlags] };
+      persist({ ...save, activeCheckpoint: checkpoint, completedChapters: restart ? save.completedChapters.filter((id) => id !== "missing-room") : save.completedChapters });
+    }
+    setView("missing-room");
+  };
+
+  const startNarrativeChapter = (chapterId: "deleted-person" | "you-did-not-return" | "fifth-tingyuxuan", restart = false) => {
+    if (restart || save.activeCheckpoint.chapterId !== chapterId) {
+      const inheritedFlags = restart
+        ? save.activeCheckpoint.earnedFlags.filter((flag) => !flag.startsWith(`${chapterId}.`) && !flag.startsWith("finale."))
+        : save.activeCheckpoint.earnedFlags;
+      const checkpoint = {
+        ...inheritInvestigationState(save.activeCheckpoint, createCheckpoint(chapterId, chapterId === "fifth-tingyuxuan" ? "zhaoying" : "baseline")),
+        earnedFlags: [...inheritedFlags],
+      };
+      persist({
+        ...save,
+        activeCheckpoint: checkpoint,
+        completedChapters: restart ? save.completedChapters.filter((id) => id !== chapterId) : save.completedChapters,
+        endingIds: restart && chapterId === "fifth-tingyuxuan" ? [] : save.endingIds,
+      });
+    }
+    setView(chapterId);
+  };
+
+  const continueCurrentInvestigation = () => {
+    if (save.activeCheckpoint.chapterId === "west-corridor-loop") startChapterOne();
+    else if (save.activeCheckpoint.chapterId === "north-tower-ledger") startNorthTower();
+    else if (save.activeCheckpoint.chapterId === "missing-room") startMissingRoom();
+    else if (save.activeCheckpoint.chapterId === "deleted-person") startNarrativeChapter("deleted-person");
+    else if (save.activeCheckpoint.chapterId === "you-did-not-return") startNarrativeChapter("you-did-not-return");
+    else if (save.activeCheckpoint.chapterId === "fifth-tingyuxuan") startNarrativeChapter("fifth-tingyuxuan");
+    else startOnboarding();
+  };
+
+  const hasPrologueProgress = save.activeCheckpoint.chapterId === "prologue-rain"
+    && (save.tutorial.controls.seen
+      || save.activeCheckpoint.earnedFlags.length > 0
+      || Boolean(save.activeCheckpoint.dialogueProgress)
+      || Boolean(save.activeCheckpoint.position));
+  const primaryMenuLabel = save.activeCheckpoint.chapterId === "west-corridor-loop"
+    ? { titleCn: "继续第一章", titleEn: "CONTINUE CHAPTER ONE" }
+    : save.activeCheckpoint.chapterId === "north-tower-ledger"
+      ? { titleCn: "继续第二章", titleEn: "CONTINUE CHAPTER TWO" }
+      : save.activeCheckpoint.chapterId === "missing-room"
+        ? { titleCn: "继续第三章", titleEn: "CONTINUE CHAPTER THREE" }
+        : save.activeCheckpoint.chapterId === "deleted-person"
+          ? { titleCn: "继续第四章", titleEn: "CONTINUE CHAPTER FOUR" }
+          : save.activeCheckpoint.chapterId === "you-did-not-return"
+            ? { titleCn: "继续第五章", titleEn: "CONTINUE CHAPTER FIVE" }
+            : save.activeCheckpoint.chapterId === "fifth-tingyuxuan"
+              ? { titleCn: "继续终章", titleEn: "CONTINUE FINALE" }
+        : hasPrologueProgress
+          ? { titleCn: "继续序章", titleEn: "CONTINUE PROLOGUE" }
+          : { titleCn: "开始序章", titleEn: "NEW CASE" };
+
+  if (view === "prologue-rain") {
+    const chapter = getChapter("prologue-rain");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">序章</p><strong>雨夜正在回到听雨轩…</strong></main>}>
+        <PrologueRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={() => startChapterOne()} />
+      </Suspense>
+    );
+  }
+
   if (view === "west-corridor-loop") {
     const chapter = getChapter("west-corridor-loop");
     if (!chapter) return null;
     return (
-      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING RUNTIME</p><strong>正在载入园林与证词…</strong></main>}>
-        <GameRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">第一章</p><strong>正在载入园林与证词…</strong></main>}>
+        <GameRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={() => startNorthTower()} />
       </Suspense>
     );
   }
@@ -93,96 +220,93 @@ export default function Home() {
     const chapter = getChapter("north-tower-ledger");
     if (!chapter) return null;
     return (
-      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">LOADING CHAPTER 02</p><strong>正在载入北楼与借景时间线…</strong></main>}>
-        <NorthTowerRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">第二章</p><strong>正在载入主宅与旧日痕迹…</strong></main>}>
+        <NorthTowerRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={startMissingRoom} />
+      </Suspense>
+    );
+  }
+
+  if (view === "missing-room") {
+    const chapter = getChapter("missing-room");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">第三章</p><strong>正在载入北墙与那间消失的旧房…</strong></main>}>
+        <MissingRoomRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={() => startNarrativeChapter("deleted-person")} />
+      </Suspense>
+    );
+  }
+
+  if (view === "you-did-not-return") {
+    const chapter = getChapter("you-did-not-return");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">第五章</p><strong>正在载入案发雨夜与折返路线…</strong></main>}>
+        <YouDidNotReturnRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={() => startNarrativeChapter("fifth-tingyuxuan")} />
+      </Suspense>
+    );
+  }
+
+  if (view === "fifth-tingyuxuan") {
+    const chapter = getChapter("fifth-tingyuxuan");
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">终章</p><strong>正在载入雨停后的听雨轩…</strong></main>}>
+        <FifthTingYuXuanRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} />
+      </Suspense>
+    );
+  }
+
+  if (view === "deleted-person") {
+    const chapter = getChapter(view);
+    if (!chapter) return null;
+    return (
+      <Suspense fallback={<main className="runtime-loading"><p className="eyebrow">{chapter.title}</p><strong>正在整理证词与关键画面…</strong></main>}>
+        <NarrativeChapterRuntime chapter={chapter} save={save} onSave={persist} onExit={() => setView("hub")} onContinue={() => startNarrativeChapter("you-did-not-return")} />
       </Suspense>
     );
   }
 
   return (
     <main className="site-shell">
-      <header className="site-nav">
-        <a href="#top" className="wordmark"><i>园</i><span>游园惊梦<small>四面证词</small></span></a>
-        <nav aria-label="主导航">
-          <a href="#case">案卷</a>
-          <a href="#chapters">章节</a>
-          <a href="#roadmap">长线规划</a>
-          <button type="button" onClick={() => setView("settings")}>设置</button>
-        </nav>
-      </header>
+      <section className="case-directory" id="top">
+        <div className="case-directory-image" aria-hidden="true" />
+        <div className="case-directory-wash" aria-hidden="true" />
+        <div className="case-directory-rule" aria-hidden="true" />
 
-      <section className="hero" id="top">
-        <div className="hero-image" aria-hidden="true" />
-        <div className="hero-wash" aria-hidden="true" />
-        <div className="hero-content">
-          <p className="eyebrow">1923 · 中元雨夜 · 听雨轩</p>
-          <h1>游园惊梦</h1>
-          <p className="hero-subtitle">四面证词</p>
-          <p className="hero-logline">一座反锁的水榭，四份互相否认的证词，<br />以及一个从所有人口中被删去的名字。</p>
-          <div className="hero-actions">
-            <button type="button" className="primary-button" onClick={() => startOnboarding()}>{save.activeCheckpoint.earnedFlags.includes("prologue.dialogue.complete") ? "继续勘验" : "开始序章"} <span>→</span></button>
-            <button type="button" className="ghost-button" onClick={() => startNorthTower(true)}>从头测试第二章</button>
-            <button type="button" className="ghost-button" onClick={() => startOnboarding(true)}>从序章重新开始</button>
+        <div className="case-directory-panel">
+          <a href="#top" className="case-brand" aria-label="游园惊梦：四面证词">
+            <span className="case-brand-mark"><i>园</i></span>
+            <span className="case-brand-copy"><strong>游园惊梦</strong><small>四面证词</small></span>
+          </a>
+
+          <div className="case-directory-heading">
+            <span className="case-kicker">CASE ARCHIVE · TING YU XUAN</span>
+            <h1>案卷目录</h1>
+            <p>七年后，赵映回到自己长大的听雨轩，重查沈老爷雨夜死亡与一条不存在的路。</p>
           </div>
-          <small className="hero-meta">PC WEB · 实时 3D · 叙事解谜 · 16+</small>
-        </div>
-        <div className="scroll-mark">向下查阅案卷 <i /></div>
-      </section>
 
-      <section className="case-section" id="case">
-        <div className="section-heading">
-          <p className="eyebrow">CASE 01 · THE HEARING RAIN PAVILION</p>
-          <h2>死者没有出口，证人没有说谎。</h2>
-          <p>唯一因果链并不意味着唯一道德答案。你要比对的不是台词，而是每份证词如何重新布置同一座园林。</p>
-        </div>
-        <div className="case-grid">
-          <article><span>01</span><h3>同地异景</h3><p>夫人、园丁、账房与画师各自拥有一套视觉规则和拓扑覆盖。</p></article>
-          <article><span>02</span><h3>空间勘误</h3><p>同一个矛盾必须得到两份独立证词确认，推断才会进入案件链。</p></article>
-          <article><span>03</span><h3>信任重构</h3><p>事实只有一个，动机与责任由你判断；它们会改变人物关系与结局语义。</p></article>
-          <article><span>04</span><h3>无名第五席</h3><p>当四份证词都缺少同一个人，你需要问：是谁替你拿着勘验簿？</p></article>
-        </div>
-      </section>
+          <HomeMenu
+            activeId={activeMenu}
+            onActiveChange={setActiveMenu}
+            primaryTitleCn={primaryMenuLabel.titleCn}
+            primaryTitleEn={primaryMenuLabel.titleEn}
+            onContinue={continueCurrentInvestigation}
+            onNewGame={startNewGame}
+            onChapters={() => setView("chapters")}
+            onSettings={() => setView("settings")}
+            onCredits={() => { window.location.href = "/credits"; }}
+          />
 
-      <section className="chapters-section" id="chapters">
-        <div className="section-heading compact">
-          <p className="eyebrow">CAMPAIGN · PROLOGUE + 4 CHAPTERS + FINALE</p>
-          <h2>首案全章规划</h2>
-          <p>定稿结构为序章、四个正文章节与终章；当前第一、第二章均可独立进入验证。</p>
+          <div className="case-directory-meta">
+            <span>PC WEB · 实时 3D · 叙事解谜 · 16+</span>
+            <i aria-hidden="true" />
+          </div>
         </div>
-        <div className="chapter-list">
-          {campaignManifest.chapters.map((chapter) => {
-            const completed = save.completedChapters.includes(chapter.id);
-            const playable = chapter.id === "west-corridor-loop" || chapter.id === "north-tower-ledger";
-            return (
-              <article key={chapter.id} className={`${playable ? "playable" : ""} ${completed ? "completed" : ""}`}>
-                <b>{String(chapter.index).padStart(2, "0")}</b>
-                <div><span>{versionForChapter(chapter.index)} · {chapter.estimatedMinutes[0]}–{chapter.estimatedMinutes[1]} 分钟</span><h3>{chapter.title}</h3><p>{chapter.subtitle}</p></div>
-                <em>{completed ? "已完成" : playable ? "可游玩" : chapter.status === "prototype" ? "已接入对话" : "已规划"}</em>
-                {chapter.id === "west-corridor-loop" && <button type="button" onClick={() => setView("west-corridor-loop")} aria-label="进入西廊回环">→</button>}
-                {chapter.id === "north-tower-ledger" && <button type="button" onClick={() => startNorthTower()} aria-label="进入北楼暗账">→</button>}
-                {chapter.index === 0 && <button type="button" onClick={() => startOnboarding(true)} aria-label="从序章开始">→</button>}
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="roadmap-section" id="roadmap">
-        <div>
-          <p className="eyebrow">LONG-RANGE DEVELOPMENT</p>
-          <h2>先把一个案件做完，<br />再让园林继续长。</h2>
-        </div>
-        <ol>
-          <li className="active"><b>V0.1R</b><span>新手垂直切片</span><small>序章对话、任务导演、西院双视角、信任重构与追逐</small></li>
-          <li><b>V0.2</b><span>系统 Alpha</span><small>前三章白盒、四种记忆、画中门与完整存档</small></li>
-          <li><b>V0.3</b><span>叙事 Alpha</span><small>死亡证据形成唯一因果链，4–5 小时连续流程</small></li>
-          <li><b>V0.4–1.0</b><span>内容完整至正式版</span><small>第五视角、三结局、最终资产与全量审计</small></li>
-        </ol>
       </section>
 
       <footer className="site-footer">
-        <span>《游园惊梦：四面证词》 V0.1R ONBOARDING SLICE</span>
-        <span><a href="/credits">制作与授权</a> · {ready ? `存档：${save.completedChapters.length} / 6 段完成` : "正在读取存档…"}</span>
+        <span>《游园惊梦：四面证词》 · CASE ARCHIVE</span>
+        <span><a href="/credits">制作与授权</a> · 存档：{save.completedChapters.length} 段完成</span>
       </footer>
 
       {view === "settings" && (
@@ -196,7 +320,127 @@ export default function Home() {
           }}
         />
       )}
+      {view === "chapters" && (
+        <ChapterPanel
+          save={save}
+          onClose={() => setView("hub")}
+          onStart={(chapterId) => {
+            if (chapterId === "prologue-rain") startOnboarding(true);
+            else if (chapterId === "west-corridor-loop") startChapterOne(true);
+            else if (chapterId === "north-tower-ledger") startNorthTower(true);
+            else if (chapterId === "missing-room") startMissingRoom(true);
+            else if (chapterId === "deleted-person" || chapterId === "you-did-not-return" || chapterId === "fifth-tingyuxuan") startNarrativeChapter(chapterId, true);
+          }}
+          onGallery={() => setView("gallery")}
+        />
+      )}
+      {view === "gallery" && <StoryCGGallery save={save} onClose={() => setView("chapters")} />}
     </main>
+  );
+}
+
+function HomeMenu({
+  activeId,
+  onActiveChange,
+  primaryTitleCn,
+  primaryTitleEn,
+  onContinue,
+  onNewGame,
+  onChapters,
+  onSettings,
+  onCredits,
+}: {
+  activeId: HomeMenuId;
+  onActiveChange: (id: HomeMenuId) => void;
+  primaryTitleCn: string;
+  primaryTitleEn: string;
+  onContinue: () => void;
+  onNewGame: () => void;
+  onChapters: () => void;
+  onSettings: () => void;
+  onCredits: () => void;
+}) {
+  const items: Array<{ id: HomeMenuId; titleCn: string; titleEn: string; onClick: () => void }> = [
+    { id: "01", titleCn: primaryTitleCn, titleEn: primaryTitleEn, onClick: onContinue },
+    { id: "02", titleCn: "开始新游戏", titleEn: "NEW GAME", onClick: onNewGame },
+    { id: "03", titleCn: "章节", titleEn: "CHAPTERS", onClick: onChapters },
+    { id: "04", titleCn: "设置", titleEn: "SETTINGS", onClick: onSettings },
+    { id: "05", titleCn: "制作人员", titleEn: "CREDITS", onClick: onCredits },
+  ];
+
+  return (
+    <nav className="home-menu" aria-label="案卷目录">
+      {items.map((item) => (
+        <MenuItem
+          key={item.id}
+          number={item.id}
+          titleCn={item.titleCn}
+          titleEn={item.titleEn}
+          active={activeId === item.id}
+          onActive={() => onActiveChange(item.id)}
+          onClick={item.onClick}
+        />
+      ))}
+    </nav>
+  );
+}
+
+function ChapterPanel({ save, onClose, onStart, onGallery }: {
+  save: CampaignSave;
+  onClose: () => void;
+  onStart: (chapterId: string) => void;
+  onGallery: () => void;
+}) {
+  const playable = [
+    ["prologue-rain", "序章 · 回园"],
+    ["west-corridor-loop", "第一章 · 不存在的路"],
+    ["north-tower-ledger", "第二章 · 多出来的人"],
+    ["missing-room", "第三章 · 不存在的房间"],
+    ["deleted-person", "第四章 · 被删掉的人"],
+    ["you-did-not-return", "第五章 · 今晚你没回来"],
+    ["fifth-tingyuxuan", "终章 · 第五种听雨轩"],
+  ] as const;
+  return (
+    <div className="page-modal-backdrop">
+      <section className="settings-panel chapter-panel" role="dialog" aria-modal="true" aria-label="章节选择">
+        <button type="button" className="panel-close" onClick={onClose}>×</button>
+        <p className="eyebrow">CHAPTERS</p>
+        <h2>章节</h2>
+        <div className="chapter-list">
+          {playable.map(([id, label]) => {
+            const unlocked = id === "prologue-rain" || save.unlockedChapters.includes(id) || save.completedChapters.includes(id);
+            return <button key={id} type="button" disabled={!unlocked} onClick={() => onStart(id)}><strong>{label}</strong><small>{save.completedChapters.includes(id) ? "已完成 · 可重新开始" : unlocked ? "可进入" : "尚未解锁"}</small></button>;
+          })}
+        </div>
+        <button type="button" className="gallery-button" onClick={onGallery}>打开剧情回顾 · {save.completedChapters.length > 0 ? "查看已解锁画面" : "完成章节后解锁"}</button>
+      </section>
+    </div>
+  );
+}
+
+function MenuItem({ number, titleCn, titleEn, active, onActive, onClick }: {
+  number: HomeMenuId;
+  titleCn: string;
+  titleEn: string;
+  active: boolean;
+  onActive: () => void;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`home-menu-item${active ? " active" : ""}`}
+      onMouseEnter={onActive}
+      onFocus={onActive}
+      onClick={() => {
+        onActive();
+        onClick();
+      }}
+    >
+      <span className="home-menu-number">{number}</span>
+      <span className="home-menu-copy"><strong>{titleCn}</strong><small>{titleEn}</small></span>
+      <i aria-hidden="true">↗</i>
+    </button>
   );
 }
 
@@ -211,16 +455,16 @@ function SettingsPanel({ settings, onClose, onChange, onReset }: {
     <div className="page-modal-backdrop">
       <section className="settings-panel" role="dialog" aria-modal="true" aria-label="游戏设置">
         <button type="button" className="panel-close" onClick={onClose}>×</button>
-        <p className="eyebrow">DISPLAY & ACCESSIBILITY</p>
+        <p className="eyebrow">显示与辅助</p>
         <h2>设置</h2>
         <div className="setting-row"><span><label htmlFor="quality">画质</label><small>稳定与低画质会限制像素比和雨滴数量</small></span><select id="quality" value={settings.quality} onChange={(event) => update("quality", event.target.value as GameSettings["quality"])}><option value="high">高画质</option><option value="stable">稳定模式</option><option value="low">最低画质</option></select></div>
-        <div className="setting-row"><span><label htmlFor="renderer">渲染后端</label><small>自动优先 WebGPU，失败时可强制 WebGL 2</small></span><select id="renderer" value={settings.renderer} onChange={(event) => update("renderer", event.target.value as GameSettings["renderer"])}><option value="auto">自动</option><option value="webgl">强制 WebGL 2</option></select></div>
-        <div className="setting-row"><span><label htmlFor="stable-camera">稳定镜头</label><small>关闭追逐镜头扰动；不会影响解谜</small></span><input id="stable-camera" type="checkbox" checked={settings.stableCamera} onChange={(event) => update("stableCamera", event.target.checked)} /></div>
-        <div className="setting-row"><span><label htmlFor="subtitles">字幕</label><small>显示证词、提示与追逐揭示</small></span><input id="subtitles" type="checkbox" checked={settings.subtitles} onChange={(event) => update("subtitles", event.target.checked)} /></div>
+        <div className="setting-row"><span><label htmlFor="renderer">画面兼容模式</label><small>遇到黑屏或闪退时可改用兼容模式</small></span><select id="renderer" value={settings.renderer} onChange={(event) => update("renderer", event.target.value as GameSettings["renderer"])}><option value="auto">自动（推荐）</option><option value="webgl">兼容模式</option></select></div>
+        <div className="setting-row"><span><label htmlFor="stable-camera">稳定镜头</label><small>降低快速转向与镜头晃动；不会影响调查内容</small></span><input id="stable-camera" type="checkbox" checked={settings.stableCamera} onChange={(event) => update("stableCamera", event.target.checked)} /></div>
+        <div className="setting-row"><span><label htmlFor="subtitles">字幕</label><small>显示对白、旁白与调查提示</small></span><input id="subtitles" type="checkbox" checked={settings.subtitles} onChange={(event) => update("subtitles", event.target.checked)} /></div>
         <div className="setting-row"><span><label htmlFor="dialogue-speed">对话速度</label><small>控制剧情文字逐字显示速度</small></span><select id="dialogue-speed" value={settings.dialogueSpeed} onChange={(event) => update("dialogueSpeed", event.target.value as GameSettings["dialogueSpeed"])}><option value="slow">慢</option><option value="normal">标准</option><option value="fast">快</option><option value="instant">立即显示</option></select></div>
         <div className="setting-row"><span><label htmlFor="master-volume">主音量</label><small>{Math.round(settings.masterVolume * 100)}%</small></span><input id="master-volume" type="range" min="0" max="1" step="0.05" value={settings.masterVolume} onChange={(event) => update("masterVolume", Number(event.target.value))} /></div>
         <button type="button" className="reset-button" onClick={onReset}>仅清除《游园惊梦》存档</button>
-        <p className="settings-note">不会读取、迁移或删除旧项目的 `undying-world.game.save.v1`。</p>
+        <p className="settings-note">此操作只会清除《游园惊梦》的本地进度与选择。</p>
       </section>
     </div>
   );

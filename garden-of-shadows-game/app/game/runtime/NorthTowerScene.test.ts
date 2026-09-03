@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { northTowerChapter } from "../manifests/north-tower-ledger";
 import { NorthTowerScene } from "./NorthTowerScene";
 
-describe("north tower playable route", () => {
+describe("chapter 02 evidence whitebox", () => {
   let scene: NorthTowerScene | undefined;
 
   afterEach(() => {
@@ -10,22 +10,34 @@ describe("north tower playable route", () => {
     scene = undefined;
   });
 
-  it("exposes each interaction required by the chapter route", () => {
+  it("gates the evidence route by chapter progress and cognition", () => {
     scene = new NorthTowerScene(northTowerChapter.memories, "low");
 
-    expect(scene.availableInteractables("accountant", "present", "lower", false).map((item) => item.id)).toContain("north-stairs");
-    expect(scene.availableInteractables("accountant", "present", "upper", false).map((item) => item.id)).toContain("ledger-desk");
-    expect(scene.availableInteractables("accountant", "present", "upper", false, ["north.ledger.inspected"]).map((item) => item.id)).toContain("borrowed-window");
-    expect(scene.availableInteractables("accountant", "past", "courtyard", false).map((item) => item.id)).toEqual(expect.arrayContaining(["borrowed-window-return", "past-beads"]));
-    expect(scene.availableInteractables("accountant", "past", "courtyard", false, ["north.past.trail-inspected"]).map((item) => item.id)).toContain("past-rockery");
-    expect(scene.availableInteractables("accountant", "present", "courtyard", true).map((item) => item.id)).toEqual(expect.arrayContaining(["window-scratches", "secret-passage"]));
+    expect(scene.availableInteractables("wife", "lower", [], false).map((item) => item.id)).toContain("sixth-teacup");
+    expect(scene.availableInteractables("wife", "lower", ["north.evidence.sixth-cup"], false).map((item) => item.id)).toContain("north-stairs");
+
+    const upperFlags = ["north.evidence.sixth-cup", "north.reached.upper-floor"];
+    expect(scene.availableInteractables("accountant", "upper", upperFlags, false).map((item) => item.id)).toContain("departure-record");
+    expect(scene.availableInteractables("wife", "upper", upperFlags, false).map((item) => item.id)).not.toContain("departure-record");
   });
 
-  it("uses the intended independent testimony pair for each clue", () => {
+  it("requires the painter cognition and aligned view for the image channel", () => {
     scene = new NorthTowerScene(northTowerChapter.memories, "low");
+    const flags = ["north.evidence.sixth-cup", "north.reached.upper-floor", "north.evidence.departure-record"];
 
-    expect(scene.availableInteractables("wife", "present", "courtyard", true).map((item) => item.id)).toContain("window-scratches");
-    expect(scene.availableInteractables("wife", "present", "courtyard", true).map((item) => item.id)).not.toContain("secret-passage");
-    expect(scene.availableInteractables("gardener", "present", "courtyard", true).map((item) => item.id)).toContain("secret-passage");
+    expect(scene.availableInteractables("painter", "upper", flags, false).map((item) => item.id)).not.toContain("artist-viewpoint");
+    expect(scene.availableInteractables("accountant", "upper", flags, true).map((item) => item.id)).not.toContain("artist-viewpoint");
+    expect(scene.availableInteractables("painter", "upper", flags, true).map((item) => item.id)).toContain("artist-viewpoint");
+  });
+
+  it("only exposes the synthesis board after all three evidence channels", () => {
+    scene = new NorthTowerScene(northTowerChapter.memories, "low");
+    const completeEvidence = [
+      "north.evidence.sixth-cup",
+      "north.reached.upper-floor",
+      "north.evidence.departure-record",
+      "north.evidence.rain-figure",
+    ];
+    expect(scene.availableInteractables("wife", "upper", completeEvidence, false).map((item) => item.id)).toContain("fifth-person-board");
   });
 });

@@ -11,19 +11,27 @@ describe("narrative rules", () => {
     expect(confirmContradiction(waterline, ["wife", "gardener"])).toBe(true);
   });
 
-  it("keeps the hidden ending behind every contradiction and name anchor", () => {
+  it("exposes the five reconstruction lenses without a hidden true-ending", () => {
     const base = {
-      earnedFlags: ["case.unique-causal-chain", "ritual.score-found"],
+      earnedFlags: [
+        "fifth-tingyuxuan.complete",
+        "finale.lens.domestic",
+        "finale.lens.spatial",
+        "finale.lens.documentary",
+        "finale.lens.pictorial",
+        "finale.lens.composite",
+      ],
       contradictions: Array.from({ length: 12 }, (_, index) => `c${index}`),
       nameAnchors: ["birth-name", "stage-name", "mother-voice"],
     };
-    expect(availableEndings(campaignManifest, base)).not.toContain("river-lantern");
-    expect(availableEndings(campaignManifest, { ...base, nameAnchors: [...base.nameAnchors, "self-written-name"] })).toContain("river-lantern");
+    expect(availableEndings(campaignManifest, base)).toEqual(["domestic", "spatial", "documentary", "pictorial", "composite"]);
   });
 
   it("has a resolvable west-corridor puzzle graph", () => {
     const result = validatePuzzleGraph(westCorridorChapter.puzzleGraph.nodes);
     expect(result.valid).toBe(true);
-    expect(result.producedFlags).toContain("west.trust.decided");
+    expect(result.producedFlags).toContain("west.contradiction.loop");
+    expect(result.producedFlags).toContain("west.portal.escaped");
+    expect(result.producedFlags).not.toContain("west.trust.decided");
   });
 });

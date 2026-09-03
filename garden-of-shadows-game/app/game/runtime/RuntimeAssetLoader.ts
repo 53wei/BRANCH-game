@@ -4,6 +4,7 @@ import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
 export type RuntimeAssetId =
+  | "tyx-master-scene"
   | "tyx-arch-siheyuan-source-a"
   | "tyx-env-courtyard-park-source-a"
   | "tyx-arch-greybox-fallback-a"
@@ -15,6 +16,7 @@ export type RuntimeAssetId =
   | "tyx-nat-quaternius-set-a";
 
 export const runtimeAssetByteEstimates: Record<RuntimeAssetId, number> = {
+  "tyx-master-scene": 99122896,
   "tyx-arch-siheyuan-source-a": 102934464,
   "tyx-env-courtyard-park-source-a": 24818280,
   "tyx-arch-greybox-fallback-a": 1074276,
@@ -27,6 +29,7 @@ export const runtimeAssetByteEstimates: Record<RuntimeAssetId, number> = {
 };
 
 const runtimeAssetUrls: Record<RuntimeAssetId, string> = {
+  "tyx-master-scene": "/assets/fidelity/TYX_Master_Scene.glb",
   "tyx-arch-siheyuan-source-a": process.env.NODE_ENV === "development"
     ? "/__runtime-source/model/traditional-chinese-siheyuan-courtyard"
     : "/assets/fidelity/architecture/TYX_ARCH_Siheyuan_Source_A.glb",
@@ -45,7 +48,7 @@ const runtimeAssetUrls: Record<RuntimeAssetId, string> = {
 
 export class RuntimeAssetError extends Error {
   constructor(readonly assetId: RuntimeAssetId, reason: unknown) {
-    super(`${assetId} 加载失败：${reason instanceof Error ? reason.message : String(reason)}。可切换 WebGL 2 或降低画质后重试。`);
+    super(`场景资源加载失败（${assetId}）：${reason instanceof Error ? reason.message : String(reason)}。可启用画面兼容模式或降低画质后重试。`);
     this.name = "RuntimeAssetError";
   }
 }
@@ -70,7 +73,7 @@ export class RuntimeAssetLoader {
       await loader.ktx2Loader.detectSupportAsync(renderer);
     } catch (reason) {
       loader.dispose();
-      throw new RuntimeAssetError("tyx-arch-siheyuan-source-a", reason);
+      throw new RuntimeAssetError("tyx-master-scene", reason);
     }
     return loader;
   }
@@ -124,7 +127,7 @@ export class RuntimeAssetLoader {
       this.textureCache.set(url, texture);
       return texture;
     } catch (reason) {
-      throw new RuntimeAssetError("tyx-arch-siheyuan-source-a", `KTX2 material ${url}: ${reason instanceof Error ? reason.message : String(reason)}`);
+      throw new RuntimeAssetError("tyx-master-scene", `KTX2 material ${url}: ${reason instanceof Error ? reason.message : String(reason)}`);
     }
   }
 

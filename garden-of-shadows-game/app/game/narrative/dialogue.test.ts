@@ -4,12 +4,16 @@ import { join } from "node:path";
 import { Story } from "inkjs";
 import { northDialogueSequences } from "../manifests/north-tower-objectives";
 import { westDialogueSequences } from "../manifests/west-onboarding";
-import northStory from "./north-tower-ledger.json";
-import westStory from "./west-onboarding.json";
+import northInkSource from "./north-tower-ledger.ink?raw";
+import westInkSource from "./west-onboarding.ink?raw";
+import { compileInkSource } from "./ink-runtime";
 import { parseDialogueTags } from "./dialogue";
 import { speakerProfiles } from "./speakers";
 
-const walkEveryBranch = (story: Story, compiledStory: Record<string, unknown>, voicePrefix: string, depth = 0): number => {
+const westStory = JSON.parse(compileInkSource("test-west-onboarding", westInkSource)) as Record<string, unknown>;
+const northStory = JSON.parse(compileInkSource("test-north-tower-ledger", northInkSource)) as Record<string, unknown>;
+
+const walkEveryBranch = (story: Story, compiledStory: Record<string, unknown>, voicePrefix?: string, depth = 0): number => {
   if (depth > 80) throw new Error("dialogue branch did not terminate");
   let lineCount = 0;
   while (story.canContinue) {
@@ -19,10 +23,15 @@ const walkEveryBranch = (story: Story, compiledStory: Record<string, unknown>, v
     const speaker = speakerProfiles[parsed.speakerId];
     expect(speaker).toBeDefined();
     if (parsed.speakerId !== "narrator") {
-      expect(parsed.voiceAssetId).toMatch(new RegExp(`^${voicePrefix}\\.`));
-      const portrait = speaker.portraits[parsed.portrait ?? speaker.defaultPortrait];
-      expect(portrait).toBeTruthy();
-      expect(existsSync(join(process.cwd(), "public", portrait))).toBe(true);
+      // Inner monologue is deliberately unvoiced; SemanticMorph carries it instead.
+      if (voicePrefix && parsed.kind !== "inner") expect(parsed.voiceAssetId).toMatch(new RegExp(`^${voicePrefix}\\.`));
+      // Speakers without declared portraits (painter, master) are an accepted
+      // asset BLOCK; only declared portraits must resolve to real files.
+      if (Object.keys(speaker.portraits).length > 0) {
+        const portrait = speaker.portraits[parsed.portrait ?? speaker.defaultPortrait];
+        expect(portrait).toBeTruthy();
+        expect(existsSync(join(process.cwd(), "public", portrait))).toBe(true);
+      }
     }
   }
   if (story.currentChoices.length === 0) return lineCount;
@@ -53,9 +62,38 @@ describe("west onboarding dialogue", () => {
       "trust:set:west-water-motive:protect:west.trust.protective-sabotage",
     ], "fallback");
     expect(parsed.speakerId).toBe("wife");
+    expect(parsed.kind).toBe("spoken");
     expect(parsed.lineId).toBe("trust.001");
     expect(parsed.commands).toContainEqual({ type: "objective:start", objectiveId: "west-waterline", stepId: "inspect-wife" });
     expect(parsed.commands).toContainEqual({ type: "trust:set", nodeId: "west-water-motive", choiceId: "protect", outputFlag: "west.trust.protective-sabotage" });
+  });
+
+  it("keeps narrative semantics separate from speaker identity", () => {
+    expect(parseDialogueTags(["speaker:narrator", "kind:action"], "fallback").kind).toBe("action");
+    expect(parseDialogueTags(["speaker:zhaoying", "kind:inner"], "fallback").kind).toBe("inner");
+    expect(parseDialogueTags(["speaker:narrator"], "fallback").kind).toBe("narration");
+  });
+
+  it("parses semantic ink-rewrite tags", () => {
+    const parsed = parseDialogueTags([
+      "speaker:narrator",
+      "line:prologue.ledger",
+      "morph:四>五>四",
+      "morph-delay:900",
+      "morph-hold:650",
+      "morph-shake:medium",
+      "morph-log:stable",
+      "morph-once:true",
+    ], "fallback");
+    expect(parsed.semanticMorph).toEqual({
+      source: "四",
+      sequence: ["五", "四"],
+      delayMs: 900,
+      holdMs: 650,
+      shake: "medium",
+      logMode: "stable",
+      once: true,
+    });
   });
 });
 
@@ -64,7 +102,7 @@ describe("north tower dialogue", () => {
     for (const sequence of northDialogueSequences) {
       const story = new Story(northStory);
       story.ChoosePathString(sequence.knotId);
-      expect(walkEveryBranch(story, northStory, "north")).toBeGreaterThan(0);
+      expect(walkEveryBranch(story, northStory)).toBeGreaterThan(0);
     }
   });
 });

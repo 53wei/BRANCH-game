@@ -4,13 +4,15 @@ import { westObjectives } from "../manifests/west-onboarding";
 import { ObjectiveDirector, resolveActiveObjective } from "./ObjectiveDirector";
 
 describe("ObjectiveDirector", () => {
-  it("escalates only after 60, 120 and 180 active seconds", () => {
+  it("escalates at the completion-first 20, 45 and 90 active-second thresholds", () => {
     const director = new ObjectiveDirector();
-    expect(director.tick(59, false, "west-arrival", "follow-lantern")).toBeUndefined();
+    expect(director.tick(19, false, "west-arrival", "follow-lantern")).toBeUndefined();
     expect(director.tick(1, false, "west-arrival", "follow-lantern")).toBe(1);
-    expect(director.tick(59, true, "west-arrival", "follow-lantern")).toBeUndefined();
-    expect(director.tick(60, false, "west-arrival", "follow-lantern")).toBe(2);
-    expect(director.tick(60, false, "west-arrival", "follow-lantern")).toBe(3);
+    expect(director.tick(24, true, "west-arrival", "follow-lantern")).toBeUndefined();
+    expect(director.tick(24, false, "west-arrival", "follow-lantern")).toBeUndefined();
+    expect(director.tick(1, false, "west-arrival", "follow-lantern")).toBe(2);
+    expect(director.tick(44, false, "west-arrival", "follow-lantern")).toBeUndefined();
+    expect(director.tick(1, false, "west-arrival", "follow-lantern")).toBe(3);
   });
 
   it("resets timing when a meaningful step changes", () => {
@@ -25,7 +27,7 @@ describe("ObjectiveDirector", () => {
     checkpoint.objectiveStepId = "inspect-wife";
     checkpoint.hintLevels["west-waterline:inspect-wife"] = 2;
     const active = resolveActiveObjective(westObjectives, checkpoint);
-    expect(active?.step.instruction).toBe("在夫人证词中勘验干渠");
+    expect(active?.step.instruction).toBe("在夫人证词中勘验封死的墙脚");
     expect(active?.hint).toContain("金色灯影");
   });
 });

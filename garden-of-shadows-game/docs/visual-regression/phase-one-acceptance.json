@@ -30,164 +30,1446 @@
   ],
   "capturedShots": [
     {
-      "id": "spawn-front-view",
-      "file": "docs/visual-regression/after/spawn-front-view.png",
-      "bytes": 499690,
-      "sha256": "88894fd97ece62d684db8b7babd1fbb601b0bfcd1d98ddf54eb5c03ff37e276e",
+      "id": "node-01",
+      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-01.png",
+      "bytes": 638332,
+      "sha256": "7efc89a659d09b09a59bf6afb641df5b08cb0fc76a48ea89af5cc1f3d0a3544f",
       "telemetry": {
-        "url": "http://localhost:3000/?visualTest=1&visualAnchor=west-entry&visualPitch=-0.04&renderer=webgl",
-        "fps": 34.9,
-        "drawCalls": 108,
-        "triangles": 1225691,
-        "points": 2200,
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214b32a0o&renderer=webgl",
+        "fps": 60,
+        "drawCalls": 163,
+        "triangles": 20335,
+        "points": 1390,
         "visibleModels": [
-          "siheyuan-front-compound"
+          "master-scene"
         ],
         "loadedAssetIds": [
-          "tyx-arch-siheyuan-source-a"
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
         ],
-        "loadedAssetBytes": 102934464,
+        "loadedAssetBytes": 101202548,
         "rendererBackend": "webgl2",
-        "transferBytes": 115911081,
-        "durationMs": 17915.90000000596,
+        "architectureMode": "master",
+        "architectureColliderCount": 16,
+        "masterArchitectureColliderCount": 0,
+        "specialStructureColliderCount": 1,
+        "specialStructureCollision": "complete",
+        "specialStructureCollisionReport": {
+          "requiredBoxColliderIds": [
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top",
+            "c-wooden-steps-approach"
+          ],
+          "presentBoxColliderIds": [
+            "c-wooden-steps-approach",
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top"
+          ],
+          "missingBoxColliderIds": [],
+          "boxSourceReferencesComplete": true,
+          "masterMeshSources": [
+            {
+              "id": "master-special-c-stairs-railing",
+              "sourceNodeName": "214b32a0.o",
+              "runtimeNodeName": "214b32a0o",
+              "kind": "stairs-and-railing",
+              "vertexCount": 435,
+              "triangleCount": 240,
+              "bounds": {
+                "min": [
+                  -14.1054,
+                  0.0693,
+                  -2.6939
+                ],
+                "max": [
+                  -13.0768,
+                  1.2426,
+                  3.2385
+                ],
+                "size": [
+                  1.0286,
+                  1.1734,
+                  5.9324
+                ]
+              }
+            }
+          ],
+          "missingMasterNodeNames": [],
+          "minimumRailingHeight": 0.6419,
+          "jumpApexRise": 0.5219,
+          "complete": true
+        },
+        "colliderCoverage": "incomplete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 0,
+            "generatedColliderCount": 0,
+            "excludedMeshCount": 1457,
+            "exclusions": {
+              "hidden": 1456,
+              "nonArchitecture": 1,
+              "openingOrDetail": 0,
+              "emptyBounds": 0,
+              "invalidSize": 0,
+              "duplicate": 0
+            },
+            "categories": {
+              "architecture": 0
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 1,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [],
+            "geometryReviewSamples": [
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 33,
+            "enabledColliderCount": 33,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 16,
+            "masterArchitectureColliderCount": 0,
+            "specialStructureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 7,
+              "world-boundary": 4,
+              "architecture": 16,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "specialStructures": {
+            "requiredBoxColliderIds": [
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top",
+              "c-wooden-steps-approach"
+            ],
+            "presentBoxColliderIds": [
+              "c-wooden-steps-approach",
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top"
+            ],
+            "missingBoxColliderIds": [],
+            "boxSourceReferencesComplete": true,
+            "masterMeshSources": [
+              {
+                "id": "master-special-c-stairs-railing",
+                "sourceNodeName": "214b32a0.o",
+                "runtimeNodeName": "214b32a0o",
+                "kind": "stairs-and-railing",
+                "vertexCount": 435,
+                "triangleCount": 240,
+                "bounds": {
+                  "min": [
+                    -14.1054,
+                    0.0693,
+                    -2.6939
+                  ],
+                  "max": [
+                    -13.0768,
+                    1.2426,
+                    3.2385
+                  ],
+                  "size": [
+                    1.0286,
+                    1.1734,
+                    5.9324
+                  ]
+                }
+              }
+            ],
+            "missingMasterNodeNames": [],
+            "minimumRailingHeight": 0.6419,
+            "jumpApexRise": 0.5219,
+            "complete": true
+          },
+          "routeCoverageComplete": false,
+          "physicsRegistrationComplete": false,
+          "specialStructureRegistrationComplete": true,
+          "complete": false
+        },
+        "playerPose": [
+          -11,
+          0.89,
+          0.25
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "nearestRouteDistance": 17.77,
+        "prologuePhase": "",
+        "transferBytes": 126293655,
+        "durationMs": 49197.39999997616,
         "fallbackEnabled": false,
         "errorModal": false
       }
     },
     {
-      "id": "front-hall",
-      "file": "docs/visual-regression/after/front-hall.png",
-      "bytes": 1317548,
-      "sha256": "1c193cdb804bbfcb21d14a75e0e291318ca04420b39c6cf2b1385a1c3f6f4c3a",
+      "id": "node-02",
+      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-02.png",
+      "bytes": 472217,
+      "sha256": "20ac5b94c1e92e05244a6645745e34569d5b69e99e3a1d34ba81aabad65d21e7",
       "telemetry": {
-        "url": "http://localhost:3000/?visualTest=1&visualAnchor=front-hall&visualPitch=-0.05&renderer=webgl",
-        "fps": 21.3,
-        "drawCalls": 177,
-        "triangles": 1792831,
-        "points": 2200,
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214afe40o&renderer=webgl",
+        "fps": 50.3,
+        "drawCalls": 88,
+        "triangles": 20107,
+        "points": 1390,
         "visibleModels": [
-          "siheyuan-front-compound",
-          "courtyard-park-west-garden",
-          "cc0-plant-big-a",
-          "cc0-tree-b"
+          "master-scene"
         ],
         "loadedAssetIds": [
-          "tyx-arch-siheyuan-source-a",
-          "tyx-env-courtyard-park-source-a",
-          "tyx-nat-quaternius-set-a"
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
         ],
-        "loadedAssetBytes": 131496676,
+        "loadedAssetBytes": 101202548,
         "rendererBackend": "webgl2",
-        "transferBytes": 155338418,
-        "durationMs": 9020.299999982119,
+        "architectureMode": "master",
+        "architectureColliderCount": 15,
+        "masterArchitectureColliderCount": 0,
+        "specialStructureColliderCount": 0,
+        "specialStructureCollision": "incomplete",
+        "specialStructureCollisionReport": {
+          "requiredBoxColliderIds": [
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top",
+            "c-wooden-steps-approach"
+          ],
+          "presentBoxColliderIds": [
+            "c-wooden-steps-approach",
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top"
+          ],
+          "missingBoxColliderIds": [],
+          "boxSourceReferencesComplete": true,
+          "masterMeshSources": [],
+          "missingMasterNodeNames": [
+            "214b32a0.o"
+          ],
+          "minimumRailingHeight": 0.6419,
+          "jumpApexRise": 0.5219,
+          "complete": false
+        },
+        "colliderCoverage": "incomplete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 0,
+            "generatedColliderCount": 0,
+            "excludedMeshCount": 1457,
+            "exclusions": {
+              "hidden": 1456,
+              "nonArchitecture": 1,
+              "openingOrDetail": 0,
+              "emptyBounds": 0,
+              "invalidSize": 0,
+              "duplicate": 0
+            },
+            "categories": {
+              "architecture": 0
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 1,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [],
+            "geometryReviewSamples": [
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 32,
+            "enabledColliderCount": 32,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 15,
+            "masterArchitectureColliderCount": 0,
+            "specialStructureColliderCount": 0,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 7,
+              "world-boundary": 4,
+              "architecture": 15,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "specialStructures": {
+            "requiredBoxColliderIds": [
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top",
+              "c-wooden-steps-approach"
+            ],
+            "presentBoxColliderIds": [
+              "c-wooden-steps-approach",
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top"
+            ],
+            "missingBoxColliderIds": [],
+            "boxSourceReferencesComplete": true,
+            "masterMeshSources": [],
+            "missingMasterNodeNames": [
+              "214b32a0.o"
+            ],
+            "minimumRailingHeight": 0.6419,
+            "jumpApexRise": 0.5219,
+            "complete": false
+          },
+          "routeCoverageComplete": false,
+          "physicsRegistrationComplete": false,
+          "specialStructureRegistrationComplete": false,
+          "complete": false
+        },
+        "playerPose": [
+          -11,
+          0.89,
+          0.25
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "nearestRouteDistance": 17.77,
+        "prologuePhase": "",
+        "transferBytes": 99150796,
+        "durationMs": 16952.5,
         "fallbackEnabled": false,
         "errorModal": false
       }
     },
     {
-      "id": "west-courtyard",
-      "file": "docs/visual-regression/after/west-courtyard.png",
-      "bytes": 1100963,
-      "sha256": "d45562bb827de2c861729f09eb9ffea910b39a969a2370d0546469a935c41ae8",
+      "id": "node-03",
+      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-03.png",
+      "bytes": 537526,
+      "sha256": "fca693b29ee17123d2635a7ad8a215648bef43b561b447d155e6768f3a85e591",
       "telemetry": {
-        "url": "http://localhost:3000/?visualTest=1&visualAnchor=west-courtyard&visualPitch=-0.05&renderer=webgl",
-        "fps": 28.1,
-        "drawCalls": 360,
-        "triangles": 1792707,
-        "points": 2200,
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214b9790o&renderer=webgl",
+        "fps": 50.3,
+        "drawCalls": 88,
+        "triangles": 20275,
+        "points": 1390,
         "visibleModels": [
-          "siheyuan-front-compound",
-          "courtyard-park-west-garden",
-          "inner-outline",
-          "cc0-plant-big-a",
-          "cc0-tree-b"
+          "master-scene"
         ],
         "loadedAssetIds": [
-          "tyx-arch-siheyuan-source-a",
-          "tyx-env-courtyard-park-source-a",
-          "tyx-nat-quaternius-set-a",
-          "tyx-arch-house-a"
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
         ],
-        "loadedAssetBytes": 151590424,
+        "loadedAssetBytes": 101202548,
         "rendererBackend": "webgl2",
-        "transferBytes": 147867792,
-        "durationMs": 6717.299999982119,
+        "architectureMode": "master",
+        "architectureColliderCount": 15,
+        "masterArchitectureColliderCount": 0,
+        "specialStructureColliderCount": 0,
+        "specialStructureCollision": "incomplete",
+        "specialStructureCollisionReport": {
+          "requiredBoxColliderIds": [
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top",
+            "c-wooden-steps-approach"
+          ],
+          "presentBoxColliderIds": [
+            "c-wooden-steps-approach",
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top"
+          ],
+          "missingBoxColliderIds": [],
+          "boxSourceReferencesComplete": true,
+          "masterMeshSources": [],
+          "missingMasterNodeNames": [
+            "214b32a0.o"
+          ],
+          "minimumRailingHeight": 0.6419,
+          "jumpApexRise": 0.5219,
+          "complete": false
+        },
+        "colliderCoverage": "incomplete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 0,
+            "generatedColliderCount": 0,
+            "excludedMeshCount": 1457,
+            "exclusions": {
+              "hidden": 1456,
+              "nonArchitecture": 1,
+              "openingOrDetail": 0,
+              "emptyBounds": 0,
+              "invalidSize": 0,
+              "duplicate": 0
+            },
+            "categories": {
+              "architecture": 0
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 1,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [],
+            "geometryReviewSamples": [
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 32,
+            "enabledColliderCount": 32,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 15,
+            "masterArchitectureColliderCount": 0,
+            "specialStructureColliderCount": 0,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 7,
+              "world-boundary": 4,
+              "architecture": 15,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "specialStructures": {
+            "requiredBoxColliderIds": [
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top",
+              "c-wooden-steps-approach"
+            ],
+            "presentBoxColliderIds": [
+              "c-wooden-steps-approach",
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top"
+            ],
+            "missingBoxColliderIds": [],
+            "boxSourceReferencesComplete": true,
+            "masterMeshSources": [],
+            "missingMasterNodeNames": [
+              "214b32a0.o"
+            ],
+            "minimumRailingHeight": 0.6419,
+            "jumpApexRise": 0.5219,
+            "complete": false
+          },
+          "routeCoverageComplete": false,
+          "physicsRegistrationComplete": false,
+          "specialStructureRegistrationComplete": false,
+          "complete": false
+        },
+        "playerPose": [
+          -11,
+          0.89,
+          0.25
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "nearestRouteDistance": 17.77,
+        "prologuePhase": "",
+        "transferBytes": 99150796,
+        "durationMs": 11087.5,
         "fallbackEnabled": false,
         "errorModal": false
       }
     },
     {
-      "id": "curved-corridor",
-      "file": "docs/visual-regression/after/curved-corridor.png",
-      "bytes": 775040,
-      "sha256": "0ac8ecf7412d8890c70873d56a188daa5d31bedc9907fec1bc8444ad6290938a",
+      "id": "node-04",
+      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-04.png",
+      "bytes": 214452,
+      "sha256": "42133b22b4f178525e56d6e883dc4a686816970483346a9ce32624751c938a8d",
       "telemetry": {
-        "url": "http://localhost:3000/?visualTest=1&visualAnchor=corridor-turn-one&visualPitch=-0.04&renderer=webgl",
-        "fps": 24.4,
-        "drawCalls": 279,
-        "triangles": 1786689,
-        "points": 2200,
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=18&visualY=1&visualZ=9.5&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=1d6638d0o&renderer=webgl",
+        "fps": 60,
+        "drawCalls": 172,
+        "triangles": 20239,
+        "points": 1390,
         "visibleModels": [
-          "siheyuan-front-compound",
-          "courtyard-park-west-garden",
-          "cc0-plant-big-a",
-          "cc0-tree-b"
+          "master-scene"
         ],
         "loadedAssetIds": [
-          "tyx-arch-siheyuan-source-a",
-          "tyx-env-courtyard-park-source-a",
-          "tyx-nat-quaternius-set-a"
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
         ],
-        "loadedAssetBytes": 131496676,
+        "loadedAssetBytes": 101202548,
         "rendererBackend": "webgl2",
-        "transferBytes": 127773444,
-        "durationMs": 6983,
+        "architectureMode": "master",
+        "architectureColliderCount": 15,
+        "masterArchitectureColliderCount": 0,
+        "specialStructureColliderCount": 0,
+        "specialStructureCollision": "incomplete",
+        "specialStructureCollisionReport": {
+          "requiredBoxColliderIds": [
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top",
+            "c-wooden-steps-approach"
+          ],
+          "presentBoxColliderIds": [
+            "c-wooden-steps-approach",
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top"
+          ],
+          "missingBoxColliderIds": [],
+          "boxSourceReferencesComplete": true,
+          "masterMeshSources": [],
+          "missingMasterNodeNames": [
+            "214b32a0.o"
+          ],
+          "minimumRailingHeight": 0.6419,
+          "jumpApexRise": 0.5219,
+          "complete": false
+        },
+        "colliderCoverage": "incomplete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 0,
+            "generatedColliderCount": 0,
+            "excludedMeshCount": 1457,
+            "exclusions": {
+              "hidden": 1456,
+              "nonArchitecture": 1,
+              "openingOrDetail": 0,
+              "emptyBounds": 0,
+              "invalidSize": 0,
+              "duplicate": 0
+            },
+            "categories": {
+              "architecture": 0
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 1,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": false
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [],
+            "geometryReviewSamples": []
+          },
+          "physics": {
+            "staticColliderCount": 32,
+            "enabledColliderCount": 32,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 15,
+            "masterArchitectureColliderCount": 0,
+            "specialStructureColliderCount": 0,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 7,
+              "world-boundary": 4,
+              "architecture": 15,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "specialStructures": {
+            "requiredBoxColliderIds": [
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top",
+              "c-wooden-steps-approach"
+            ],
+            "presentBoxColliderIds": [
+              "c-wooden-steps-approach",
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top"
+            ],
+            "missingBoxColliderIds": [],
+            "boxSourceReferencesComplete": true,
+            "masterMeshSources": [],
+            "missingMasterNodeNames": [
+              "214b32a0.o"
+            ],
+            "minimumRailingHeight": 0.6419,
+            "jumpApexRise": 0.5219,
+            "complete": false
+          },
+          "routeCoverageComplete": false,
+          "physicsRegistrationComplete": false,
+          "specialStructureRegistrationComplete": false,
+          "complete": false
+        },
+        "playerPose": [
+          18,
+          -9.396,
+          9.5
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": false,
+        "gameplayArea": "OUTSIDE",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT",
+        "nearestRouteDistance": 23.9,
+        "prologuePhase": "",
+        "transferBytes": 99150796,
+        "durationMs": 16744.59999999404,
         "fallbackEnabled": false,
         "errorModal": false
       }
     },
     {
-      "id": "moon-gate-window",
-      "file": "docs/visual-regression/after/moon-gate-window.png",
-      "bytes": 817040,
-      "sha256": "8114b75d800cbdec0692c1d68dd02b1540dbc8ea952bfe5b357951c19ebc2fba",
+      "id": "node-05",
+      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-05.png",
+      "bytes": 496461,
+      "sha256": "c8c66b91b1bec9fe4fdd71eb346584fd9ef812ff9e092ac31bd205ac01c4aa31",
       "telemetry": {
-        "url": "http://localhost:3000/?visualTest=1&visualAnchor=loop-seventh-window&visualPitch=-0.05&renderer=webgl",
-        "fps": 29.1,
-        "drawCalls": 339,
-        "triangles": 1788762,
-        "points": 2200,
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-10.5&visualY=2.5&visualZ=23.7&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=20ca4e00o&renderer=webgl",
+        "fps": 50,
+        "drawCalls": 91,
+        "triangles": 20296,
+        "points": 1390,
         "visibleModels": [
-          "siheyuan-front-compound",
-          "courtyard-park-west-garden",
-          "water-pavilion",
-          "water-bridge",
-          "secondary-garden-pavilion",
-          "rockery-a",
-          "rockery-b",
-          "rockery-c",
-          "cc0-rock-a",
-          "cc0-rock-b",
-          "cc0-rock-c",
-          "cc0-bush-a",
-          "cc0-bush-flowers-a",
-          "cc0-tree-a",
-          "cc0-grass-a",
-          "cc0-fern-a"
+          "master-scene"
         ],
         "loadedAssetIds": [
-          "tyx-arch-siheyuan-source-a",
-          "tyx-env-courtyard-park-source-a",
-          "tyx-nat-rock-set-a",
-          "tyx-arch-pavilion-b",
-          "tyx-gmp-bridge-low-a",
-          "tyx-nat-quaternius-set-a",
-          "tyx-arch-pavilion-a"
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
         ],
-        "loadedAssetBytes": 147468224,
+        "loadedAssetBytes": 101202548,
         "rendererBackend": "webgl2",
-        "transferBytes": 143747392,
-        "durationMs": 8161.9000000059605,
+        "architectureMode": "master",
+        "architectureColliderCount": 15,
+        "masterArchitectureColliderCount": 0,
+        "specialStructureColliderCount": 0,
+        "specialStructureCollision": "incomplete",
+        "specialStructureCollisionReport": {
+          "requiredBoxColliderIds": [
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top",
+            "c-wooden-steps-approach"
+          ],
+          "presentBoxColliderIds": [
+            "c-wooden-steps-approach",
+            "main-gate-frame-z-low",
+            "main-gate-frame-z-high",
+            "main-gate-frame-top",
+            "main-gate-threshold",
+            "wife-moon-gate-left",
+            "wife-moon-gate-right",
+            "wife-moon-gate-top"
+          ],
+          "missingBoxColliderIds": [],
+          "boxSourceReferencesComplete": true,
+          "masterMeshSources": [],
+          "missingMasterNodeNames": [
+            "214b32a0.o"
+          ],
+          "minimumRailingHeight": 0.6419,
+          "jumpApexRise": 0.5219,
+          "complete": false
+        },
+        "colliderCoverage": "incomplete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 0,
+            "generatedColliderCount": 0,
+            "excludedMeshCount": 1457,
+            "exclusions": {
+              "hidden": 1456,
+              "nonArchitecture": 1,
+              "openingOrDetail": 0,
+              "emptyBounds": 0,
+              "invalidSize": 0,
+              "duplicate": 0
+            },
+            "categories": {
+              "architecture": 0
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 1,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 11,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 0,
+                "candidateArchitectureMeshCount": 0,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": false
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": false,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": false
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [],
+            "geometryReviewSamples": [
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 32,
+            "enabledColliderCount": 32,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 15,
+            "masterArchitectureColliderCount": 0,
+            "specialStructureColliderCount": 0,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 7,
+              "world-boundary": 4,
+              "architecture": 15,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "specialStructures": {
+            "requiredBoxColliderIds": [
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top",
+              "c-wooden-steps-approach"
+            ],
+            "presentBoxColliderIds": [
+              "c-wooden-steps-approach",
+              "main-gate-frame-z-low",
+              "main-gate-frame-z-high",
+              "main-gate-frame-top",
+              "main-gate-threshold",
+              "wife-moon-gate-left",
+              "wife-moon-gate-right",
+              "wife-moon-gate-top"
+            ],
+            "missingBoxColliderIds": [],
+            "boxSourceReferencesComplete": true,
+            "masterMeshSources": [],
+            "missingMasterNodeNames": [
+              "214b32a0.o"
+            ],
+            "minimumRailingHeight": 0.6419,
+            "jumpApexRise": 0.5219,
+            "complete": false
+          },
+          "routeCoverageComplete": false,
+          "physicsRegistrationComplete": false,
+          "specialStructureRegistrationComplete": false,
+          "complete": false
+        },
+        "playerPose": [
+          -10.5,
+          0.89,
+          23.7
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK",
+        "nearestRouteDistance": 4.61,
+        "prologuePhase": "",
+        "transferBytes": 99150796,
+        "durationMs": 11697.5,
         "fallbackEnabled": false,
         "errorModal": false
       }
@@ -206,5 +1488,5 @@
     "Run npm run visual:capture after assets:prepare when local command execution is available. The script writes five PNG files and telemetry but never auto-approves them.",
     "25 MiB per-file and 18 MiB preload values are publishing references, not reasons to replace formal architecture with greybox geometry."
   ],
-  "capturedAt": "2026-08-28T10:58:37.798Z"
+  "capturedAt": "2026-09-03T16:49:55.223Z"
 }

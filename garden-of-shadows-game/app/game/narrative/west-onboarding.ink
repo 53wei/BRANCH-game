@@ -1,72 +1,110 @@
+// Source of truth: 工作区根目录《游园惊梦_完整剧情母剧本_V5.0.md》
+// TASK-008: 第一章 1-1 ～ 1-6。这里不新增主线对白；只附加 Runtime 控制 tags。
+
 === opening ===
-雨从听雨轩的瓦当坠下来。你还没有跨进门，门内那盏纸灯先亮了。 # speaker:narrator # line:opening.001
-你比信上约定的时辰早了一刻。 # speaker:steward # portrait:courteous # line:opening.002 # voice:west.steward.001
-信上没有落款。这里也不像有人等我。 # speaker:zhaoying # portrait:guarded # line:opening.003 # voice:west.zhaoying.001
-等你的不是活人，是四份不肯合拢的证词。七年前，园主沈砚堂死在反锁的水榭里。 # speaker:steward # portrait:knowing # line:opening.004 # voice:west.steward.002
-四名在场者都改过当夜的一件事。他们记得同一座园子，门、水路和回廊却各不相同。 # speaker:steward # portrait:courteous # line:opening.005 # voice:west.steward.003
-所以你要我判断谁在说谎？ # speaker:zhaoying # portrait:guarded # line:opening.006 # voice:west.zhaoying.002
-不。一处说辞不能判错。同一个地方，至少要有两份独立证词互相抵触，才算一笔勘误。 # speaker:steward # portrait:knowing # line:opening.007 # voice:west.steward.004
-他把一本潮湿的线装簿递来。封面没有题字，纸背却透出五个人的墨迹。 # speaker:narrator # line:opening.008
-* [为什么偏偏找我？]
-    因为这园子不记得你。一个从未到过这里的人，脚下不该有回声。 # speaker:steward # portrait:threatening # line:opening.009a # voice:west.steward.005
-    我听见西廊的铜铃了。 # speaker:zhaoying # portrait:alarmed # line:opening.010a # voice:west.zhaoying.003
-    -> appointed
-* [先从水路查起。]
-    很好。夫人说水渠整夜干涸，园丁却说水逆着地势流向水榭。先去看同一块青砖。 # speaker:steward # portrait:courteous # line:opening.009b # voice:west.steward.006
-    -> appointed
-= appointed
-从现在起，你是听雨轩的勘验人。记住：不是找物，是核对同地异景。 # speaker:steward # portrait:knowing # line:opening.011 # voice:west.steward.007 # flag:set:prologue.examiner-appointed # objective:start:west-arrival:follow-lantern
-跟着灯走。到了西廊，顾夫人会告诉你她看见了什么。 # speaker:steward # portrait:courteous # line:opening.012 # voice:west.steward.008
+早晨雨小了，天还是阴。沈夫人坐在前厅偏桌旁，面前摆着粥、咸菜和两只煮鸡蛋。赵映刚进门，她先抬头看赵映的袖口。 # speaker:narrator # kind:narration # line:ch1.1-1.env
+昨晚几点睡的？你这件外套还是湿的，老周没有给你找烘衣架？ # speaker:wife # kind:spoken # portrait:restrained # line:ch1.1-1.wife.001 # voice:west.wife.001
+沈姨，我回来不是住院，你不用一见面先查体温。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.001 # voice:west.zhaoying.001
+你小时候发烧也这么说。坐下，粥还是热的。 # speaker:wife # kind:spoken # portrait:restrained # line:ch1.1-1.wife.002 # voice:west.wife.002
+沈夫人把鸡蛋推过来，动作非常自然。赵映坐下后没有马上动筷。 # speaker:narrator # kind:action # line:ch1.1-1.action.001
+我的房间呢？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.002 # voice:west.zhaoying.002
+沈夫人的手停了一瞬。 # speaker:narrator # kind:action # line:ch1.1-1.action.002
+改成储物间了。你走以后东西多，前厅又潮，就收了一部分进去。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-1.wife.003 # voice:west.wife.003
+为什么不告诉我？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.003 # voice:west.zhaoying.003
+告诉你做什么？让你隔着几百里回来骂我占了你的房？ # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-1.wife.004 # voice:west.wife.004
+我昨晚已经骂过一轮了，不差这一件。 # speaker:zhaoying # kind:spoken # portrait:calm # line:ch1.1-1.zhaoying.004 # voice:west.zhaoying.004
+那先吃。吃饱了你慢慢骂。 # speaker:wife # kind:spoken # portrait:restrained # line:ch1.1-1.wife.005 # voice:west.wife.005
+赵映终于拿起勺子。 # speaker:narrator # kind:action # line:ch1.1-1.action.003
+她还是这样。越不想回答什么，越喜欢往人碗里夹东西。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-1.inner.001
+西院那面墙以前是不是有一道门？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.005 # voice:west.zhaoying.005
+没有。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-1.wife.006 # voice:west.wife.006
+你想都没想。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.006 # voice:west.zhaoying.006
+因为那面墙我每天都看。你小时候在回廊里写字、踢毽子、罚站，全在那一段。墙就是墙，从来没有门。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-1.wife.007 # voice:west.wife.007
+老周说后面有侧路。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.007 # voice:west.zhaoying.007
+老周这些年修园子修糊涂了。他记得的是假山另一边那条工人路，不是你说的位置。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-1.wife.008 # voice:west.wife.008
+他说我小时候经常走。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-1.zhaoying.008 # voice:west.zhaoying.008
+你小时候最讨厌那片假山，里面黑，一进去就喊人。你十二岁那年还卡在石缝里哭了半天。 # speaker:wife # kind:spoken # portrait:restrained # line:ch1.1-1.wife.009 # voice:west.wife.009
+赵映抬眼。这个细节她也有印象。 # speaker:narrator # kind:action # line:ch1.1-1.action.004
+她说的是真的。至少这件事是真的。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-1.inner.002 # objective:start:west-arrival:follow-lantern
 -> END
 
 === wife_arrival ===
-西廊入口的灯影里，顾蘅秋像一幅被雨打湿又重新裱过的画。 # speaker:narrator # line:wife.001
-沈先生死前，西廊的水渠早就干了。那夜我从这里经过，鞋底连泥都没有沾。 # speaker:wife # portrait:restrained # line:wife.002 # voice:west.wife.001
-但渠边有一张被水泡过的名帖。 # speaker:zhaoying # portrait:guarded # line:wife.003 # voice:west.zhaoying.004
-那不是水。是雨。你若要写进簿子，就先亲眼看看。 # speaker:wife # portrait:guarded # line:wife.004 # voice:west.wife.002 # objective:start:west-waterline:inspect-wife
+老周正在西院修一段被雨冲松的排水槽。 # speaker:narrator # kind:narration # line:ch1.1-2.env
+沈姨说我从来不走假山那条路。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-2.zhaoying.001 # voice:west.zhaoying.009
+她当然这么记。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-2.steward.001 # voice:west.steward.001
+你这句话听起来像你早就知道她会这么说。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-2.zhaoying.002 # voice:west.zhaoying.010
+因为七年前她也这么说。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-2.steward.002 # voice:west.steward.002
+那你记得什么？别给我一句“有路”。从头说。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-2.zhaoying.003 # voice:west.zhaoying.011
+老周放下工具，指向墙脚。 # speaker:narrator # kind:action # line:ch1.1-2.action.001
+你小时候嫌正门绕，每次从厨房拿完东西都从这边钻。先过这盏灯，再贴着墙走，墙根有一道排水沟。前面有块青石，踩上去容易滑。再往里，假山背后有个窄口，能直接到夹院。 # speaker:steward # kind:spoken # portrait:courteous # line:ch1.1-2.steward.003 # voice:west.steward.003
+我为什么一点都不记得？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-2.zhaoying.004 # voice:west.zhaoying.012
+你问我，我问谁？我还记得你有一次端着半碗酒酿圆子跑，走到那块青石摔了一跤，碗没碎，人哭得跟碗碎了一样。 # speaker:steward # kind:spoken # portrait:courteous # line:ch1.1-2.steward.004 # voice:west.steward.004
+这事我记得。 # speaker:zhaoying # kind:spoken # portrait:calm # line:ch1.1-2.zhaoying.005 # voice:west.zhaoying.013
+那你记得在哪儿摔的吗？ # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-2.steward.005 # voice:west.steward.005
+……回廊口。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-2.zhaoying.006 # voice:west.zhaoying.014
+我记得就是这条路。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-2.steward.006 # voice:west.steward.006
+同一件童年丢脸事，我和他连地点都对不上。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-2.inner.001 # objective:start:west-waterline:inspect-wife
 -> END
 
 === gardener_arrival ===
-铜铃一响，冷金色的西廊褪成湿苔。水从干渠里浮出来，逆着坡度流向水榭。 # speaker:narrator # line:gardener.001
-水从来没有顺着园主的意思走。那夜也是。 # speaker:gardener # portrait:taciturn # line:gardener.002 # voice:west.gardener.001
-夫人说这里是干的。 # speaker:zhaoying # portrait:guarded # line:gardener.003 # voice:west.zhaoying.005
-夫人没撒谎。她只是没看我后来把水放回去。你要判错，就看脚下，别看我的脸。 # speaker:gardener # portrait:guilty # line:gardener.004 # voice:west.gardener.002 # objective:step:inspect-gardener
+下午，沈夫人与老周同时来到西院。赵映通过两人的详细描述，在同一地点反复核对空间。 # speaker:narrator # kind:narration # line:ch1.1-4.env
+你站到漏窗这边看。这里一直是完整墙面，墙后是夹院，但入口在北边。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-4.wife.001 # voice:west.wife.010
+你往右两步。以前这儿能转进去，排水沟会跟过去。 # speaker:steward # kind:spoken # portrait:courteous # line:ch1.1-4.steward.001 # voice:west.steward.007
+你们两个现在站在同一个地方，一个说我面前是墙，一个说我面前是路。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-4.zhaoying.001 # voice:west.zhaoying.015
+那就是有人记错了。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-4.wife.002 # voice:west.wife.011
+我不跟你争谁记错。我只说我走过。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-4.steward.002 # voice:west.steward.008
+你走过几次？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-4.zhaoying.002 # voice:west.zhaoying.019
+七年前那晚，至少三次。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-4.steward.003 # voice:west.steward.012
+不可能。那晚你一直在前院。 # speaker:wife # kind:spoken # portrait:guarded # line:ch1.1-4.wife.003 # voice:west.wife.012
+你看，你连这个也跟我记得不一样。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-4.steward.004 # voice:west.steward.013
+停顿。 # speaker:narrator # kind:action # line:ch1.1-4.action.001
+他们不是在临时编。两个人都能把细节说到灯的位置、石头的高低、雨从哪里流。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-4.inner.001
+如果只有一个人在撒谎，事情反而简单。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-4.inner.002 # objective:start:west-loop:inspect-seventh-window
 -> END
 
 === waterline_confirmed ===
-同一条渠，在夫人证词里干涸，在园丁证词里逆流。两份独立观察，第一笔勘误成立。 # speaker:zhaoying # portrait:guarded # line:waterline.001 # voice:west.zhaoying.006
-别急着写“谁杀了他”。先去第七扇漏窗。两个人都说自己没走到那里。 # speaker:steward # portrait:knowing # line:waterline.002 # voice:west.steward.009 # objective:start:west-loop:inspect-seventh-window
+赵映蹲下，用手电贴着墙根照。 # speaker:narrator # kind:action # line:ch1.1-3.action.001
+雨水顺着墙脚往前流，到这里突然断了。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-3.inner.001
+她绕到另一侧能到达的位置。相同高度的墙根又出现一条湿线。 # speaker:narrator # kind:action # line:ch1.1-3.action.002
+老周，这段排水是谁做的？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-3.zhaoying.001 # voice:west.zhaoying.016
+老早以前就有。我接手的时候就在。 # speaker:steward # kind:spoken # portrait:courteous # line:ch1.1-3.steward.001 # voice:west.steward.009
+如果中间一直是实墙，两边的水为什么在一个高度？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-3.zhaoying.002 # voice:west.zhaoying.017
+所以我说这里有路。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-3.steward.002 # voice:west.steward.010
+赵映又发现泥里有几枚不完整脚印，最后一枚只剩前掌，方向正对墙。 # speaker:narrator # kind:action # line:ch1.1-3.action.003
+脚印不是走到墙前停下。至少看起来不像。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-3.inner.002
+转角灯的底座也有一条长期被什么东西蹭过的浅痕。 # speaker:narrator # kind:action # line:ch1.1-3.action.004
+这些你以前为什么不说？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-3.zhaoying.003 # voice:west.zhaoying.018
+因为以前我说了也没人信。后来我自己也懒得信。 # speaker:steward # kind:spoken # portrait:guilty # line:ch1.1-3.steward.003 # voice:west.steward.011
 -> END
 
 === loop_first_observation ===
-第七扇漏窗后还是第七扇漏窗。可一份证词，只能证明一个人记错了路。 # speaker:zhaoying # portrait:guarded # line:loop.001 # voice:west.zhaoying.007
-换到另一份证词，在同一位置再看一次。 # speaker:steward # portrait:courteous # line:loop.002 # voice:west.steward.010 # objective:step:cross-check-window
+我刚才已经走过这里。 # speaker:zhaoying # kind:spoken # portrait:alarmed # line:ch1.1-5.zhaoying.001 # voice:west.zhaoying.020
+哪儿？ # speaker:steward # kind:spoken # portrait:courteous # line:ch1.1-5.steward.001 # voice:west.steward.014
+这块窗花，右下角断了一片。我看见两次了。 # speaker:zhaoying # kind:spoken # portrait:alarmed # line:ch1.1-5.zhaoying.002 # voice:west.zhaoying.021
+我以前数到第七扇的时候也觉得不对。后来再走，还是回来。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-5.steward.002 # voice:west.steward.015
+沈姨的版本里这里只有三扇窗。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-5.zhaoying.003 # voice:west.zhaoying.022
+所以我这些年不愿意进来。不是怕鬼，是怕自己越走越说不清楚。 # speaker:steward # kind:spoken # portrait:guilty # line:ch1.1-5.steward.003 # voice:west.steward.016
+赵映停在漏窗前。从沈夫人的叙述版本看，窗外存在一块可落脚的青石；从老周的版本看，那块石头不在。 # speaker:narrator # kind:action # line:ch1.1-5.action.001
+她记得石头，他记得路。单独任何一个版本都走不通。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-5.inner.001
 -> END
 
-=== trust ===
-我改了水路。若不让水倒灌，还魂局就会把她留在水榭里。 # speaker:gardener # portrait:guilty # line:trust.001 # voice:west.gardener.003
-他知道水会流进反锁的房间，却没有告诉我。 # speaker:wife # portrait:guarded # line:trust.002 # voice:west.wife.003
-你们说的是同一件事：园主溺死了。可你们给它安排了不同的动机。 # speaker:zhaoying # portrait:guarded # line:trust.003 # voice:west.zhaoying.008
-* [他改水是为了破坏仪式，不是为了杀人。]
-    善意不等于无责。但我会把“保护”写在“改水”后面。 # speaker:zhaoying # portrait:calm # line:trust.004a # voice:west.zhaoying.009 # trust:set:west-water-motive:protect:west.trust.protective-sabotage
-    -> trust_end
-* [他明知水榭反锁，仍然放水。]
-    结果不能抹去选择。我会把“明知”写在“改水”前面。 # speaker:zhaoying # portrait:guarded # line:trust.004b # voice:west.zhaoying.010 # trust:set:west-water-motive:accuse:west.trust.reckless-sabotage
-    -> trust_end
-= trust_end
-纸页刚吃进墨，所有漏窗同时暗了。 # speaker:narrator # line:trust.005
--> END
-
-=== chase_intro ===
-漏窗外站着一个没有脸的人。他没有问你发现了什么，只朝你伸手。 # speaker:narrator # line:chase.001
-把名字还给我。 # speaker:steward # portrait:threatening # line:chase.002 # voice:west.steward.011
-那不是管家的声音。 # speaker:zhaoying # portrait:alarmed # line:chase.003 # voice:west.zhaoying.011
-切到夫人的证词。她记忆里的月洞门还没有消失。 # speaker:steward # portrait:threatening # line:chase.004 # voice:west.steward.012 # objective:start:west-escape:reach-moon-gate
+=== anchor_confirmed ===
+……这不应该成立。 # speaker:zhaoying # kind:spoken # portrait:alarmed # line:ch1.1-5.zhaoying.004 # voice:west.zhaoying.026
+可你站上去了。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-5.steward.004 # voice:west.steward.020
+别说得像你早知道会这样。 # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-5.zhaoying.005 # voice:west.zhaoying.027
+我不知道。我只知道七年前有些东西也是这么留下来的。 # speaker:steward # kind:spoken # portrait:guilty # line:ch1.1-5.steward.005 # voice:west.steward.021
 -> END
 
 === completion ===
-门外没有你的脚印。身后的回廊折成一张湿透的供词。 # speaker:narrator # line:complete.001
-园丁改过水路，夫人调换过一张写着“照”字的名帖。他们是在合谋杀我，还是在用四种错误救下第五个人？ # speaker:steward # portrait:knowing # line:complete.002 # voice:west.steward.013
-你说“第五个人”时，为什么一直看着我？ # speaker:zhaoying # portrait:guarded # line:complete.003 # voice:west.zhaoying.012
-北楼的账，会替我回答。前提是你还敢带着这个名字上去。 # speaker:steward # portrait:threatening # line:complete.004 # voice:west.steward.014
+侧路尽头通向一处很少使用的夹院。墙根堆着旧瓦和木板，地面积水比外面浅。 # speaker:narrator # kind:narration # line:ch1.1-6.env
+赵映在一块较干的石板上发现残留的鞋印。印痕已经很旧，但鞋底纹路与周围工人鞋不同。 # speaker:narrator # kind:action # line:ch1.1-6.action.001
+这里平时谁走？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-6.zhaoying.001 # voice:west.zhaoying.023
+七年前以后没人走。后来口封了，我自己也不来。 # speaker:steward # kind:spoken # portrait:guilty # line:ch1.1-6.steward.001 # voice:west.steward.017
+那这串脚印呢？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-6.zhaoying.002 # voice:west.zhaoying.024
+我不知道。 # speaker:steward # kind:spoken # portrait:guilty # line:ch1.1-6.steward.002 # voice:west.steward.018
+又不知道？ # speaker:zhaoying # kind:spoken # portrait:guarded # line:ch1.1-6.zhaoying.003 # voice:west.zhaoying.025
+赵映，我可以为了让你安心编一个名字。可那样只会让你又多一个假的答案。 # speaker:steward # kind:spoken # portrait:knowing # line:ch1.1-6.steward.003 # voice:west.steward.019
+脚印从侧路进入夹院，方向继续朝主宅和水榭。 # speaker:narrator # kind:action # line:ch1.1-6.action.002
+有人在雨里从这条“不存在的路”进来过。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-6.inner.001
+如果这个人就是七年前那晚的第五个人，沈伯的死也许从一开始就漏了一个人。 # speaker:zhaoying # kind:inner # portrait:guarded # line:ch1.1-6.inner.002
 -> END

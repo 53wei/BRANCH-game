@@ -5,72 +5,207 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
 import { createCheckpoint } from "./campaign-save";
 import { DialogueRunner } from "./narrative/DialogueRunner";
-import { speakerProfiles } from "./narrative/speakers";
+import { StoryBackdrop } from "./narrative/StoryBackdrop";
+import type { StoryBackdropId } from "./narrative/story-backdrops";
+import { NarrativeInline } from "./narrative/NarrativeInline";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
-import { AudioAtmosphere } from "./runtime/AudioAtmosphere";
+import { AudioAtmosphere, audioZoneForLayoutZones } from "./runtime/AudioAtmosphere";
+import { registerArchitectureCollisionCoverage } from "./runtime/architecture-collision-runtime";
+import { CameraRig } from "./mechanics/CameraRig";
+import { BorrowAnchorController } from "./mechanics/BorrowAnchorController";
+import { BorrowedViewPortal } from "./mechanics/BorrowedViewPortal";
+import { InteractionController, INTERACTION_RANGE_CALIBRATION } from "./mechanics/InteractionController";
 import { ObjectiveDirector, objectiveProgressKey, resolveActiveObjective } from "./runtime/ObjectiveDirector";
-import { PhysicsController, type PlayerPose } from "./runtime/PhysicsController";
+import { guidanceLevelForElapsed } from "./runtime/guidance-config";
+import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/PhysicsController";
+import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { TingYuXuanScene, type SceneInteractable } from "./runtime/TingYuXuanScene";
-import { createChapterCompletePayload, resolveChaseOutcome } from "./runtime/chapter-behavior";
-import { containsLayoutPoint, getLayoutAnchor, getLayoutTrigger, resolveLayoutTriggerDestination, tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
+import { PlayerAvatar } from "./runtime/PlayerAvatar";
+import { createChapterCompletePayload } from "./runtime/chapter-behavior";
+import { resolveGameplayRegionForPoint, resolveNearestRouteAnchor, tingYuXuanRouteAnchors } from "./runtime/tingyuxuan-gameplay-map";
+import { containsLayoutPoint, getLayoutAnchor, getLayoutTrigger, resolveLayoutTriggerDestination, resolveLayoutZonesForPoint, tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
+import {
+  CH1_ANCHOR_TARGET,
+  CH1_BORROWABLES,
+  CH1_BORROWED_VIEW_POINT,
+  CH1_BORROW_SOURCE,
+  CH1_REWARD_COURTYARD,
+  CH1_REWARD_POINTS,
+  CH1_TRACES,
+  countFlags,
+  distance2D,
+  type SliceEvidenceDefinition,
+} from "./runtime/vertical-slice-content";
+import { buildChapterOneSliceVisuals, setSliceObjectOpacity, type ChapterOneSliceVisuals } from "./runtime/vertical-slice-visuals";
+import { CaseFilePanel } from "./ui/CaseFilePanel";
+import { FullMap } from "./ui/FullMap";
+import { HelpPanel } from "./ui/HelpPanel";
+import { MiniMap, type RuntimeMapTarget } from "./ui/MiniMap";
+import { PauseMenu, RuntimeSettingsPanel } from "./ui/PauseMenu";
+import { TutorialGuide } from "./ui/TutorialGuide";
 
-type RuntimePhase = "loading" | "dialogue" | "playing" | "chase" | "failed" | "complete" | "error";
+type RuntimePhase = "loading" | "dialogue" | "playing" | "complete" | "error";
+type RuntimePanel = "tutorial" | "case-file" | "map" | "pause" | "help" | "settings";
 
 interface GameRuntimeProps {
   chapter: ChapterManifest;
   save: CampaignSave;
   onSave: (save: CampaignSave) => void;
   onExit: () => void;
+  onContinue: () => void;
+}
+
+interface DebugTelemetry {
+  position: [number, number, number];
+  fps: number;
+  areaId: string;
+  routeAnchorId: string;
+  routeDistance: number;
+  grounded: boolean;
+  architecture: "master" | "legacy";
+}
+
+interface SliceInspection {
+  id: string;
+  title: string;
+  body: string;
+  note: string;
 }
 
 const unique = <T,>(values: T[]) => [...new Set(values)];
-const distance = (a: PlayerPose, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 
-export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps) {
+function resolveChapterOneMapTarget(checkpoint: CheckpointState): RuntimeMapTarget | undefined {
+  const flags = checkpoint.earnedFlags;
+  const traceCount = countFlags(flags, "west.trace.");
+  const rewardCount = CH1_REWARD_POINTS.filter((item) => flags.includes(item.flag)).length;
+  if (flags.includes("west.arrived") && !checkpoint.contradictions.includes("waterline-direction") && traceCount < 3) {
+    return { x: 4.2, z: 42.55, label: "墙脚痕迹搜索范围", radius: 2.4, approximate: true };
+  }
+  if (flags.includes("west.borrowed-view.ready") && !flags.includes("west.borrowed-view.seen")) {
+    return { x: CH1_BORROWED_VIEW_POINT.position[0], z: CH1_BORROWED_VIEW_POINT.position[2], label: "漏窗" };
+  }
+  if (flags.includes("west.borrowed-view.seen") && !flags.includes("west.borrowed.threshold-stone")) {
+    return { x: CH1_BORROW_SOURCE.position[0], z: CH1_BORROW_SOURCE.position[2], label: "夫人认知中的踏石" };
+  }
+  if (flags.includes("west.borrowed.threshold-stone") && !checkpoint.mechanics.borrowedObject?.anchored) {
+    return { x: CH1_ANCHOR_TARGET.position[0], z: CH1_ANCHOR_TARGET.position[2], label: "Anchor" };
+  }
+  if (checkpoint.mechanics.borrowedObject?.anchored && !flags.includes("west.loop-broken")) {
+    return { x: CH1_REWARD_COURTYARD.position[0], z: CH1_REWARD_COURTYARD.position[2], label: "循环外的新落脚点" };
+  }
+  if (flags.includes("west.loop-broken") && rewardCount < 2) {
+    return { x: CH1_REWARD_COURTYARD.position[0], z: CH1_REWARD_COURTYARD.position[2], label: "夹院调查范围", radius: 3, approximate: true };
+  }
+  return undefined;
+}
+
+const recordWalkAuditMilestone = (
+  canvas: HTMLCanvasElement,
+  id: string,
+  pose: { x: number; y: number; z: number },
+  grounded: boolean,
+) => {
+  const milestone = {
+    id,
+    playerPose: [Number(pose.x.toFixed(3)), Number(pose.y.toFixed(3)), Number(pose.z.toFixed(3))],
+    grounded,
+    gameplayArea: resolveGameplayRegionForPoint({ x: pose.x, z: pose.z }),
+    nearestRouteAnchor: resolveNearestRouteAnchor({ x: pose.x, z: pose.z }).id,
+  };
+  const history = JSON.parse(canvas.dataset.walkAuditMilestones ?? "[]") as Array<typeof milestone>;
+  if (!history.some((item) => item.id === id)) history.push(milestone);
+  canvas.dataset.walkAuditMilestones = JSON.stringify(history);
+  canvas.dataset.walkAuditReached = id;
+  canvas.dataset.walkAuditReachedPose = milestone.playerPose.join(",");
+  canvas.dataset.walkAuditReachedArea = milestone.gameplayArea;
+  canvas.dataset.walkAuditReachedNearest = milestone.nearestRouteAnchor;
+  canvas.dataset.walkAuditReachedGrounded = String(milestone.grounded);
+};
+
+
+export function GameRuntime({ chapter, save, onSave, onExit, onContinue }: GameRuntimeProps) {
   const visualParams = typeof window === "undefined" ? undefined : new URLSearchParams(window.location.search);
   const visualMode = process.env.NODE_ENV === "development" && visualParams?.get("visualTest") === "1";
-  const visualUi = visualParams?.get("visualUi") === "1";
+  const visualUi = process.env.NODE_ENV === "development" && visualParams?.get("visualUi") === "1";
+  const debugHudEnabled = process.env.NODE_ENV === "development" && visualParams?.get("debugGameplay") === "1";
+  const walkAuditEnabled = visualMode && visualParams?.get("walkAudit") === "1";
+  const specialStructureWalkAuditEnabled = visualMode && visualParams?.get("specialStructureWalkAudit") === "1";
   const visualAnchorId = visualParams?.get("visualAnchor");
   const visualPitch = Number(visualParams?.get("visualPitch") ?? -0.05);
+  const visualYawParam = visualParams?.get("visualYaw");
+  const visualYaw = visualYawParam === null || visualYawParam === undefined ? undefined : Number(visualYawParam);
+  const visualXParam = visualParams?.get("visualX");
+  const visualYParam = visualParams?.get("visualY");
+  const visualZParam = visualParams?.get("visualZ");
+  const visualX = visualXParam === null || visualXParam === undefined ? undefined : Number(visualXParam);
+  const visualY = visualYParam === null || visualYParam === undefined ? undefined : Number(visualYParam);
+  const visualZ = visualZParam === null || visualZParam === undefined ? undefined : Number(visualZParam);
+  const initialRuntimePanel: RuntimePanel | undefined = !visualMode && save.tutorial.controls.autoShow && !save.tutorial.controls.seen ? "tutorial" : undefined;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<{
     renderer: Awaited<ReturnType<typeof createRenderer>>;
     world: TingYuXuanScene;
     physics: PhysicsController;
     audio: AudioAtmosphere;
+    cameraRig: CameraRig;
+    interaction: InteractionController;
+    playerAvatar: PlayerAvatar;
+    borrow: BorrowAnchorController;
+    portal: BorrowedViewPortal;
+    sliceVisuals: ChapterOneSliceVisuals;
   } | undefined>(undefined);
   const keysRef = useRef(new Set<string>());
+  const panelRef = useRef<RuntimePanel | undefined>(initialRuntimePanel);
+  const panelReturnRef = useRef<RuntimePanel | undefined>(undefined);
   const touchModeRef = useRef(false);
   const keyboardFallbackRef = useRef(false);
   const yawRef = useRef(0);
   const pitchRef = useRef(0);
-  const nearestRef = useRef<SceneInteractable | undefined>(undefined);
-  const chaseElapsedRef = useRef(0);
+  const walkAuditTargetIndexRef = useRef(1);
+
+  const finishChapterRef = useRef<() => void>(() => undefined);
   const phaseRef = useRef<RuntimePhase>("loading");
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
   const startDialogueRef = useRef<(id: string) => void>(() => undefined);
   const saveRef = useRef(save);
   const onSaveRef = useRef(onSave);
+  // Compatibility state for the retired notebook implementation. New input routes use CaseFilePanel.
   const notebookRef = useRef(false);
   const directorRef = useRef(new ObjectiveDirector());
   const lastGuideUpdateRef = useRef(0);
   const lastAreaLoadRef = useRef(0);
   const areaLoadInFlightRef = useRef(false);
+  const lastMapUpdateRef = useRef(0);
+  const sliceGuidanceKeyRef = useRef("");
+  const sliceGuidanceElapsedRef = useRef(0);
+  const sliceGuidanceLevelRef = useRef(0);
 
   const [phase, setPhaseState] = useState<RuntimePhase>("loading");
   const [backend, setBackend] = useState<RendererBackend>();
-  const [subtitle, setSubtitle] = useState("雨落在回廊外，像有人用指节一遍遍敲门。");
-  const [barkSpeaker, setBarkSpeaker] = useState<MemoryId | "steward">("steward");
+  const [subtitle, setSubtitle] = useState("两份证词指向同一座园子。先在同一地点分别查证。");
+
   const [prompt, setPrompt] = useState<string>();
+  const [sliceInspection, setSliceInspection] = useState<SliceInspection>();
   const [showNotebook, setShowNotebookState] = useState(false);
+  const [runtimePanel, setRuntimePanelState] = useState<RuntimePanel | undefined>(initialRuntimePanel);
   const [activeDialogue, setActiveDialogueState] = useState<DialogueSequence>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [touchMode, setTouchMode] = useState(false);
   const [guideDistance, setGuideDistance] = useState<number>();
   const [guideAngle, setGuideAngle] = useState(0);
+  const [sliceGuidanceState, setSliceGuidanceState] = useState({ key: "", level: 0 });
   const [error, setError] = useState("");
+  const [debugTelemetry, setDebugTelemetry] = useState<DebugTelemetry>({
+    position: [0, 0, 0],
+    fps: 0,
+    areaId: "UNMAPPED",
+    routeAnchorId: "ROUTE_01_START",
+    routeDistance: 0,
+    grounded: false,
+    architecture: "master",
+  });
 
   const [initialCheckpoint] = useState<CheckpointState>(() => {
     if (save.activeCheckpoint.chapterId === chapter.id) {
@@ -81,6 +216,11 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   });
   const [checkpoint, setCheckpointState] = useState(initialCheckpoint);
   const checkpointRef = useRef(checkpoint);
+  const [mapPose, setMapPose] = useState(() => {
+    const anchor = getLayoutAnchor(chapter.spawnAnchor);
+    const position = initialCheckpoint.position ?? anchor.position;
+    return { x: position[0], z: position[2], yaw: initialCheckpoint.yaw ?? anchor.yaw };
+  });
 
   useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [onSave, save]);
 
@@ -99,6 +239,43 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     window.setTimeout(() => {
       if (document.pointerLockElement !== canvas) setSubtitle("当前浏览器不支持鼠标锁定：WASD 移动，方向键左右转向。");
     }, 120);
+  }, []);
+
+  const openRuntimePanel = useCallback((next: RuntimePanel, returnTo?: RuntimePanel) => {
+    panelReturnRef.current = returnTo;
+    panelRef.current = next;
+    setRuntimePanelState(next);
+    keysRef.current.clear();
+    document.exitPointerLock?.();
+  }, []);
+
+  const closeRuntimePanel = useCallback(() => {
+    const returnTo = panelReturnRef.current;
+    panelReturnRef.current = undefined;
+    if (returnTo) {
+      panelRef.current = returnTo;
+      setRuntimePanelState(returnTo);
+      return;
+    }
+    panelRef.current = undefined;
+    setRuntimePanelState(undefined);
+    if (phaseRef.current === "playing") requestPointerLock();
+  }, [requestPointerLock]);
+
+  const finishTutorial = useCallback((dontShowAgain: boolean) => {
+    const nextSave: CampaignSave = {
+      ...saveRef.current,
+      tutorial: { controls: { seen: true, autoShow: !dontShowAgain } },
+    };
+    saveRef.current = nextSave;
+    onSaveRef.current(nextSave);
+    closeRuntimePanel();
+  }, [closeRuntimePanel]);
+
+  const updateRuntimeSettings = useCallback((settings: CampaignSave["settings"]) => {
+    const nextSave: CampaignSave = { ...saveRef.current, settings };
+    saveRef.current = nextSave;
+    onSaveRef.current(nextSave);
   }, []);
 
   const commitCheckpoint = useCallback((producer: (current: CheckpointState) => CheckpointState, includePosition = true) => {
@@ -133,24 +310,24 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     else if (command.type === "memory:unlock") commitCheckpoint((current) => ({ ...current, earnedFlags: unique([...current.earnedFlags, `memory.${command.memoryId}.unlocked`]) }));
   }, [commitCheckpoint]);
 
-  const startChase = useCallback(() => {
+  /* Legacy faceless-chase branch removed from V5 gameplay flow.
     const runtime = runtimeRef.current;
     if (!runtime) return;
     runtime.audio.sting();
     const player = runtime.physics.pose();
     runtime.world.setOwnerVisible(true, new THREE.Vector3(player.x, 0, player.z + 7.5));
     chaseElapsedRef.current = 0;
-    commitCheckpoint((current) => ({ ...current, anchorId: "loop-seventh-window", chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "active" } }));
-    setSubtitle("没有脸的园主正在逼近。切到夫人的证词，穿过亮起的月洞门！");
-    setBarkSpeaker("steward");
+    commitCheckpoint((current) => ({ ...current, anchorId: "ROUTE_03_A_LOOP", chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "active" } }));
+    setSubtitle("没有脸的人正在逼近。切到夫人的证词，穿过旧园东侧亮起的门洞！");
+    
     setPhase("chase");
     requestPointerLock();
-  }, [commitCheckpoint, requestPointerLock, setPhase]);
+  */
 
   const completeDialogue = useCallback((sequence: DialogueSequence) => {
     dialogueRef.current = undefined;
     setActiveDialogueState(undefined);
-    const nextCheckpoint = commitCheckpoint((current) => ({
+    commitCheckpoint((current) => ({
       ...current,
       dialogueProgress: undefined,
       pointerLockPending: false,
@@ -158,54 +335,73 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     }));
 
     if (sequence.id === "opening") {
-      const nextSave = { ...saveRef.current, activeCheckpoint: nextCheckpoint, completedChapters: unique([...saveRef.current.completedChapters, "prologue-rain"]), unlockedChapters: unique([...saveRef.current.unlockedChapters, chapter.id]) };
-      saveRef.current = nextSave;
-      onSaveRef.current(nextSave);
+      // The chapter-one breakfast must not mutate prologue completion/unlock state.
+
+
       runtimeRef.current?.audio.start(save.settings.masterVolume);
-      setSubtitle("跟着灯走。到西廊入口后，顾夫人会告诉你她看见了什么。");
-      setBarkSpeaker("steward");
+      setSubtitle("去西院找老周。他正在修一段被雨冲松的排水槽。" );
+      
       setPhase("playing");
       requestPointerLock();
     } else if (sequence.id === "waterline-confirmed") {
-      setSubtitle("第一笔勘误已经成立。打开勘误簿，记住两份独立证词的规则。");
-      setBarkSpeaker("steward");
+      setSubtitle("");
+      
       setPhase("playing");
-      setShowNotebook(true);
-    } else if (sequence.id === "trust") window.setTimeout(() => startDialogueRef.current("chase-intro"), 120);
-    else if (sequence.id === "chase-intro") startChase();
+      startDialogueRef.current("gardener-arrival");
+    } else if (sequence.id === "trust") setPhase("playing");
+    else if (sequence.id === "chase-intro") setPhase("playing");
     else if (sequence.id === "completion") setPhase("complete");
     else if (sequence.presentation === "stage") {
-      if (sequence.id === "wife-arrival") { setSubtitle("顾蘅秋：那不是水。是雨。你若要写进簿子，就先亲眼看看。"); setBarkSpeaker("wife"); }
-      if (sequence.id === "gardener-arrival") { setSubtitle("周守圃：你要判错，就看脚下，别看我的脸。"); setBarkSpeaker("gardener"); }
+      if (sequence.id === "wife-arrival") setSubtitle("");
+      if (sequence.id === "gardener-arrival") setSubtitle("");
       setPhase("playing");
       requestPointerLock();
     }
-  }, [chapter.id, commitCheckpoint, requestPointerLock, save.settings.masterVolume, setPhase, setShowNotebook, startChase]);
+  }, [chapter.id, commitCheckpoint, openRuntimePanel, requestPointerLock, save.settings.masterVolume, setPhase]);
 
   const switchMemory = useCallback(() => {
-    if (!runtimeRef.current || !["playing", "chase"].includes(phaseRef.current) || dialogueRef.current?.presentation === "stage") return;
+    if (!runtimeRef.current || phaseRef.current !== "playing" || dialogueRef.current?.presentation === "stage") return;
     const current = checkpointRef.current;
     const active = resolveActiveObjective(chapter.objectives ?? [], current);
     const waterlineConfirmed = current.contradictions.includes("waterline-direction");
     if (!waterlineConfirmed && active?.step.id !== "switch-gardener" && active?.step.id !== "inspect-gardener") {
-      setSubtitle("先在夫人的证词里记下干渠，再用铜铃复查同一个地方。");
-      setBarkSpeaker("wife");
+      setSubtitle("先在夫人的证词里确认这段墙，再用铜铃复查同一个地方。");
+      
       return;
     }
-    const next: MemoryId = current.memoryId === "wife" ? "gardener" : "wife";
+    const next: "wife" | "gardener" = current.memoryId === "wife" ? "gardener" : "wife";
+    runtimeRef.current.borrow.onCognitionSwitch();
+    const borrowState = runtimeRef.current.borrow.serialize();
     runtimeRef.current.world.setMemory(next);
     runtimeRef.current.physics.setMemory(next);
     runtimeRef.current.audio.bell(next);
-    setSubtitle(next === "wife" ? "顾蘅秋：我记得这一夜，水渠是干的。" : "周守圃：水从来没有顺着园主的意思走。");
-    setBarkSpeaker(next);
-    const nextCheckpoint = commitCheckpoint((value) => ({ ...value, memoryId: next, objectiveStepId: active?.step.id === "switch-gardener" ? "inspect-gardener" : value.objectiveStepId, earnedFlags: unique([...value.earnedFlags, "west.learned.memory-switch"]) }));
+    setSubtitle("");
+    
+    const nextCheckpoint = commitCheckpoint((value) => ({
+      ...value,
+      memoryId: next,
+      mechanics: { ...value.mechanics, ...borrowState, currentCognition: next },
+      reconstructionTrace: {
+        ...value.reconstructionTrace,
+        cognitionUsage: {
+          ...value.reconstructionTrace.cognitionUsage,
+          [next]: (value.reconstructionTrace.cognitionUsage[next] ?? 0) + 1,
+        },
+      },
+      objectiveStepId: active?.step.id === "switch-gardener" ? "inspect-gardener" : value.objectiveStepId,
+      earnedFlags: unique([...value.earnedFlags, "west.learned.memory-switch"]),
+    }));
     directorRef.current.markProgress();
-    if (next === "gardener" && !nextCheckpoint.earnedFlags.includes("west.dialogue.gardener-complete")) startDialogue("gardener-arrival");
+    void nextCheckpoint;
   }, [chapter.objectives, commitCheckpoint, startDialogue]);
 
   const inspectContradiction = useCallback((item: SceneInteractable) => {
     const current = checkpointRef.current;
     const active = resolveActiveObjective(chapter.objectives ?? [], current);
+    if (item.id === "waterline-direction" && countFlags(current.earnedFlags, "west.trace.") < 3) {
+      setSubtitle("先别急着比较口供。把墙脚附近至少三处现实痕迹查清楚：水痕、泥印、倒灯或折断枝叶。");
+      return;
+    }
     if (active?.step.targetInteractableId && active.step.targetInteractableId !== item.id) { setSubtitle(`当前任务：${active.step.instruction}`); return; }
     if (item.id === "waterline-direction" && active?.step.id === "inspect-wife" && current.memoryId !== "wife") return;
     if (item.id === "waterline-direction" && active?.step.id === "inspect-gardener" && current.memoryId !== "gardener") return;
@@ -226,23 +422,108 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       objectiveProgress: { ...value.objectiveProgress, [value.activeObjectiveId ?? "unknown"]: unique([...(value.objectiveProgress[value.activeObjectiveId ?? "unknown"] ?? []), `${item.id}:${memory}`]) },
     }));
     directorRef.current.markProgress();
-    setBarkSpeaker(memory);
+    
     if (confirmed) {
-      setSubtitle(`矛盾确认：${definition.label}。两份独立证词在同一位置无法同时成立。`);
+      setSubtitle(`两种说法在同一个位置对不上：${definition.label}。`);
       if (item.id === "waterline-direction") window.setTimeout(() => startDialogue("waterline-confirmed"), 280);
-      else if (next.contradictions.length >= chapter.contradictions.length) window.setTimeout(() => startDialogue("trust"), 280);
+      else if (next.contradictions.length >= chapter.contradictions.length) {
+        commitCheckpoint((value) => ({
+          ...value,
+          activeObjectiveId: undefined,
+          objectiveStepId: undefined,
+          mechanics: { ...value.mechanics, chapterBeat: "west-borrowed-view" },
+          earnedFlags: unique([...value.earnedFlags, "west.borrowed-view.ready"]),
+        }));
+        setSubtitle("老周的路确实会把你送回原处。别再问哪份记忆正确——去漏窗前，试着只借看另一份园子。");
+      }
     } else {
-      setSubtitle(`${definition.label}：已记录${memory === "wife" ? "夫人" : "园丁"}证词，还需要另一份独立观察。`);
+      setSubtitle(`${definition.label}：先记下${memory === "wife" ? "沈夫人" : "老周"}的说法，再换另一份证词看同一个位置。`);
       if (item.id === "corridor-count") window.setTimeout(() => startDialogue("loop-first-observation"), 140);
     }
   }, [chapter.contradictions, chapter.objectives, commitCheckpoint, startDialogue]);
 
-  const interact = useCallback(() => { const item = nearestRef.current; if (item?.kind === "contradiction") inspectContradiction(item); }, [inspectContradiction]);
+  const inspectSliceEvidence = useCallback((item: SliceEvidenceDefinition) => {
+    const current = checkpointRef.current;
+    if (current.earnedFlags.includes(item.flag)) return;
+    const nextFlags = unique([...current.earnedFlags, item.flag]);
+    const discoveredEvidence = unique([...current.mechanics.discoveredEvidence, item.id]);
+    const optionalEvidence = unique([...current.reconstructionTrace.discoveredOptionalEvidence, item.id]);
+    commitCheckpoint((value) => ({
+      ...value,
+      earnedFlags: nextFlags,
+      mechanics: { ...value.mechanics, discoveredEvidence },
+      reconstructionTrace: { ...value.reconstructionTrace, discoveredOptionalEvidence: optionalEvidence },
+    }));
+    setSliceInspection({ id: item.id, title: item.title, body: item.body, note: item.note });
+    directorRef.current.markProgress();
+    document.exitPointerLock?.();
+  }, [commitCheckpoint]);
+
+  const inspectBorrowedView = useCallback(() => {
+    const current = checkpointRef.current;
+    if (!current.earnedFlags.includes("west.borrowed-view.ready")) return;
+    commitCheckpoint((value) => ({
+      ...value,
+      mechanics: { ...value.mechanics, chapterBeat: "west-borrow-source" },
+      earnedFlags: unique([...value.earnedFlags, "west.borrowed-view.seen"]),
+    }));
+    setSliceInspection({
+      id: "borrowed-view",
+      title: "借来的视野",
+      body: "漏窗里能看见沈夫人记得的那块青石；在老周记得的同一位置，这块石头不存在。",
+      note: "可以尝试把这块青石固定成两份空间都承认的共同参照。",
+    });
+    document.exitPointerLock?.();
+  }, [commitCheckpoint]);
+
+  const borrowThresholdStone = useCallback(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || checkpointRef.current.memoryId !== "wife") return;
+    runtime.borrow.borrow(CH1_BORROW_SOURCE.id, "wife", CH1_ANCHOR_TARGET.id);
+    const borrowState = runtime.borrow.serialize();
+    commitCheckpoint((value) => ({
+      ...value,
+      mechanics: { ...value.mechanics, ...borrowState, chapterBeat: "west-anchor-target" },
+      earnedFlags: unique([...value.earnedFlags, "west.borrowed.threshold-stone"]),
+    }));
+    setSubtitle("你没有把石头搬走。你只是把“这里有一块踏石”这个条件，从夫人的记忆里借了出来。去循环地标前找能固定它的位置。");
+  }, [commitCheckpoint]);
+
+  const anchorThresholdStone = useCallback(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime?.borrow.borrowedObject || runtime.borrow.borrowedObject.anchored) return;
+    runtime.borrow.anchor();
+    const borrowState = runtime.borrow.serialize();
+    commitCheckpoint((value) => ({
+      ...value,
+      mechanics: { ...value.mechanics, ...borrowState, chapterBeat: "west-loop-break" },
+      reconstructionTrace: {
+        ...value.reconstructionTrace,
+        anchoredFragments: unique([...value.reconstructionTrace.anchoredFragments, CH1_BORROW_SOURCE.id]),
+      },
+      earnedFlags: unique([...value.earnedFlags, "west.anchor.threshold-stone"]),
+    }));
+    setSubtitle("踏石被锚定了。现在切回老周的证词：如果它还在，说明你第一次让两份不完整认知共同构成了一条路。");
+  }, [commitCheckpoint]);
+
+  const closeSliceInspection = useCallback(() => {
+    setSliceInspection(undefined);
+    const current = checkpointRef.current;
+    const foundFinalFootprint = current.earnedFlags.includes("west.wet-footprint-found");
+    if (foundFinalFootprint && current.earnedFlags.includes("west.loop-broken")) {
+      finishChapterRef.current();
+
+      return;
+    }
+    requestPointerLock();
+  }, [requestPointerLock]);
+
+  const interact = useCallback(() => { runtimeRef.current?.interaction.interact(); }, []);
 
   const finishChapter = useCallback(() => {
     if (phaseRef.current === "complete" || dialogueRef.current?.id === "completion") return;
     const current = checkpointRef.current;
-    const finalCheckpoint: CheckpointState = { ...current, anchorId: "west-safe-courtyard", activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), chaseProgress: { ...current.chaseProgress, "faceless-owner-west": "escaped" }, updatedAt: new Date().toISOString() };
+    const finalCheckpoint: CheckpointState = { ...current, anchorId: "ROUTE_05_B_MAIN_COURT", mechanics: { ...current.mechanics, safeAnchorId: "ROUTE_05_B_MAIN_COURT" }, activeObjectiveId: undefined, objectiveStepId: undefined, earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]), updatedAt: new Date().toISOString() };
     checkpointRef.current = finalCheckpoint;
     setCheckpointState(finalCheckpoint);
     const nextSave: CampaignSave = { ...saveRef.current, activeCheckpoint: finalCheckpoint, completedChapters: unique([...saveRef.current.completedChapters, chapter.id]), unlockedChapters: unique([...saveRef.current.unlockedChapters, "north-tower-ledger"]) };
@@ -250,10 +531,12 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     onSaveRef.current(nextSave);
     window.dispatchEvent(new CustomEvent("garden-of-shadows:chapter-complete", { detail: createChapterCompletePayload(chapter.id, finalCheckpoint) }));
     document.exitPointerLock?.();
-    runtimeRef.current?.world.setOwnerVisible(false);
+    /* V5 has no faceless-chase owner visual. */
     startDialogue("completion");
   }, [chapter.completionFlags, chapter.id, startDialogue]);
+  finishChapterRef.current = finishChapter;
 
+  /* Legacy retryChase removed with the V5 chase deletion.
   const retryChase = useCallback(() => {
     const runtime = runtimeRef.current;
     if (!runtime) return;
@@ -265,6 +548,7 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     commitCheckpoint((current) => ({ ...current, memoryId: "wife" }));
     startChase();
   }, [commitCheckpoint, startChase]);
+  */
 
   useEffect(() => {
     const onChange = () => setHasPointerLock(document.pointerLockElement === canvasRef.current);
@@ -283,19 +567,134 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
         const renderer = await createRenderer(canvas, { forceWebGL: save.settings.renderer === "webgl", quality: save.settings.quality });
         const restored = visualMode ? undefined : initialCheckpoint.position;
         const anchor = getLayoutAnchor(visualMode && visualAnchorId ? visualAnchorId : (initialCheckpoint.anchorId || chapter.spawnAnchor));
-        const spawn = { x: restored?.[0] ?? anchor.position[0], y: Math.max(restored?.[1] ?? anchor.position[1], 0.9), z: restored?.[2] ?? anchor.position[2] };
+        const spawn = {
+          x: visualMode && visualX !== undefined && Number.isFinite(visualX) ? visualX : restored?.[0] ?? anchor.position[0],
+          y: visualMode && visualY !== undefined && Number.isFinite(visualY) ? visualY : Math.max(restored?.[1] ?? anchor.position[1], PLAYER_BODY_CALIBRATION.capsuleGroundedCentreY),
+          z: visualMode && visualZ !== undefined && Number.isFinite(visualZ) ? visualZ : restored?.[2] ?? anchor.position[2],
+        };
         const physics = await PhysicsController.create(spawn, tingYuXuanLayout.colliders);
         if (cancelled) { renderer.dispose(); physics.dispose(); return; }
         const world = await TingYuXuanScene.create(chapter.memories, save.settings.quality, renderer.renderer);
         if (cancelled) { renderer.dispose(); physics.dispose(); world.dispose(); return; }
+        // Final Master meshes are visual truth, not automatic collision input.
+        registerArchitectureCollisionCoverage(world, physics, canvas);
         const audio = new AudioAtmosphere();
+        const cameraRig = new CameraRig(world.camera, physics, {
+          smoothTime: save.settings.stableCamera ? 0.11 : 0.16,
+        });
+        const interaction = new InteractionController();
+        const playerAvatar = new PlayerAvatar();
+        playerAvatar.root.visible = false;
+        world.proceduralDressing.add(playerAvatar.root);
+        const sliceVisuals = await buildChapterOneSliceVisuals(world);
+        world.proceduralDressing.add(sliceVisuals.root);
+        physics.addStaticBoxColliders([{
+          id: "west-threshold-stone-collider",
+          center: [CH1_ANCHOR_TARGET.position[0], 0.08, CH1_ANCHOR_TARGET.position[2]],
+          halfExtents: [0.42, 0.08, 0.34],
+          category: "architecture",
+          initiallyEnabled: false,
+          specialStructure: {
+            kind: "threshold",
+            sourceReference: "CH1_BORROWABLES / wife-threshold-stone visual clone",
+            passage: "none",
+          },
+        }]);
+        const borrow = new BorrowAnchorController(CH1_BORROWABLES, {
+          createBorrowedObject: () => {
+            sliceVisuals.borrowedStone.visible = true;
+            setSliceObjectOpacity(sliceVisuals.borrowedStone, 0.42);
+
+            physics.setColliderEnabled("west-threshold-stone-collider", false);
+          },
+          destroyBorrowedObject: () => {
+            sliceVisuals.borrowedStone.visible = false;
+            sliceVisuals.anchorMarker.visible = false;
+            physics.setColliderEnabled("west-threshold-stone-collider", false);
+          },
+          setBorrowedObjectAnchored: (_objectId, anchored) => {
+            sliceVisuals.borrowedStone.visible = true;
+            setSliceObjectOpacity(sliceVisuals.borrowedStone, anchored ? 1 : 0.42);
+
+            sliceVisuals.anchorMarker.visible = !anchored;
+            physics.setColliderEnabled("west-threshold-stone-collider", anchored);
+          },
+        });
+        borrow.restore(initialCheckpoint.mechanics);
+        const portal = new BorrowedViewPortal({
+          id: CH1_BORROWED_VIEW_POINT.id,
+          surface: sliceVisuals.portalSurface,
+          maxDistance: 8,
+          resolution: 384,
+          renderScale: 0.8,
+        });
+
+        world.interactables.filter((item) => item.kind === "contradiction").forEach((item) => {
+          interaction.registerPoint({
+            id: item.id,
+            type: "evidence",
+            label: `[F] ${item.label}`,
+            maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+            enabledWhen: () => phaseRef.current === "playing" && item.memoryIds.includes(checkpointRef.current.memoryId),
+            onInteract: () => inspectContradiction(item),
+          }, item.position, INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+        });
+        CH1_TRACES.forEach((item) => {
+          interaction.registerPoint({
+            id: `slice-trace-${item.id}`,
+            type: "evidence",
+            label: item.label,
+            maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+            enabledWhen: () => phaseRef.current === "playing" && checkpointRef.current.earnedFlags.includes("west.arrived") && !checkpointRef.current.earnedFlags.includes(item.flag),
+            onInteract: () => inspectSliceEvidence(item),
+          }, new THREE.Vector3(item.position[0], PLAYER_BODY_CALIBRATION.capsuleGroundedCentreY, item.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+        });
+        interaction.registerPoint({
+          id: CH1_BORROWED_VIEW_POINT.id,
+          type: "evidence",
+          label: CH1_BORROWED_VIEW_POINT.label,
+          maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+          enabledWhen: () => phaseRef.current === "playing" && checkpointRef.current.earnedFlags.includes("west.borrowed-view.ready"),
+          onInteract: inspectBorrowedView,
+        }, new THREE.Vector3(CH1_BORROWED_VIEW_POINT.position[0], CH1_BORROWED_VIEW_POINT.position[1], CH1_BORROWED_VIEW_POINT.position[2]), 0.72);
+        interaction.registerPoint({
+          id: CH1_BORROW_SOURCE.id,
+          type: "evidence",
+          label: CH1_BORROW_SOURCE.label,
+          maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+          enabledWhen: () => phaseRef.current === "playing"
+            && checkpointRef.current.memoryId === "wife"
+            && checkpointRef.current.earnedFlags.includes("west.borrowed-view.seen")
+            && !checkpointRef.current.earnedFlags.includes("west.borrowed.threshold-stone"),
+          onInteract: borrowThresholdStone,
+        }, new THREE.Vector3(CH1_BORROW_SOURCE.position[0], 0.45, CH1_BORROW_SOURCE.position[2]), 0.72);
+        interaction.registerPoint({
+          id: CH1_ANCHOR_TARGET.id,
+          type: "evidence",
+          label: CH1_ANCHOR_TARGET.label,
+          maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+          enabledWhen: () => phaseRef.current === "playing" && Boolean(runtimeRef.current?.borrow.borrowedObject && !runtimeRef.current.borrow.borrowedObject.anchored),
+          onInteract: anchorThresholdStone,
+        }, new THREE.Vector3(CH1_ANCHOR_TARGET.position[0], 0.35, CH1_ANCHOR_TARGET.position[2]), 0.8);
+        CH1_REWARD_POINTS.forEach((item) => {
+          interaction.registerPoint({
+            id: `slice-reward-${item.id}`,
+            type: "evidence",
+            label: item.label,
+            maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
+            enabledWhen: () => phaseRef.current === "playing" && checkpointRef.current.earnedFlags.includes("west.loop-broken") && !checkpointRef.current.earnedFlags.includes(item.flag),
+            onInteract: () => inspectSliceEvidence(item),
+          }, new THREE.Vector3(item.position[0], PLAYER_BODY_CALIBRATION.capsuleGroundedCentreY, item.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+        });
         world.setMemory(initialCheckpoint.memoryId);
         physics.setMemory(initialCheckpoint.memoryId);
-        yawRef.current = visualMode ? anchor.yaw : (initialCheckpoint.yaw ?? anchor.yaw);
+        yawRef.current = visualMode && Number.isFinite(visualYaw) ? visualYaw! : visualMode ? anchor.yaw : (initialCheckpoint.yaw ?? anchor.yaw);
         pitchRef.current = visualMode ? visualPitch : 0;
-        runtimeRef.current = { renderer, world, physics, audio };
+        cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
+        runtimeRef.current = { renderer, world, physics, audio, cameraRig, interaction, playerAvatar, borrow, portal, sliceVisuals };
         setBackend(renderer.backend);
         canvas.dataset.rendererBackend = renderer.backend;
+        canvas.dataset.architectureMode = world.architectureMode();
         void world.ensureAreaAssets({ x: spawn.x, z: spawn.z })
           .then(() => { canvas.dataset.assetsReady = "true"; })
           .catch((reason) => {
@@ -313,6 +712,14 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
         resize();
         window.addEventListener("resize", resize);
 
+        // Warm the final Master/light shader set before gameplay begins. Range
+        // lights stay in a stable renderer light set and only fade intensity, so
+        // first entry into a lit area does not compile a lighting pipeline on the
+        // movement frame.
+        canvas.dataset.pipelineWarmup = "warming";
+        await renderer.renderer.compileAsync(world.scene, world.camera);
+        canvas.dataset.pipelineWarmup = "ready";
+
         let previous = performance.now();
         let telemetryWindowStarted = previous;
         let telemetryFrames = 0;
@@ -321,21 +728,97 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           previous = now;
           const activePhase = phaseRef.current;
           let pose = physics.pose();
-          if (process.env.NODE_ENV === "development") canvas.dataset.playerPose = `${pose.x.toFixed(3)},${pose.y.toFixed(3)},${pose.z.toFixed(3)}`;
-          const inputReady = document.pointerLockElement === canvas || touchModeRef.current || keyboardFallbackRef.current;
-          if (["playing", "chase"].includes(activePhase) && inputReady && !notebookRef.current && !dialogueRef.current) {
+          let avatarMoving = false;
+          const inputReady = !panelRef.current && (document.pointerLockElement === canvas || touchModeRef.current || keyboardFallbackRef.current);
+          if (activePhase === "playing" && !notebookRef.current && !dialogueRef.current && !panelRef.current) {
             const keys = keysRef.current;
-            const turn = Number(keys.has("ArrowRight")) - Number(keys.has("ArrowLeft"));
-            yawRef.current -= turn * 1.8 * delta;
-            const forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
-            const strafe = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
-            const speed = keys.has("ShiftLeft") ? 4.5 : 2.75;
-            const sin = Math.sin(yawRef.current);
-            const cos = Math.cos(yawRef.current);
-            pose = physics.move({ x: (forward * -sin + strafe * cos) * speed * delta, y: -2.2 * delta, z: (forward * -cos - strafe * sin) * speed * delta });
+            let movementX = 0;
+            let movementZ = 0;
+            if (specialStructureWalkAuditEnabled) {
+              const target = { x: -15.2, z: 0.25 };
+              const dx = target.x - pose.x;
+              const dz = target.z - pose.z;
+              const distance = Math.hypot(dx, dz);
+              canvas.dataset.specialStructureWalkStatus = distance <= 0.3 ? "complete" : "running";
+              canvas.dataset.specialStructureWalkRemaining = distance.toFixed(3);
+              if (distance > 0.3) {
+                yawRef.current = Math.atan2(-dx, -dz);
+                const step = Math.min(distance, 2.1 * delta);
+                movementX = dx / distance * step;
+                movementZ = dz / distance * step;
+              }
+            } else if (walkAuditEnabled) {
+              const target = tingYuXuanRouteAnchors[walkAuditTargetIndexRef.current];
+              if (target) {
+                // The A-zone route is intentionally impossible in one cognition:
+                // gardener memory opens the side path to ROUTE_03, while wife
+                // memory re-opens the east exit for ROUTE_04+. Keep the automated
+                // walk audit faithful to the actual puzzle instead of bypassing
+                // the memory-specific colliders.
+                const auditMemory: MemoryId = target.id === "ROUTE_03_A_LOOP" ? "gardener" : "wife";
+                if (checkpointRef.current.memoryId !== auditMemory) {
+                  world.setMemory(auditMemory);
+                  physics.setMemory(auditMemory);
+                  checkpointRef.current = { ...checkpointRef.current, memoryId: auditMemory };
+                }
+                const dx = target.position[0] - pose.x;
+                const dz = target.position[2] - pose.z;
+                const distance = Math.hypot(dx, dz);
+                canvas.dataset.walkAuditStatus = "running";
+                canvas.dataset.walkAuditTarget = target.id;
+                // A 0.32 m capsule plus the character-controller offset cannot
+                // always reach a marker placed flush against a gate plane.
+                // 0.65 m remains well inside every route interaction volume.
+                if (distance <= 0.65) {
+                  recordWalkAuditMilestone(canvas, target.id, pose, physics.isGrounded());
+                  walkAuditTargetIndexRef.current += 1;
+                } else {
+                  yawRef.current = Math.atan2(-dx, -dz);
+                  const step = Math.min(distance, 2.75 * delta);
+                  movementX = dx / distance * step;
+                  movementZ = dz / distance * step;
+                }
+              } else {
+                canvas.dataset.walkAuditStatus = "complete";
+                canvas.dataset.walkAuditTarget = "ROUTE_COMPLETE";
+              }
+            } else {
+              const turn = inputReady ? Number(keys.has("ArrowRight")) - Number(keys.has("ArrowLeft")) : 0;
+              yawRef.current -= turn * 1.8 * delta;
+              const forward = inputReady ? Number(keys.has("KeyW")) - Number(keys.has("KeyS")) : 0;
+              const strafe = inputReady ? Number(keys.has("KeyD")) - Number(keys.has("KeyA")) : 0;
+              const speed = keys.has("ShiftLeft") ? PLAYER_PHYSICS_CALIBRATION.fastWalkSpeed : PLAYER_PHYSICS_CALIBRATION.walkSpeed;
+              const sin = Math.sin(yawRef.current);
+              const cos = Math.cos(yawRef.current);
+              movementX = (forward * -sin + strafe * cos) * speed * delta;
+              movementZ = (forward * -cos - strafe * sin) * speed * delta;
+            }
+            avatarMoving = Math.hypot(movementX, movementZ) > 0.0001;
+            pose = physics.move({ x: movementX, y: 0, z: movementZ }, delta);
+          }
+          const gameplayArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
+          const nearestRoute = resolveNearestRouteAnchor({ x: pose.x, z: pose.z });
+          if (now - lastMapUpdateRef.current >= 160) {
+            lastMapUpdateRef.current = now;
+            setMapPose({ x: pose.x, z: pose.z, yaw: yawRef.current });
+          }
+          if (process.env.NODE_ENV === "development" || debugHudEnabled) {
+            canvas.dataset.playerPose = `${pose.x.toFixed(3)},${pose.y.toFixed(3)},${pose.z.toFixed(3)}`;
+            canvas.dataset.grounded = String(physics.isGrounded());
+            canvas.dataset.gameplayArea = gameplayArea;
+            canvas.dataset.nearestRouteAnchor = nearestRoute.id;
+            canvas.dataset.nearestRouteDistance = nearestRoute.distance.toFixed(2);
+            canvas.dataset.playerAvatarVisible = String(playerAvatar.root.visible && playerAvatar.root.parent !== null);
           }
 
           if (now - lastAreaLoadRef.current > 450 && !areaLoadInFlightRef.current) {
+            const layoutZones = resolveLayoutZonesForPoint({ x: pose.x, z: pose.z });
+            const audioZones = world.architectureMode() === "legacy"
+              ? (pose.z > 17 ? ["front-hall", ...layoutZones] : layoutZones)
+              : gameplayArea === "AREA_C" ? ["water-court"]
+                : gameplayArea === "AREA_B" ? ["inner-house"]
+                  : gameplayArea === "AREA_A" ? ["west-courtyard"] : ["front-gate"];
+            audio.setZone(audioZoneForLayoutZones(audioZones));
             lastAreaLoadRef.current = now;
             areaLoadInFlightRef.current = true;
             canvas.dataset.streaming = "true";
@@ -353,8 +836,13 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           }
 
           const objective = resolveActiveObjective(chapter.objectives ?? [], checkpointRef.current);
-          const target = objective?.step.targetPosition ? new THREE.Vector3(...objective.step.targetPosition) : undefined;
-          const showMarker = Boolean(target && (objective?.step.guidance.includes("world-marker") || (objective?.hintLevel ?? 0) >= 2));
+          const objectiveTarget = objective?.step.targetPosition ? new THREE.Vector3(...objective.step.targetPosition) : undefined;
+          const sliceMapTarget = resolveChapterOneMapTarget(checkpointRef.current);
+          const sliceTarget = sliceMapTarget && sliceGuidanceLevelRef.current >= 1 ? new THREE.Vector3(sliceMapTarget.x, 1.1, sliceMapTarget.z) : undefined;
+          const target = sliceTarget ?? objectiveTarget;
+          const showMarker = Boolean(sliceTarget
+            ? sliceGuidanceLevelRef.current >= 3
+            : target && objective?.step.guidance.includes("world-marker") && (objective?.hintLevel ?? 0) >= 3);
           world.setGuidanceTarget(showMarker ? target : undefined);
           if (target && now - lastGuideUpdateRef.current > 120) {
             lastGuideUpdateRef.current = now;
@@ -364,14 +852,27 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(dx, -dz) - yawRef.current));
           }
 
-          const emittedHint = directorRef.current.tick(delta, activePhase !== "playing" || notebookRef.current || Boolean(dialogueRef.current) || !inputReady, checkpointRef.current.activeObjectiveId, checkpointRef.current.objectiveStepId);
+          const emittedHint = directorRef.current.tick(delta, activePhase !== "playing" || notebookRef.current || Boolean(dialogueRef.current) || Boolean(panelRef.current) || !inputReady || !saveRef.current.settings.guidanceAssist, checkpointRef.current.activeObjectiveId, checkpointRef.current.objectiveStepId);
           if (emittedHint && objective) {
             const key = objectiveProgressKey(objective.objective.id, objective.step.id);
             commitCheckpoint((current) => ({ ...current, hintLevels: { ...current.hintLevels, [key]: emittedHint } }));
             setSubtitle(objective.step.hints[emittedHint - 1]);
-            setBarkSpeaker("steward");
+            
             audio.bell(checkpointRef.current.memoryId === "gardener" ? "gardener" : "wife");
           }
+
+          const sliceFlags = checkpointRef.current.earnedFlags;
+          const borrowedViewReady = sliceFlags.includes("west.borrowed-view.ready");
+          const borrowedViewSeen = sliceFlags.includes("west.borrowed-view.seen");
+          const borrowedThreshold = sliceFlags.includes("west.borrowed.threshold-stone");
+          const loopBroken = sliceFlags.includes("west.loop-broken");
+          sliceVisuals.portalSurface.visible = borrowedViewReady && checkpointRef.current.memoryId === "gardener";
+          sliceVisuals.borrowSource.visible = borrowedViewSeen && checkpointRef.current.memoryId === "wife" && !borrowedThreshold;
+          sliceVisuals.anchorMarker.visible = Boolean(borrow.borrowedObject && !borrow.borrowedObject.anchored);
+          CH1_REWARD_POINTS.forEach((item) => {
+            const object = sliceVisuals.rewardObjects.get(item.id);
+            if (object) object.visible = loopBroken;
+          });
 
           if (objective?.objective.id === "west-arrival" && objective.step.id === "follow-lantern" && containsLayoutPoint(getLayoutTrigger("front-hall-to-west"), pose)) {
             directorRef.current.markProgress();
@@ -380,30 +881,73 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
           }
 
           const loopDestination = resolveLayoutTriggerDestination("gardener-corridor-loop", checkpointRef.current.memoryId, pose);
-          if (loopDestination) {
+          if (loopDestination && !borrow.borrowedObject?.anchored) {
+            if (walkAuditEnabled) {
+              // Reaching ROUTE_03 in gardener memory must trigger the real loop.
+              // Record the milestone before teleporting so the audit observes
+              // the trigger-side pose, then continue from A_BASELINE in wife
+              // memory on the following frame.
+              canvas.dataset.walkAuditLoopTeleport = "true";
+              if (walkAuditTargetIndexRef.current === 2) {
+                recordWalkAuditMilestone(canvas, "ROUTE_03_A_LOOP", pose, physics.isGrounded());
+                walkAuditTargetIndexRef.current = 3;
+              }
+            }
             const destination = loopDestination;
             physics.teleport({ x: destination.position[0], y: destination.position[1], z: destination.position[2] });
             yawRef.current = destination.yaw;
             pose = physics.pose();
-            setSubtitle(activePhase === "chase" ? "回廊又把你送回入口。园丁的证词里没有出口！" : "同一盏灯、同一扇漏窗——你回到了西廊入口。");
-            setBarkSpeaker("gardener");
+            setSubtitle("同一盏灯、同一扇漏窗——你回到了刚才经过的地方。");
+            
           }
 
-          world.camera.position.set(pose.x, pose.y + 0.78, pose.z);
-          world.camera.rotation.set(pitchRef.current, yawRef.current, 0);
-          const playerVector = new THREE.Vector3(pose.x, 0.9, pose.z);
-          world.update(delta, playerVector, activePhase === "chase");
-
-          let nearest: SceneInteractable | undefined;
-          let nearestDistance = Number.POSITIVE_INFINITY;
-          for (const item of world.interactables) {
-            if (!item.memoryIds.includes(checkpointRef.current.memoryId)) continue;
-            if (item.kind === "portal" && activePhase !== "chase") continue;
-            const itemDistance = distance(pose, item.position);
-            if (itemDistance < 2.15 && itemDistance < nearestDistance) { nearest = item; nearestDistance = itemDistance; }
+          if (borrow.borrowedObject?.anchored
+            && checkpointRef.current.memoryId === "gardener"
+            && !checkpointRef.current.earnedFlags.includes("west.loop-broken")
+            && distance2D(pose, CH1_REWARD_COURTYARD.position) <= (CH1_REWARD_COURTYARD.radius ?? 2.3)) {
+            commitCheckpoint((current) => ({
+              ...current,
+              mechanics: { ...current.mechanics, chapterBeat: "west-reward-courtyard" },
+              reconstructionTrace: {
+                ...current.reconstructionTrace,
+                solvedWithCognition: {
+                  ...current.reconstructionTrace.solvedWithCognition,
+                  "west-loop-break": ["wife", "gardener"],
+                },
+              },
+              earnedFlags: unique([...current.earnedFlags, "west.loop-broken", "west.borrow-anchor.solved"]),
+            }));
+            setSubtitle("");
+            startDialogueRef.current("anchor-confirmed");
+            
           }
-          if (nearestRef.current?.id !== nearest?.id) { nearestRef.current = nearest; setPrompt(nearest ? `[F] ${nearest.label}` : undefined); }
 
+          if (walkAuditEnabled && walkAuditTargetIndexRef.current === 4) {
+            const exitDestination = resolveLayoutTriggerDestination("wife-moon-gate-exit", checkpointRef.current.memoryId, pose);
+            if (exitDestination) {
+              physics.teleport({ x: exitDestination.position[0], y: exitDestination.position[1], z: exitDestination.position[2] });
+              pose = physics.pose();
+              canvas.dataset.walkAuditExitHandoff = "true";
+              recordWalkAuditMilestone(canvas, "ROUTE_05_B_MAIN_COURT", pose, physics.isGrounded());
+              walkAuditTargetIndexRef.current = 5;
+            }
+          }
+
+          const cameraPlayer = new THREE.Vector3(pose.x, pose.y, pose.z);
+          playerAvatar.update(pose, yawRef.current, avatarMoving, delta);
+          if (cameraRig.mode === "investigation") cameraRig.syncInvestigation(cameraPlayer, yawRef.current, pitchRef.current);
+          else cameraRig.syncExploration(cameraPlayer, yawRef.current, pitchRef.current);
+          cameraRig.update(delta);
+
+          const playerVector = new THREE.Vector3(pose.x, pose.y, pose.z);
+          world.update(delta, playerVector, false);
+
+          const focus = interaction.focus(world.camera, world.camera.position);
+          setPrompt((currentPrompt) => {
+            const nextPrompt = focus?.definition.label;
+            return currentPrompt === nextPrompt ? currentPrompt : nextPrompt;
+          });
+          /* Legacy chase resolution removed from V5.
           if (activePhase === "chase") {
             chaseElapsedRef.current += delta;
             const exitDestination = resolveLayoutTriggerDestination("wife-moon-gate-exit", checkpointRef.current.memoryId, pose);
@@ -417,17 +961,42 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
             }
           }
 
+          */
+          if (sliceVisuals.portalSurface.visible) {
+            portal.render(
+              renderer.renderer,
+              world.scene,
+              world.camera,
+              "wife",
+              (cognition) => {
+                if (cognition === "wife" || cognition === "gardener") world.setMemory(cognition);
+              },
+              () => world.setMemory(checkpointRef.current.memoryId),
+            );
+          }
           renderer.renderer.render(world.scene, world.camera);
           telemetryFrames += 1;
-          if (process.env.NODE_ENV === "development" && now - telemetryWindowStarted >= 500) {
+          if ((process.env.NODE_ENV === "development" || debugHudEnabled) && now - telemetryWindowStarted >= 500) {
             const renderInfo = renderer.renderer.info.render as { calls?: number; triangles?: number; points?: number; lines?: number };
-            canvas.dataset.fps = (telemetryFrames * 1000 / (now - telemetryWindowStarted)).toFixed(1);
+            const fps = telemetryFrames * 1000 / (now - telemetryWindowStarted);
+            canvas.dataset.fps = fps.toFixed(1);
             canvas.dataset.drawCalls = String(renderInfo.calls ?? 0);
             canvas.dataset.triangles = String(renderInfo.triangles ?? 0);
             canvas.dataset.points = String(renderInfo.points ?? 0);
             canvas.dataset.visibleModels = world.visibleModelNames().join(",");
             canvas.dataset.loadedAssetIds = world.loadedAssetIds().join(",");
             canvas.dataset.loadedAssetBytes = String(world.loadedAssetBytes());
+            if (debugHudEnabled) {
+              setDebugTelemetry({
+                position: [pose.x, pose.y, pose.z],
+                fps,
+                areaId: gameplayArea,
+                routeAnchorId: nearestRoute.id,
+                routeDistance: nearestRoute.distance,
+                grounded: physics.isGrounded(),
+                architecture: world.architectureMode(),
+              });
+            }
             telemetryFrames = 0;
             telemetryWindowStarted = now;
           }
@@ -439,8 +1008,8 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
         const resumeId = initialCheckpoint.dialogueProgress?.sequenceId;
         if (visualMode) setPhase("playing");
         else if (resumeId) startDialogueRef.current(resumeId);
-        else if (!initialCheckpoint.earnedFlags.includes("prologue.dialogue.complete")) startDialogueRef.current("opening");
-        else if (initialCheckpoint.chaseProgress["faceless-owner-west"] === "active") setPhase("failed");
+        else if (!initialCheckpoint.earnedFlags.includes("west.dialogue.breakfast-complete")) startDialogueRef.current("opening");
+        // Legacy faceless-chase progress is ignored by the V5 chapter flow.
         else if (initialCheckpoint.earnedFlags.includes("west.chapter.complete")) setPhase("complete");
         else { audio.start(save.settings.masterVolume); setPhase("playing"); }
 
@@ -458,22 +1027,68 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
       window.cancelAnimationFrame(animationFrame);
       removeResize?.();
       runtimeRef.current?.audio.dispose();
+      runtimeRef.current?.interaction.dispose();
+      runtimeRef.current?.cameraRig.dispose();
+      runtimeRef.current?.portal.dispose();
       runtimeRef.current?.world.dispose();
       runtimeRef.current?.physics.dispose();
       runtimeRef.current?.renderer.dispose();
       runtimeRef.current = undefined;
     };
-  }, [chapter.memories, chapter.objectives, chapter.spawnAnchor, commitCheckpoint, finishChapter, initialCheckpoint, save.settings.masterVolume, save.settings.quality, save.settings.renderer, setPhase, visualAnchorId, visualMode, visualPitch]);
+  }, [anchorThresholdStone, borrowThresholdStone, chapter.memories, chapter.objectives, chapter.spawnAnchor, commitCheckpoint, debugHudEnabled, finishChapter, initialCheckpoint, inspectBorrowedView, inspectContradiction, inspectSliceEvidence, save.settings.masterVolume, save.settings.quality, save.settings.renderer, save.settings.stableCamera, setPhase, specialStructureWalkAuditEnabled, visualAnchorId, visualMode, visualPitch, visualX, visualY, visualYaw, visualZ, walkAuditEnabled]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (dialogueRef.current?.presentation === "stage") return;
+      if (event.repeat) return;
+      if (event.code === "Escape") {
+        event.preventDefault();
+        if (panelRef.current === "tutorial" && !panelReturnRef.current) return;
+        if (panelRef.current) closeRuntimePanel();
+        else openRuntimePanel("pause");
+        return;
+      }
+      if (event.code === "KeyH") {
+        event.preventDefault();
+        if (panelRef.current === "help") closeRuntimePanel();
+        else openRuntimePanel("help");
+        return;
+      }
+      if (event.code === "KeyM" && phaseRef.current === "playing") {
+        event.preventDefault();
+        if (panelRef.current === "map") closeRuntimePanel();
+        else openRuntimePanel("map");
+        return;
+      }
+      if (event.code === "KeyN" && phaseRef.current === "playing") {
+        event.preventDefault();
+        if (panelRef.current === "case-file") closeRuntimePanel();
+        else if (!panelRef.current) openRuntimePanel("case-file");
+        return;
+      }
+      if (panelRef.current || dialogueRef.current?.presentation === "stage") return;
+      if (event.code === "Space" && phaseRef.current === "playing") {
+        event.preventDefault();
+        runtimeRef.current?.physics.requestJump();
+        return;
+      }
       keysRef.current.add(event.code);
       if (["ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
-      if (event.repeat) return;
       if (event.code === "Tab") { event.preventDefault(); switchMemory(); }
       if (event.code === "KeyF") interact();
-      if (event.code === "KeyM" && ["playing", "chase"].includes(phaseRef.current)) {
+      if (event.code === "KeyE" && phaseRef.current === "playing") {
+        const runtime = runtimeRef.current;
+        if (runtime) {
+          const pose = runtime.physics.pose();
+          const player = new THREE.Vector3(pose.x, pose.y, pose.z);
+          if (runtime.cameraRig.mode === "exploration") {
+            runtime.cameraRig.enterInvestigation(player, yawRef.current, pitchRef.current);
+            setSubtitle("调查视角：靠近证物后用准星对准，再按 F 勘验。按 E 返回探索视角。");
+          } else {
+            runtime.cameraRig.exitInvestigation(player, yawRef.current, pitchRef.current);
+          }
+        }
+      }
+      if (event.code === "KeyN" && phaseRef.current === "playing") {
         const next = !notebookRef.current;
         setShowNotebook(next);
         if (next) document.exitPointerLock?.(); else requestPointerLock();
@@ -495,13 +1110,60 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("blur", onWindowBlur);
     return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); window.removeEventListener("mousemove", onMouseMove); window.removeEventListener("blur", onWindowBlur); };
-  }, [interact, requestPointerLock, setShowNotebook, switchMemory]);
+  }, [closeRuntimePanel, interact, openRuntimePanel, requestPointerLock, setShowNotebook, switchMemory]);
 
   const activeObjective = resolveActiveObjective(chapter.objectives ?? [], checkpoint);
+  const traceCount = countFlags(checkpoint.earnedFlags, "west.trace.");
+  const rewardCount = CH1_REWARD_POINTS.filter((item) => checkpoint.earnedFlags.includes(item.flag)).length;
+  const borrowedObjectAnchored = Boolean(checkpoint.mechanics.borrowedObject?.anchored);
+  const sliceObjective = checkpoint.earnedFlags.includes("west.arrived") && !checkpoint.contradictions.includes("waterline-direction") && traceCount < 3
+    ? `先查现实里留下的行动痕迹 · ${traceCount} / 3`
+    : checkpoint.earnedFlags.includes("west.borrowed-view.ready") && !checkpoint.earnedFlags.includes("west.borrowed-view.seen")
+    ? checkpoint.memoryId === "gardener" ? "在漏窗前借看夫人的局部空间" : "切回老周的证词，再看同一扇漏窗"
+    : checkpoint.earnedFlags.includes("west.borrowed-view.seen") && !checkpoint.earnedFlags.includes("west.borrowed.threshold-stone")
+      ? checkpoint.memoryId === "wife" ? "借下夫人记忆里的踏石" : "切回夫人的证词，找到刚才看见的踏石"
+      : checkpoint.earnedFlags.includes("west.borrowed.threshold-stone") && !borrowedObjectAnchored
+        ? "把借来的踏石锚在循环地标前"
+        : borrowedObjectAnchored && !checkpoint.earnedFlags.includes("west.loop-broken")
+          ? checkpoint.memoryId === "gardener" ? "带着被锚定的踏石继续穿过老周的循环" : "切回老周的证词，确认踏石是否仍然存在"
+          : checkpoint.earnedFlags.includes("west.loop-broken") && rewardCount < 2
+            ? `调查不属于任何单一证词的夹院 · ${rewardCount} / 2（任意两处）`
+            : undefined;
+  const sliceMapTarget = resolveChapterOneMapTarget(checkpoint);
+  const activeObjectiveTarget = activeObjective?.step.targetPosition
+    ? { x: activeObjective.step.targetPosition[0], z: activeObjective.step.targetPosition[2], label: activeObjective.step.instruction }
+    : undefined;
+  const sliceGuidanceKey = sliceObjective ?? "";
+  const sliceGuidanceLevel = sliceGuidanceState.key === sliceGuidanceKey ? sliceGuidanceState.level : 0;
+  useEffect(() => {
+    sliceGuidanceKeyRef.current = sliceGuidanceKey;
+    sliceGuidanceElapsedRef.current = 0;
+    sliceGuidanceLevelRef.current = 0;
+    if (!sliceGuidanceKey || !save.settings.guidanceAssist) return;
+    const timer = window.setInterval(() => {
+      const paused = phaseRef.current !== "playing" || notebookRef.current || Boolean(dialogueRef.current) || Boolean(panelRef.current);
+      if (paused || sliceGuidanceKeyRef.current !== sliceGuidanceKey) return;
+      sliceGuidanceElapsedRef.current += 1;
+      const nextLevel = guidanceLevelForElapsed(sliceGuidanceElapsedRef.current);
+      if (nextLevel <= sliceGuidanceLevelRef.current) return;
+      sliceGuidanceLevelRef.current = nextLevel;
+      setSliceGuidanceState({ key: sliceGuidanceKey, level: nextLevel });
+      if (nextLevel === 2) {
+        
+        setSubtitle("先看目标方向上的灯、墙脚与门窗；地图只标调查位置，不会替你判断证词。 ");
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [save.settings.guidanceAssist, sliceGuidanceKey]);
+  const candidateMapTarget = sliceMapTarget ?? activeObjectiveTarget;
+  const mapTarget = candidateMapTarget && (sliceObjective ? sliceGuidanceLevel >= 1 : (activeObjective?.hintLevel ?? 0) >= 1)
+    ? candidateMapTarget
+    : undefined;
+  const mapObjective = sliceObjective ?? activeObjective?.step.instruction ?? "在西侧旧园比较两份证词";
+  const mapRegion = resolveGameplayRegionForPoint(mapPose);
   const activeMemory = chapter.memories.find((memory) => memory.id === checkpoint.memoryId);
-  const observedCount = Object.values(checkpoint.observedBy).reduce((sum, memories) => sum + memories.length, 0);
-  const barkProfile = speakerProfiles[barkSpeaker];
-  const barkImage = barkProfile?.portraits[barkProfile.defaultPortrait];
+
+
   const beginTouchMove = (code: string) => {
     touchModeRef.current = true;
     setTouchMode(true);
@@ -509,41 +1171,57 @@ export function GameRuntime({ chapter, save, onSave, onExit }: GameRuntimeProps)
   };
 
   return (
-    <main className={`runtime runtime-${checkpoint.memoryId} runtime-phase-${phase}${visualMode ? " visual-regression-mode" : ""}${visualUi ? " visual-regression-ui" : ""}`}>
-      <canvas ref={canvasRef} className="runtime-canvas" aria-label="西廊回环实时三维场景" tabIndex={0} onClick={() => ["playing", "chase"].includes(phase) && requestPointerLock()} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} />
+    <main className={`runtime runtime-${checkpoint.memoryId} runtime-phase-${phase}${visualMode ? " visual-regression-mode" : ""}${visualUi ? " visual-regression-ui" : ""}`} data-renderer={backend}>
+      <canvas ref={canvasRef} className="runtime-canvas" aria-label="听雨轩西侧旧园调查场景" tabIndex={0} onClick={() => phase === "playing" && requestPointerLock()} onBlur={() => { if (!hasPointerLock) { keyboardFallbackRef.current = false; setKeyboardFallback(false); } }} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" onClick={onExit} className="text-button">← 章节总览</button>
-        <div><span>序章＋第一章</span><strong>雨入听轩 · 正门至曲廊</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {backend?.toUpperCase() ?? "LOADING"}</div>
+        <div><span>第一章</span><strong>不存在的路</strong></div>
+        <div className="runtime-status"><i className="status-dot" /> 西侧旧园</div>
       </header>
 
-      {activeObjective && <aside className="objective-card" aria-live="polite"><span>当前任务</span><strong>{activeObjective.objective.title}</strong><p>{activeObjective.step.instruction}</p>{activeObjective.hint && <small>提示：{activeObjective.hint}</small>}</aside>}
-      <aside className="memory-card"><span>当前证词 · TAB 切换</span><strong>{activeMemory?.label}</strong><small>{activeMemory?.description}</small></aside>
-      <aside className="case-progress"><span>勘误进度</span><strong>{checkpoint.contradictions.length} / {chapter.contradictions.length}</strong><small>{observedCount} 次独立观察</small><button type="button" onClick={() => { setShowNotebook(true); document.exitPointerLock?.(); }}>M · 打开勘误簿</button></aside>
+      {debugHudEnabled && <aside className="runtime-debug-hud" aria-label="First Walkable 调试信息">
+        <strong>{debugTelemetry.architecture === "master" ? "MASTER · tyx-master-scene" : "LEGACY ROLLBACK"}</strong>
+        <span>XYZ {debugTelemetry.position.map((value) => value.toFixed(2)).join(" / ")}</span>
+        <span>FPS {debugTelemetry.fps.toFixed(1)}</span>
+        <span>AREA {debugTelemetry.areaId}</span>
+        <span>ROUTE {debugTelemetry.routeAnchorId} · {debugTelemetry.routeDistance.toFixed(1)}m</span>
+        <span>GROUNDED {debugTelemetry.grounded ? "YES" : "NO"}</span>
+      </aside>}
 
-      {guideDistance !== undefined && activeObjective?.step.guidance.includes("direction") && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
+      {sliceObjective ? <aside className="objective-card" aria-live="polite"><span>当前任务</span><strong>{sliceObjective}</strong><p>不要急着判断谁说得对；先看两份证词各自能让哪些事实成立。</p></aside>
+        : activeObjective && <aside className="objective-card" aria-live="polite"><span>当前任务</span><strong>{activeObjective.objective.title}</strong><p>{activeObjective.step.instruction}</p>{activeObjective.hint && <small>提示：{activeObjective.hint}</small>}</aside>}
+      {phase === "playing" && <MiniMap pose={mapPose} regionId={mapRegion} target={mapTarget} subdued={Boolean(activeDialogue)} onOpen={() => openRuntimePanel("map")} />}
+      <aside className="memory-card"><span>当前证词 · TAB 切换</span><strong>{activeMemory?.label}</strong><small>{activeMemory?.description}</small></aside>
+      {guideDistance !== undefined && (sliceObjective ? sliceGuidanceLevel >= 1 : (activeObjective?.hintLevel ?? 0) >= 1 && activeObjective?.step.guidance.includes("direction")) && <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div>}
       {prompt && <div className="interaction-prompt">{prompt}</div>}
-      {save.settings.subtitles && subtitle && !activeDialogue && <div className="bark-subtitle">{barkImage && <img src={barkImage} alt="" />}<p><b>{barkProfile?.name}</b>{subtitle}</p></div>}
-      <div className="runtime-controls">WASD 移动 · {keyboardFallback && !hasPointerLock ? "方向键转向" : "鼠标观察"} · Shift 快走 · Tab 换证词 · F 勘验 · M 勘误簿</div>
+      {save.settings.subtitles && subtitle && !activeDialogue && <div className="bark-subtitle"><NarrativeInline kind="interaction" text={subtitle} /></div>}
 
       <div className="touch-controls" aria-label="移动端控制"><div className="touch-move"><button type="button" aria-label="向前" onPointerDown={() => beginTouchMove("KeyW")} onPointerUp={() => keysRef.current.delete("KeyW")} onPointerCancel={() => keysRef.current.delete("KeyW")}>↑</button><button type="button" aria-label="向左" onPointerDown={() => beginTouchMove("KeyA")} onPointerUp={() => keysRef.current.delete("KeyA")} onPointerCancel={() => keysRef.current.delete("KeyA")}>←</button><button type="button" aria-label="向后" onPointerDown={() => beginTouchMove("KeyS")} onPointerUp={() => keysRef.current.delete("KeyS")} onPointerCancel={() => keysRef.current.delete("KeyS")}>↓</button><button type="button" aria-label="向右" onPointerDown={() => beginTouchMove("KeyD")} onPointerUp={() => keysRef.current.delete("KeyD")} onPointerCancel={() => keysRef.current.delete("KeyD")}>→</button></div><div className="touch-actions"><button type="button" onClick={switchMemory}>换证词</button><button type="button" onClick={interact}>勘验</button></div></div>
 
-      {phase === "loading" && <RuntimeModal eyebrow="正在载入" title="搭建听雨轩空间…"><p>正在初始化渲染后端、碰撞世界、任务导演与雨夜记忆。</p></RuntimeModal>}
+      {phase === "loading" && <RuntimeModal eyebrow="正在载入" title="雨夜旧园正在显现…"><p>即将回到两份彼此矛盾的听雨轩。</p></RuntimeModal>}
 
-      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} settings={save.settings} suspended={Boolean(runtimePanel)} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
 
-      {!activeDialogue && ["playing", "chase"].includes(phase) && !hasPointerLock && !keyboardFallback && !touchMode && !showNotebook && <button type="button" className="resume-control" onClick={requestPointerLock}><span>开始控制</span><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
+      {!activeDialogue && phase === "playing" && !hasPointerLock && !keyboardFallback && !touchMode && !showNotebook && !sliceInspection && !runtimePanel && <button type="button" className="resume-control" onClick={requestPointerLock}><span>开始控制</span><small>点击后使用 WASD；内置浏览器可用方向键转向</small></button>}
 
-      {phase === "failed" && <RuntimeModal eyebrow="记忆断点" title="你的脸又被擦去一次"><p>失败不会抹去证据。你将回到追逐前，并自动切回能看见月洞门的夫人证词。</p><button type="button" className="primary-button" onClick={retryChase}>从漏窗前重试</button></RuntimeModal>}
-      {phase === "complete" && !activeDialogue && <RuntimeModal eyebrow="V0.1R ONBOARDING SLICE" title="第一章完成"><p>你已完成两次独立证词交叉核对，并把动机判断写入责任链。下一条线索位于北楼墨账。</p><button type="button" className="primary-button" onClick={onExit}>返回章节总览</button></RuntimeModal>}
-      {phase === "error" && <RuntimeModal eyebrow="可恢复错误" title="三维场景未能启动"><p>{error}</p><p>请在设置中强制 WebGL 2 或降低画质后重试；存档没有丢失。</p><button type="button" className="primary-button" onClick={onExit}>返回设置</button></RuntimeModal>}
 
-      {showNotebook && <div className="notebook-backdrop"><section className="notebook" role="dialog" aria-modal="true" aria-label="勘误簿"><button type="button" className="notebook-close" onClick={() => { setShowNotebook(false); requestPointerLock(); }}>×</button><p className="eyebrow">SPATIAL CONTRADICTIONS</p><h2>西廊勘误簿</h2><div className="notebook-rule"><b>勘验规则</b><span>同一地点 · 两份独立证词 · 才能确认矛盾</span></div>{chapter.contradictions.map((item, index) => { const observed = checkpoint.observedBy[item.id] ?? []; const confirmed = checkpoint.contradictions.includes(item.id); return <article key={item.id} className={confirmed ? "confirmed" : ""}><b>0{index + 1}</b><div><strong>{confirmed ? item.label : "尚未确认的矛盾"}</strong><p>{confirmed ? item.description : `独立观察 ${observed.length} / ${item.requiredIndependentTestimonies.length}`}</p></div><span>{confirmed ? "已确认" : "待核对"}</span></article>; })}</section></div>}
+      {phase === "complete" && !activeDialogue && <RuntimeModal eyebrow="第一章结束" title="脚印是谁的？"><p>侧路尽头的旧脚印从这条“不存在的路”进入夹院，并继续朝主宅和水榭方向延伸。现在只能确认：七年前有人从这里进来过。</p><button type="button" className="primary-button" onClick={onContinue}>继续调查</button><button type="button" className="text-button" onClick={onExit}>返回章节总览</button></RuntimeModal>}
+      {phase === "error" && <RuntimeModal eyebrow="可恢复错误" title="三维场景未能启动"><p>{error}</p><p>请在设置中启用画面兼容模式或降低画质后重试；存档没有丢失。</p><button type="button" className="primary-button" onClick={onExit}>返回设置</button></RuntimeModal>}
+
+      {sliceInspection && <RuntimeModal eyebrow="现场记录" title={sliceInspection.title} backdropId={sliceInspection.id === "borrowed-view" ? "ch1.borrowed-view" : undefined}><p>{sliceInspection.body}</p><p>{sliceInspection.note}</p><button type="button" className="primary-button" onClick={closeSliceInspection}>记下这一条</button></RuntimeModal>}
+
+      {showNotebook && <div className="notebook-backdrop"><section className="notebook" role="dialog" aria-modal="true" aria-label="案卷"><button type="button" className="notebook-close" onClick={() => { setShowNotebook(false); requestPointerLock(); }}>×</button><p className="eyebrow">案卷</p><h2>西侧旧园</h2><div className="notebook-rule"><b>核对方法</b><span>回到同一地点，分别查看两个人记得的样子</span></div>{chapter.contradictions.map((item, index) => { const observed = checkpoint.observedBy[item.id] ?? []; const confirmed = checkpoint.contradictions.includes(item.id); return <article key={item.id} className={confirmed ? "confirmed" : ""}><b>0{index + 1}</b><div><strong>{confirmed ? item.label : "尚未核清的地方"}</strong><p>{confirmed ? item.description : `已查证 ${observed.length} / ${item.requiredIndependentTestimonies.length} 份证词`}</p></div><span>{confirmed ? "已记入" : "待核对"}</span></article>; })}</section></div>}
+      {runtimePanel === "case-file" && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第一章 · 不存在的路" onClose={closeRuntimePanel} onOpenMap={() => openRuntimePanel("map", "case-file")} />}
+      {runtimePanel === "tutorial" && <TutorialGuide onStart={finishTutorial} />}
+      {runtimePanel === "map" && <FullMap pose={mapPose} regionId={mapRegion} target={mapTarget} objective={mapObjective} openRegions={["AREA_A"]} onClose={closeRuntimePanel} />}
+      {runtimePanel === "pause" && <PauseMenu onResume={closeRuntimePanel} onMap={() => openRuntimePanel("map", "pause")} onHelp={() => openRuntimePanel("help", "pause")} onSettings={() => openRuntimePanel("settings", "pause")} onExit={onExit} />}
+      {runtimePanel === "help" && <HelpPanel chapterTitle="第一章 · 不存在的路" onTutorial={() => openRuntimePanel("tutorial", "help")} onClose={closeRuntimePanel} />}
+      {runtimePanel === "settings" && <RuntimeSettingsPanel settings={save.settings} onChange={updateRuntimeSettings} onClose={closeRuntimePanel} />}
     </main>
   );
 }
 
-function RuntimeModal({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
-  return <div className="runtime-modal-backdrop"><section className="runtime-modal" role="dialog" aria-modal="true"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{children}</section></div>;
+function RuntimeModal({ eyebrow, title, backdropId, children }: { eyebrow: string; title: string; backdropId?: StoryBackdropId; children: React.ReactNode }) {
+  return <div className="runtime-modal-backdrop">{backdropId && <StoryBackdrop id={backdropId} label={title} />}<section className="runtime-modal" role="dialog" aria-modal="true"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1>{children}</section></div>;
 }

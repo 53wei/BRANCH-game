@@ -1,60 +1,97 @@
 import type { DialogueSequence, ObjectiveDefinition } from "../types";
+import { getGameplayAnchor } from "../runtime/tingyuxuan-gameplay-map";
 
 export const northDialogueSequences: DialogueSequence[] = [
-  { id: "north-opening", knotId: "north_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.opening", backdrop: "/media/cg/north-ledger-room.webp" },
-  { id: "north-window", knotId: "north_window", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.window", backdrop: "/media/cg/north-borrowed-window.webp" },
-  { id: "north-past", knotId: "north_past", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.past", backdrop: "/media/cg/north-borrowed-window.webp" },
-  { id: "north-rockery", knotId: "north_rockery", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.rockery", backdrop: "/media/cg/north-borrowed-window.webp" },
-  { id: "north-scratches", knotId: "north_scratches", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.scratches", backdrop: "/media/cg/north-borrowed-window.webp" },
-  { id: "north-passage", knotId: "north_passage", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.passage", backdrop: "/media/cg/north-secret-passage.webp" },
-  { id: "north-trust", knotId: "north_trust", presentation: "stage", participants: ["zhaoying", "accountant", "wife", "gardener"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.trust", backdrop: "/media/cg/north-secret-passage.webp" },
-  { id: "north-completion", knotId: "north_completion", presentation: "stage", participants: ["zhaoying", "steward"], defaultRightSpeaker: "steward", completionFlag: "north.dialogue.completion", backdrop: "/media/cg/north-ledger-room.webp" },
+  { id: "north-opening", knotId: "north_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.opening-complete" },
+  { id: "north-cup-confirmed", knotId: "north_cup_confirmed", presentation: "stage", participants: ["zhaoying"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.cup-reaction-complete" },
+  { id: "north-record-intro", knotId: "north_record_intro", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.record-intro-complete" },
+  { id: "north-record-confirmed", knotId: "north_record_confirmed", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "north.dialogue.record-reaction-complete" },
+  { id: "north-image-intro", knotId: "north_image_intro", presentation: "stage", participants: ["zhaoying", "painter"], defaultRightSpeaker: "painter", completionFlag: "north.dialogue.image-intro-complete" },
+  { id: "north-image-confirmed", knotId: "north_image_confirmed", presentation: "stage", participants: ["zhaoying"], defaultRightSpeaker: "painter", completionFlag: "north.dialogue.image-reaction-complete" },
+  { id: "north-completion", knotId: "north_completion", presentation: "stage", participants: ["zhaoying", "steward"], defaultRightSpeaker: "steward", completionFlag: "north.dialogue.completion-complete" },
 ];
 
-const movementHints: [string, string, string] = [
-  "先沿着蓝色算盘格向前走。",
-  "楼梯口在一层尽头，金色标记会指向它。",
-  "使用 WASD 到达楼梯口，按 F 上楼。",
-];
+const anchorPosition = (id: Parameters<typeof getGameplayAnchor>[0]) => [...getGameplayAnchor(id).position] as [number, number, number];
 
 export const northObjectives: ObjectiveDefinition[] = [
   {
-    id: "north-enter",
-    title: "登上北楼",
-    description: "钱先生说自己整夜没有离开账房。先找到他记忆里的账房。",
-    completionFlags: ["north.reached.upper-floor"],
-    steps: [{ id: "reach-stairs", instruction: "前往一层尽头的楼梯", targetPosition: [0, 1.6, -1], targetInteractableId: "north-stairs", guidance: ["objective", "direction", "world-marker", "light"], hints: movementHints }],
-  },
-  {
-    id: "north-window",
-    title: "核对借景窗",
-    description: "从账房的窗内看见过去，再从窗外验证现在。",
-    completionFlags: ["north.borrowed-view.crossed"],
+    id: "north-life-evidence",
+    title: "先确认多出来的生活痕迹",
+    description: "第五人不是从口供里突然出现的。先从主宅院落一件真正被使用过的物品开始。",
+    completionFlags: ["north.evidence.sixth-cup"],
     steps: [
-      { id: "inspect-ledger", instruction: "先检查钱先生声称没有离开的账桌", targetPosition: [0.8, 4.5, -12.6], targetInteractableId: "ledger-desk", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["证词从账桌开始，不应从奇怪的窗开始。", "末页墨色与前页不同，装订线还夹着蓝色纸屑。", "登上二层后先走到账房深处，在账桌前按 F。"] },
-      { id: "inspect-window", instruction: "在账房视角检查借景窗", targetPosition: [-3.5, 4.5, -11], targetInteractableId: "borrowed-window", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["蓝色网格最密的地方不是墙。", "切到账房证词，寻找能看见完好假山的窗。", "按 Tab 切到账房证词，在二层左侧窗前按 F。"] },
-      { id: "cross-window", instruction: "跨过借景窗，进入过去的东院", targetPosition: [-3.5, 4.5, -11], targetInteractableId: "borrowed-window", guidance: ["objective", "world-marker", "light"], hints: ["窗中景象和身后的雨声不在同一时刻。", "再触碰一次窗框，验证它是不是入口。", "在借景窗前按 F，进入过去。"] },
+      {
+        id: "inspect-sixth-cup",
+        instruction: "在主宅院落的茶桌检查第六只使用过的茶杯",
+        targetPosition: anchorPosition("B_TEA_TABLE"),
+        targetInteractableId: "sixth-teacup",
+        guidance: ["objective", "direction", "world-marker", "outline"],
+        hints: [
+          "先数已经被使用过的杯子，不要先猜是谁。",
+          "杯沿和杯底都有新水痕，它不是备用杯。",
+          "保持沈夫人的认知，到主宅檐下的茶桌旁按 F。",
+        ],
+      },
     ],
   },
   {
-    id: "north-rockery",
-    title: "让过去替现在让路",
-    description: "现在的假山已经坍塌；只有过去还能改变它的位置。",
-    completionFlags: ["north.rockery.moved", "north.present.route-open"],
+    id: "north-document-evidence",
+    title: "核对被修改的离园记录",
+    description: "纸面说主角早已离开，但修改痕迹本身也是一条独立事实。",
+    completionFlags: ["north.evidence.departure-record"],
     steps: [
-      { id: "inspect-bead-trail", instruction: "检查过去泥地里的算盘珠痕", targetPosition: [-7.5, 1.1, -11.6], targetInteractableId: "past-beads", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["账房没有来过，账房的物件为什么在泥里？", "沿窗框外侧寻找一串圆形浅印。", "进入过去后先向右侧泥地走，在蓝色珠痕前按 F。"] },
-      { id: "move-rockery", instruction: "在过去推动完整假山", targetPosition: [-9, 1.4, -10], targetInteractableId: "past-rockery", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["倒下的石头不能搬，倒下之前可以。", "确认右上角显示“过去”，再靠近完整假山。", "在过去的假山前按 F。"] },
-      { id: "return-present", instruction: "回到借景框，切回现在", targetPosition: [-5.5, 1.5, -10], targetInteractableId: "borrowed-window-return", guidance: ["objective", "direction", "world-marker"], hints: ["你改变的是过去，答案要在现在检查。", "回到发出蓝光的窗框。", "在庭院入口的借景框前按 F。"] },
+      {
+        id: "inspect-departure-record",
+        instruction: "切到钱先生的认知，去主宅内侧检查离园时间的补墨与压痕",
+        targetPosition: anchorPosition("B_LEDGER"),
+        targetInteractableId: "departure-record",
+        guidance: ["objective", "direction", "world-marker", "outline"],
+        hints: [
+          "第二条证据不需要上楼；它就在最终主宅动线内。",
+          "按 Tab 切到钱先生的认知，先读原字，再看后来补上的一笔。",
+          "到内侧书案上的离园记录旁按 F。",
+        ],
+      },
     ],
   },
   {
-    id: "north-evidence",
-    title: "证明账房离开过北楼",
-    description: "窗框划痕和直达东院的通道不能同时被他的证词解释。",
-    completionFlags: ["north.contradiction.scratches", "north.contradiction.passage"],
+    id: "north-image-evidence",
+    title: "复现柳生的观看位置",
+    description: "图像证据不是从任何角度都成立；必须在主宅里复现画稿当时的框景。",
+    completionFlags: ["north.evidence.rain-figure"],
     steps: [
-      { id: "inspect-scratches", instruction: "在两份证词中核对窗框划痕", targetPosition: [-5.7, 1.25, -8.8], targetInteractableId: "window-scratches", guidance: ["objective", "direction", "outline"], hints: ["雨水冲不出三道平行的硬痕。", "在同一位置切换账房与夫人证词。", "对准窗框划痕按 F，按 Tab 后再检查一次。"] },
-      { id: "inspect-passage", instruction: "在两份证词中核对秘密通道", targetPosition: [-12.5, 1.2, -10], targetInteractableId: "secret-passage", guidance: ["objective", "direction", "world-marker", "outline"], hints: ["假山移开后，风声来自墙下。", "账房和园丁对这条路的记忆不同。", "靠近假山后的暗口按 F，切换证词后再检查。"] },
+      {
+        id: "align-artist-view",
+        instruction: "切到柳生认知，在旧画旁对准雨夜人影",
+        targetPosition: anchorPosition("B_IMAGE_EVIDENCE"),
+        targetInteractableId: "artist-viewpoint",
+        guidance: ["objective", "direction", "world-marker", "outline"],
+        hints: [
+          "这一次不是找一个发光物体，而是复现观看角度。",
+          "按 Tab 切到柳生认知；站到旧画旁后缓慢转动镜头。",
+          "额外人影稳定出现在框景里后按 F。",
+        ],
+      },
+    ],
+  },
+  {
+    id: "north-fifth-person",
+    title: "确认第五人存在",
+    description: "生活物件、文字记录和图像观看三个独立通道已经指向同一件事。",
+    completionFlags: ["north.fifth-person.confirmed"],
+    steps: [
+      {
+        id: "synthesize-evidence",
+        instruction: "到主宅深处整理三条证据，只回答‘有没有第五人’",
+        targetPosition: anchorPosition("B_MISSING_ROOM"),
+        targetInteractableId: "fifth-person-board",
+        guidance: ["objective", "direction", "world-marker"],
+        hints: [
+          "本章只回答‘有没有第五人’，不要提前回答‘第五人是谁’。",
+          "第六只茶杯、被改记录和特定角度人影来自三个不同证据通道。",
+          "三条都完成后，到北墙附近的案卷板按 F。",
+        ],
+      },
     ],
   },
 ];

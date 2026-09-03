@@ -1,0 +1,28 @@
+{
+  "lockedAt": "2026-09-03",
+  "sources": [
+    {
+      "role": "narrative-master",
+      "path": "../../../游园惊梦_完整剧情母剧本_V5.0.md",
+      "title": "《游园惊梦：四面证词》完整剧情母剧本 V5.0",
+      "sha256": "6f9504833ee186975ad90fd03c0f7a1be03a93eeccca52e5ce39a735f8db6401",
+      "priority": 1
+    },
+    {
+      "role": "restructure-spec",
+      "path": "../../../游园惊梦_整体重构执行母文档_V1.0.md",
+      "title": "《游园惊梦：四面证词》整体重构执行母文档 V1.0",
+      "sha256": "53cded727ac3d22fed74dfead4af977311c7277ad5abfd4a021aa65ca854f14e",
+      "priority": 2
+    },
+    {
+      "role": "task-plan",
+      "path": "../../../游园惊梦_重构TASK执行计划_V1.0.md",
+      "title": "《游园惊梦：四面证词》重构 TASK 执行计划 V1.0",
+      "sha256": "75a011138aa85ad19561d386015c65bc1c0413a2c1805e9215f695925049628b",
+      "priority": 3
+    }
+  ],
+  "runtimeTextPolicy": "Legacy Ink, hardcoded StoryLine, bark, UI strings and old GDD are evidence of current/old implementation only. They never override the three locked sources.",
+  "conflictPolicy": "Narrative master overrides old runtime text. If the task plan directly conflicts with the restructure spec, stop the conflicting implementation and record the issue instead of inventing a compromise."
+}

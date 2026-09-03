@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "activeCheckpoint": {
+    "schemaVersion": 2,
+    "layoutVersion": "tingyuxuan-gameplay-map-v1",
+    "chapterId": "west-corridor-loop",
+    "anchorId": "ROUTE_02_A_ENTRY",
+    "memoryId": "wife",
+    "mechanics": {
+      "currentCognition": "wife",
+      "discoveredEvidence": ["west-trace-waterline", "west-trace-mud-print"],
+      "unlockedInterpretations": [],
+      "puzzleStates": {},
+      "anchorSlot": { "borrowedObjectId": null },
+      "openedDoors": [],
+      "narrativeGates": [],
+      "chapterBeat": "west-side-path-evidence",
+      "safeAnchorId": "ROUTE_02_A_ENTRY"
+    },
+    "reconstructionTrace": {
+      "discoveredOptionalEvidence": ["west-trace-waterline", "west-trace-mud-print"],
+      "solvedWithCognition": {},
+      "anchoredFragments": [],
+      "preservedContradictions": [],
+      "finalAssemblyFragments": []
+    },
+    "finalAssemblyState": {
+      "factSkeletonFlags": [],
+      "selectedFragments": [],
+      "complete": false
+    },
+    "earnedFlags": [
+      "prologue.gate-dialogue.seen",
+      "prologue.entered",
+      "prologue.evidence.umbrella",
+      "prologue.evidence.ledger",
+      "prologue.baseline.intro-seen",
+      "prologue.water-pavilion.seen",
+      "prologue.first-anomaly",
+      "prologue.examiner-appointed",
+      "prologue.dialogue.complete",
+      "west.arrived",
+      "west.trace.waterline",
+      "west.trace.mud-print"
+    ],
+    "contradictions": [],
+    "observedBy": {},
+    "trustDecisions": {},
+    "nameAnchors": [],
+    "chaseProgress": {},
+    "objectiveProgress": {
+      "west-waterline": ["trace:waterline", "trace:mud-print"]
+    },
+    "activeObjectiveId": "west-waterline",
+    "objectiveStepId": "inspect-wife",
+    "seenDialogueLines": [],
+    "hintLevels": {},
+    "pointerLockPending": false,
+    "updatedAt": "2026-09-03T00:00:00.000Z"
+  },
+  "completedChapters": ["prologue-rain"],
+  "unlockedChapters": ["prologue-rain", "west-corridor-loop"],
+  "endingIds": [],
+  "settings": {
+    "quality": "high",
+    "renderer": "auto",
+    "stableCamera": false,
+    "subtitles": true,
+    "guidanceAssist": true,
+    "masterVolume": 0.8,
+    "dialogueSpeed": "normal"
+  },
+  "tutorial": {
+    "controls": {
+      "seen": true,
+      "autoShow": true
+    }
+  }
+}

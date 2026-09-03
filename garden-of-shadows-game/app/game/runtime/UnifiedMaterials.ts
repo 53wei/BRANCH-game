@@ -45,6 +45,7 @@ export function createUnifiedMaterials() {
 export async function hydrateUnifiedMaterials(
   materials: Record<TingYuXuanMaterialId, THREE.MeshStandardMaterial>,
   loadTexture: (url: string) => Promise<THREE.Texture>,
+  ids: readonly TingYuXuanMaterialId[] = Object.keys(materials) as TingYuXuanMaterialId[],
 ) {
   const cache = new Map<string, Promise<{ diff: THREE.Texture; normal: THREE.Texture; arm: THREE.Texture }>>();
   const loadSet = (assetId: string) => {
@@ -59,13 +60,22 @@ export async function hydrateUnifiedMaterials(
     cache.set(assetId, request);
     return request;
   };
-  await Promise.all((Object.keys(materials) as TingYuXuanMaterialId[]).map(async (id) => {
+  await Promise.all(ids.map(async (id) => {
     const set = await loadSet(cc0MaterialSources[id]);
     for (const texture of [set.diff, set.normal, set.arm]) {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(2.5, 2.5);
+      const repeat = ["mud-wet", "stone-old", "stone-wet", "stone-moss"].includes(id) ? 7.5 : 2.5;
+      texture.repeat.set(repeat, repeat);
     }
+    set.diff.colorSpace = THREE.SRGBColorSpace;
+    set.normal.colorSpace = THREE.NoColorSpace;
+    set.arm.colorSpace = THREE.NoColorSpace;
+    set.arm.channel = 0;
+    set.diff.anisotropy = 8;
+    set.normal.anisotropy = 8;
+    set.arm.anisotropy = 8;
+
     const material = materials[id];
     material.map = set.diff;
     material.normalMap = set.normal;

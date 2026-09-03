@@ -6,3 +6,7 @@ dist/
 .env*
 !.env.example
 coverage/
+/release/
+scripts/release/launcher/app.ico
+scripts/release/launcher/bin/
+scripts/release/launcher/obj/

@@ -1,6 +1,6 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- the portable build renders this route without the Next router */
 import downloadedAssets from "../../docs/assets/downloaded-3d-assets.json";
 import cc0Materials from "../../docs/assets/cc0-materials.json";
-import Link from "next/link";
 
 export default function CreditsPage() {
   return (
@@ -9,7 +9,7 @@ export default function CreditsPage() {
         <p className="eyebrow">ASSET ATTRIBUTION</p>
         <h1>制作与授权</h1>
         <p>以下第三方三维资产依据 CC BY 4.0 使用。运行时资产经过比例、材质、网格和纹理优化，原作者与来源保持可追溯。</p>
-        <Link href="/">返回项目首页</Link>
+        <a href="/">返回项目首页</a>
       </header>
       <section className="credits-grid">
         {downloadedAssets.map((asset) => (
@@ -27,7 +27,7 @@ export default function CreditsPage() {
         ))}
       </section>
       <header>
-        <p className="eyebrow">CC0 RUNTIME SOURCES</p>
+        <p className="eyebrow">CC0 资源来源</p>
         <h2>材质与自然资源</h2>
         <p>下列资源采用 CC0 1.0；项目仍记录作者、来源和运行时哈希，便于复现资产流水线。</p>
       </header>

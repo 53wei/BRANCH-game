@@ -1,0 +1,5871 @@
+{
+  "generatedAt": "2026-09-03T14:02:53.957Z",
+  "baseUrl": "http://localhost:43952/",
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "policy": {
+    "fpsReference": 60,
+    "fpsStableFloor": 45,
+    "note": "FPS is a measurement, not an auto-approval substitute for visual review."
+  },
+  "shots": [
+    {
+      "id": "route-01-start",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-01-start.png",
+      "bytes": 1559867,
+      "sha256": "4e745dbb5b5d2e00a7d7d1a3d0fb56671da7badc47f42de131281250203538ab",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_01_START&visualPitch=-0.08&renderer=webgl",
+        "fps": 20.6,
+        "drawCalls": 76,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          14.65,
+          0.89,
+          39.4
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_01_START",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 126245931,
+        "durationMs": 18873.90000000596,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-02-a-entry",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-02-a-entry.png",
+      "bytes": 1559524,
+      "sha256": "10bc092e9bb205eb007fb18b632933629e239cbea462cc5577487120f7e664c7",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_02_A_ENTRY&visualPitch=-0.08&renderer=webgl",
+        "fps": 21.3,
+        "drawCalls": 76,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          6.9,
+          0.89,
+          39.4
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 11815.40000000596,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-03-a-loop",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-03-a-loop.png",
+      "bytes": 1559621,
+      "sha256": "8eeba31b74ff73acd5b4a77c649d0d982de94a7dac59983de75d3132d1dd2385",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_03_A_LOOP&visualPitch=-0.08&renderer=webgl",
+        "fps": 23.2,
+        "drawCalls": 82,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          1.8,
+          0.89,
+          41.2
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_03_A_LOOP",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 9742.5,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-04-a-east-exit",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-04-a-east-exit.png",
+      "bytes": 1565781,
+      "sha256": "d261d2b37748695ef4715791beb6292c5e47c328cf59f61a0450979b582ea38c",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_04_A_EAST_EXIT&visualPitch=-0.08&renderer=webgl",
+        "fps": 1.1,
+        "drawCalls": 10,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          1.9,
+          0.89,
+          31.201
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_04_A_EAST_EXIT",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 6658.0999999940395,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-05-b-main-court",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-05-b-main-court.png",
+      "bytes": 1567881,
+      "sha256": "6dcc6eff99f814b3d0ae760eccc0373f5e08ea639bc9551376311449f8a7c2ca",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_05_B_MAIN_COURT&visualPitch=-0.08&renderer=webgl",
+        "fps": 1.3,
+        "drawCalls": 10,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          -1,
+          0.89,
+          24
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 6448.9000000059605,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-06-b-northeast-link",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-06-b-northeast-link.png",
+      "bytes": 1567313,
+      "sha256": "765cf5b2c8427b59511c0947e4e86d2077e0f6076d0fe5f84f9d56ba7b9c6eac",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_06_B_NORTHEAST_LINK&visualPitch=-0.08&renderer=webgl",
+        "fps": 1.1,
+        "drawCalls": 10,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          -11.5,
+          0.89,
+          19.2
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 6583.200000017881,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    },
+    {
+      "id": "route-07-c-entry",
+      "file": "docs/development-records/gameplay-map-v1-captures/route-07-c-entry.png",
+      "bytes": 1568717,
+      "sha256": "17af6db299f58ff30fbd816b8cc54f1406a8ee300a286830686bf04fdc95498a",
+      "telemetry": {
+        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&debugMap=1&visualAnchor=ROUTE_07_C_ENTRY&visualPitch=-0.08&renderer=webgl",
+        "fps": 1.5,
+        "drawCalls": 10,
+        "triangles": 351184,
+        "points": 1390,
+        "visibleModels": [
+          "master-scene"
+        ],
+        "loadedAssetIds": [
+          "tyx-master-scene",
+          "tyx-nat-rock-set-a"
+        ],
+        "loadedAssetBytes": 101202548,
+        "rendererBackend": "webgl2",
+        "architectureMode": "master",
+        "architectureColliderCount": 12,
+        "masterArchitectureColliderCount": 1,
+        "colliderCoverage": "complete",
+        "colliderCoverageReport": {
+          "scene": {
+            "totalMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
+            "exclusions": {
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
+              "emptyBounds": 0,
+              "invalidSize": 4,
+              "duplicate": 71
+            },
+            "categories": {
+              "architecture": 1
+            },
+            "regionCoverage": {
+              "AREA_A": {
+                "regionId": "AREA_A",
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
+                "explicitArchitectureColliderCount": 7,
+                "routeWaypointCount": 2
+              },
+              "AREA_B": {
+                "regionId": "AREA_B",
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 8,
+                "routeWaypointCount": 1
+              },
+              "AREA_C": {
+                "regionId": "AREA_C",
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 3,
+                "routeWaypointCount": 2
+              },
+              "OUTSIDE": {
+                "regionId": "OUTSIDE",
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
+                "generatedColliderCount": 0,
+                "explicitArchitectureColliderCount": 0,
+                "routeWaypointCount": 0
+              }
+            },
+            "routeCoverage": [
+              {
+                "id": "entrance",
+                "label": "Entrance",
+                "anchorId": "ROUTE_02_A_ENTRY",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 0,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "west-court",
+                "label": "West Court",
+                "anchorId": "ROUTE_03_A_LOOP",
+                "regionId": "AREA_A",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": true,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 3.98,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "north-tower",
+                "label": "North Tower",
+                "anchorId": "ROUTE_05_B_MAIN_COURT",
+                "regionId": "AREA_B",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 4.75,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "water-court",
+                "label": "Water Court",
+                "anchorId": "C_WATER_EDGE",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 2.263,
+                "coverageRadius": 10,
+                "complete": true
+              },
+              {
+                "id": "finale-area",
+                "label": "Finale Area",
+                "anchorId": "C_FINAL_PAVILION",
+                "regionId": "AREA_C",
+                "visualAssetCovered": true,
+                "colliderCovered": true,
+                "masterColliderCovered": false,
+                "gameplayRouteCovered": true,
+                "nearestArchitectureColliderDistance": 8.43,
+                "coverageRadius": 10,
+                "complete": true
+              }
+            ],
+            "colliderLimit": null,
+            "truncatedColliderCount": 0,
+            "warningThreshold": 256,
+            "warningThresholdExceeded": false,
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
+            "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b32a0o",
+                "materials": "Material #57",
+                "center": [
+                  -13.591,
+                  0.656,
+                  0.272
+                ],
+                "size": [
+                  1.029,
+                  1.173,
+                  5.932
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              }
+            ]
+          },
+          "physics": {
+            "staticColliderCount": 28,
+            "enabledColliderCount": 28,
+            "cameraIgnoredCount": 1,
+            "architectureColliderCount": 12,
+            "masterArchitectureColliderCount": 1,
+            "categoryCounts": {
+              "ground": 3,
+              "route-ground": 6,
+              "world-boundary": 4,
+              "architecture": 12,
+              "memory-wall": 2,
+              "progression-lock": 1
+            },
+            "hasStaticArchitecture": true
+          },
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
+          "complete": true
+        },
+        "playerPose": [
+          -22,
+          0.89,
+          14.2
+        ],
+        "playerAvatarVisible": false,
+        "cameraPose": [
+          0
+        ],
+        "visualScenario": "",
+        "cameraFov": 0,
+        "characterHeight": 0,
+        "wallHeight": 0,
+        "doorHeight": 0,
+        "masterScaleFactor": 0,
+        "cameraCollisionId": "",
+        "spawnVisualOccluders": [],
+        "spawnScreenSamples": "",
+        "interactionPrompt": "",
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "nearestRouteDistance": 0,
+        "prologuePhase": "",
+        "transferBytes": 99150496,
+        "durationMs": 6813.200000017881,
+        "fallbackEnabled": false,
+        "errorModal": false
+      }
+    }
+  ],
+  "walkAudit": {
+    "status": "complete",
+    "target": "ROUTE_COMPLETE",
+    "reached": "ROUTE_07_C_ENTRY",
+    "reachedPose": [
+      -21.448,
+      0.89,
+      14.462
+    ],
+    "reachedGrounded": true,
+    "reachedArea": "AREA_C",
+    "reachedNearest": "ROUTE_07_C_ENTRY",
+    "milestoneLog": [
+      {
+        "id": "ROUTE_02_A_ENTRY",
+        "playerPose": [
+          7.546,
+          0.904,
+          39.395
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY"
+      },
+      {
+        "id": "ROUTE_03_A_LOOP",
+        "playerPose": [
+          3.176,
+          0.891,
+          40.767
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_03_A_LOOP"
+      },
+      {
+        "id": "ROUTE_04_A_EAST_EXIT",
+        "playerPose": [
+          2.031,
+          0.89,
+          31.812
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_04_A_EAST_EXIT"
+      },
+      {
+        "id": "ROUTE_05_B_MAIN_COURT",
+        "playerPose": [
+          -1,
+          0.9,
+          24
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT"
+      },
+      {
+        "id": "ROUTE_06_B_NORTHEAST_LINK",
+        "playerPose": [
+          -10.946,
+          0.89,
+          19.453
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK"
+      },
+      {
+        "id": "ROUTE_07_C_ENTRY",
+        "playerPose": [
+          -21.448,
+          0.89,
+          14.462
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY"
+      }
+    ],
+    "playerPose": [
+      -21.448,
+      0.89,
+      14.462
+    ],
+    "grounded": true,
+    "gameplayArea": "AREA_C",
+    "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+    "loopTeleport": true,
+    "exitHandoff": true,
+    "error": "",
+    "milestones": [
+      {
+        "id": "ROUTE_02_A_ENTRY",
+        "playerPose": [
+          7.546,
+          0.904,
+          39.395
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY",
+        "elapsedMs": 10840
+      },
+      {
+        "id": "ROUTE_03_A_LOOP",
+        "playerPose": [
+          3.176,
+          0.891,
+          40.767
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_03_A_LOOP",
+        "elapsedMs": 12452
+      },
+      {
+        "id": "ROUTE_04_A_EAST_EXIT",
+        "playerPose": [
+          2.031,
+          0.89,
+          31.812
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_04_A_EAST_EXIT",
+        "elapsedMs": 17513
+      },
+      {
+        "id": "ROUTE_05_B_MAIN_COURT",
+        "playerPose": [
+          -1,
+          0.9,
+          24
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT",
+        "elapsedMs": 17513
+      },
+      {
+        "id": "ROUTE_06_B_NORTHEAST_LINK",
+        "playerPose": [
+          -10.946,
+          0.89,
+          19.453
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_B",
+        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK",
+        "elapsedMs": 21486
+      },
+      {
+        "id": "ROUTE_07_C_ENTRY",
+        "playerPose": [
+          -21.448,
+          0.89,
+          14.462
+        ],
+        "grounded": true,
+        "gameplayArea": "AREA_C",
+        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
+        "elapsedMs": 25733
+      }
+    ],
+    "durationMs": 26543,
+    "file": "docs/development-records/gameplay-map-v1-captures/walk-audit-complete.png",
+    "bytes": 1529090,
+    "sha256": "4df8ab6a858b9ebc7d85b99d43b65277a661fc87ad1aa8b740d65b0d961eee0a"
+  }
+}
