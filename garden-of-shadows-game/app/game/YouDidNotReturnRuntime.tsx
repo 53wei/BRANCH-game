@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
+import { completeCampaignChapter } from "./campaign-progress";
 import { createCheckpoint } from "./campaign-save";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueSequence } from "./types";
 import { CameraRig } from "./mechanics/CameraRig";
 import { DialogueRunner } from "./narrative/DialogueRunner";
+import { NarrativeInline } from "./narrative/NarrativeInline";
 import { compileInkSource } from "./narrative/ink-runtime";
 import youDidNotReturnInkSource from "./narrative/you-did-not-return.ink?raw";
 import { registerArchitectureCollisionCoverage } from "./runtime/architecture-collision-runtime";
@@ -14,9 +16,11 @@ import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/Physics
 import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
 import { PlayerAvatar } from "./runtime/PlayerAvatar";
 import { TingYuXuanScene } from "./runtime/TingYuXuanScene";
-import { guidanceLevelForElapsed } from "./runtime/guidance-config";
-import { getGameplayAnchor, resolveGameplayRegionForPoint } from "./runtime/tingyuxuan-gameplay-map";
+import { guidanceLevelForElapsed, guidanceLevelForProximity } from "./runtime/guidance-config";
+import { getGameplayAnchor } from "./runtime/tingyuxuan-gameplay-map";
 import { tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
+import { CaseFilePanel } from "./ui/CaseFilePanel";
+import { ExplorationHud } from "./ui/ExplorationHud";
 
 interface YouDidNotReturnRuntimeProps {
   chapter: ChapterManifest;
@@ -71,7 +75,7 @@ const objectiveFor = (checkpoint: CheckpointState) => {
   if (stage === "reverse") {
     return {
       title: "沿第一章侧路反向走出去",
-      detail: "不要把它当成真相录像。只重走已经由前四章证据确认过的那条路，直到七年前离园的方向重新成立。",
+      detail: "沿前四章彼此吻合的脚印与门锁重走一遍，只跟随证物已经留下的方向。",
       hint: "从西院向正门外反走：东侧出口 → 循环段 → 前厅入口 → 正门外。",
       target: REVERSE_ROUTE_TARGET,
     };
@@ -80,7 +84,7 @@ const objectiveFor = (checkpoint: CheckpointState) => {
     return {
       title: "按七年前的方向折返回自己的房间",
       detail: "车票没有被使用，旧房钥匙也没有被收走。沿刚才确认的路线重新进入园子。",
-      hint: "从正门回到西院，再向主宅北侧那间已经重构过的旧房走。",
+      hint: "从正门回到西院，再向主宅北侧那间重新显现的旧房走。",
       target: RETURN_ROOM_TARGET,
     };
   }
@@ -116,21 +120,25 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
   const onSaveRef = useRef(onSave);
   const phaseRef = useRef<Phase>(initialComplete ? "complete" : "loading");
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
+  const caseFileOpenRef = useRef(false);
   const keyboardFallbackRef = useRef(false);
   const guidanceKeyRef = useRef("");
   const guidanceElapsedRef = useRef(0);
   const guidanceLevelRef = useRef(0);
   const lastAreaLoadRef = useRef(0);
+  const guidanceBarkTimerRef = useRef<number | undefined>(undefined);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const [phase, setPhaseState] = useState<Phase>(initialComplete ? "complete" : "loading");
   const [backend, setBackend] = useState<RendererBackend>();
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
+  const [showCaseFile, setShowCaseFile] = useState(false);
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
   const [guidanceLevel, setGuidanceLevel] = useState(0);
   const [guideDistance, setGuideDistance] = useState<number>();
-  const [area, setArea] = useState("AREA_A");
+  const [guideAngle, setGuideAngle] = useState(0);
+  const [guidanceBark, setGuidanceBark] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [save, onSave]);
@@ -156,13 +164,21 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
 
   const requestPointerLock = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || phaseRef.current !== "playing" || dialogueRef.current) return;
+    if (!canvas || phaseRef.current !== "playing" || dialogueRef.current || caseFileOpenRef.current) return;
     canvas.focus();
     keyboardFallbackRef.current = true;
     setKeyboardFallback(true);
     const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
   }, []);
+
+  const setCaseFileOpen = useCallback((next: boolean) => {
+    caseFileOpenRef.current = next;
+    setShowCaseFile(next);
+    keysRef.current.clear();
+    if (next) document.exitPointerLock?.();
+    else if (phaseRef.current === "playing" && !dialogueRef.current) requestPointerLock();
+  }, [requestPointerLock]);
 
   const startDialogue = useCallback((id: string) => {
     const sequence = chapter.dialogueSequences?.find((item) => item.id === id);
@@ -185,22 +201,16 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
       dialogueProgress: undefined,
       activeObjectiveId: undefined,
       objectiveStepId: undefined,
-      earnedFlags: unique([...sourceCheckpoint.earnedFlags, ...chapter.completionFlags]),
       updatedAt: new Date().toISOString(),
     };
-    checkpointRef.current = finalCheckpoint;
-    setCheckpoint(finalCheckpoint);
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      activeCheckpoint: finalCheckpoint,
-      completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      unlockedChapters: unique([...saveRef.current.unlockedChapters, "fifth-tingyuxuan"]),
-    };
+    const nextSave = completeCampaignChapter(saveRef.current, chapter.id, finalCheckpoint);
+    checkpointRef.current = nextSave.activeCheckpoint;
+    setCheckpoint(nextSave.activeCheckpoint);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     document.exitPointerLock?.();
     setPhase("complete");
-  }, [chapter.completionFlags, chapter.id, setPhase]);
+  }, [chapter.id, setPhase]);
 
   const completeDialogue = useCallback((sequence: DialogueSequence) => {
     dialogueRef.current = undefined;
@@ -274,7 +284,6 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
         cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
         runtimeRef.current = { renderer, world, physics, cameraRig, playerAvatar };
         setBackend(renderer.backend);
-        setArea(resolveGameplayRegionForPoint({ x: spawn.x, z: spawn.z }));
 
         const resize = () => {
           const rect = canvas.getBoundingClientRect();
@@ -293,7 +302,7 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
           let pose = physics.pose();
           const inputReady = document.pointerLockElement === canvas || keyboardFallbackRef.current;
           let moving = false;
-          if (phaseRef.current === "playing" && !dialogueRef.current) {
+          if (phaseRef.current === "playing" && !dialogueRef.current && !caseFileOpenRef.current) {
             const keys = keysRef.current;
             const turn = inputReady ? Number(keys.has("ArrowRight")) - Number(keys.has("ArrowLeft")) : 0;
             yawRef.current -= turn * 1.8 * delta;
@@ -326,14 +335,23 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
               guidanceElapsedRef.current = 0;
               guidanceLevelRef.current = 0;
               setGuidanceLevel(0);
-            } else if (!dialogueRef.current && saveRef.current.settings.guidanceAssist) {
+              setGuidanceBark("");
+            } else if (!dialogueRef.current && !caseFileOpenRef.current && saveRef.current.settings.guidanceAssist) {
               guidanceElapsedRef.current += delta;
-              const nextLevel = guidanceLevelForElapsed(guidanceElapsedRef.current);
-              if (nextLevel > guidanceLevelRef.current) {
+              const nextLevel = guidanceLevelForProximity(guidanceLevelForElapsed(guidanceElapsedRef.current), distance);
+              if (nextLevel !== guidanceLevelRef.current) {
+                const previousLevel = guidanceLevelRef.current;
                 guidanceLevelRef.current = nextLevel;
                 setGuidanceLevel(nextLevel);
+                if (nextLevel === 2 && previousLevel < 2) {
+                  setGuidanceBark(currentObjective.hint);
+                  if (guidanceBarkTimerRef.current) window.clearTimeout(guidanceBarkTimerRef.current);
+                  guidanceBarkTimerRef.current = window.setTimeout(() => setGuidanceBark(""), 5600);
+                }
               }
             }
+            const nextGuideAngle = THREE.MathUtils.radToDeg(Math.atan2(target[0] - pose.x, -(target[2] - pose.z)) - yawRef.current);
+            setGuideAngle((current) => Math.abs(current - nextGuideAngle) < 0.5 ? current : nextGuideAngle);
             world.setGuidanceTarget(saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3
               ? new THREE.Vector3(target[0], 0, target[2])
               : undefined,
@@ -343,8 +361,6 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
             world.setGuidanceTarget(undefined);
           }
 
-          const currentArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
-          setArea((value) => value === currentArea ? value : currentArea);
           if (now - lastAreaLoadRef.current >= 600) {
             lastAreaLoadRef.current = now;
             void world.ensureAreaAssets({ x: pose.x, z: pose.z }).catch(() => undefined);
@@ -364,7 +380,8 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
           // Fresh spatial stages intentionally wait for an explicit player click before pointer lock.
         }
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "无法初始化案发雨夜重构场景");
+        console.error("[you-did-not-return] scene failed to appear", reason);
+        setError("案发雨夜的折返路线没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
         setPhase("error");
       }
     };
@@ -379,20 +396,26 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
       runtime?.physics.dispose();
       runtime?.world.dispose();
       runtime?.renderer.dispose();
+      if (guidanceBarkTimerRef.current) window.clearTimeout(guidanceBarkTimerRef.current);
       runtimeRef.current = undefined;
     };
   }, [chapter, finishChapter, handleRouteMilestone, initialCheckpoint, save.settings.quality, save.settings.renderer, save.settings.stableCamera, setPhase, startDialogue]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (["ArrowLeft", "ArrowRight", "Space"].includes(event.code)) event.preventDefault();
-      if (event.repeat || phaseRef.current !== "playing" || dialogueRef.current) return;
+      if (["ArrowLeft", "ArrowRight", "Space", "KeyN"].includes(event.code)) event.preventDefault();
+      if (event.repeat || phaseRef.current !== "playing") return;
+      if (event.code === "KeyN") {
+        setCaseFileOpen(!caseFileOpenRef.current);
+        return;
+      }
+      if (dialogueRef.current || caseFileOpenRef.current) return;
       if (event.code === "Space") { runtimeRef.current?.physics.requestJump(); return; }
       keysRef.current.add(event.code);
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
     const onMouseMove = (event: MouseEvent) => {
-      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || dialogueRef.current) return;
+      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || dialogueRef.current || caseFileOpenRef.current) return;
       yawRef.current -= event.movementX * 0.0022;
       pitchRef.current = THREE.MathUtils.clamp(pitchRef.current - event.movementY * 0.0019, -1.12, 1.04);
     };
@@ -410,27 +433,32 @@ export function YouDidNotReturnRuntime({ chapter, save, onSave, onExit, onContin
       window.removeEventListener("blur", onBlur);
       document.removeEventListener("pointerlockchange", onLockChange);
     };
-  }, []);
+  }, [setCaseFileOpen]);
 
   const objective = objectiveFor(checkpoint);
   return (
     <main className="runtime runtime-zhaoying" data-renderer={backend}>
-      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="第五章案发雨夜折返路线" onClick={() => phase === "playing" && !activeDialogue && requestPointerLock()} />
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="第五章案发雨夜折返路线" onClick={() => phase === "playing" && !activeDialogue && !showCaseFile && requestPointerLock()} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>第五章</span><strong>今晚你没回来</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {area === "AREA_A" ? "折返侧路" : area === "AREA_B" ? "旧房与主宅" : "水榭"}</div>
+
       </header>
 
-      {objective && !activeDialogue && <section className="objective-card" aria-live="polite"><span>当前记忆节点</span><strong>{objective.title}</strong><p>{objective.detail}</p>{guidanceLevel >= 1 && <small>提示：{objective.hint}</small>}{guideDistance !== undefined && guidanceLevel >= 1 && <small>约 {Math.max(1, Math.round(guideDistance))} m</small>}</section>}
-      {phase === "playing" && !activeDialogue && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续重走雨夜<br /><small>WASD 移动 · Shift 快走 · Space 小跳</small></button>}
+      <ExplorationHud
+        objective={objective && !activeDialogue && !showCaseFile ? { label: "当前记忆节点", title: objective.title, detail: objective.detail } : undefined}
+        direction={guideDistance !== undefined && guidanceLevel >= 1 && !activeDialogue && !showCaseFile ? <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div> : undefined}
+        subtitle={guidanceBark && !activeDialogue && !showCaseFile ? <NarrativeInline kind="inner" text={guidanceBark} /> : undefined}
+      />
+      {phase === "playing" && !activeDialogue && !showCaseFile && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续重走雨夜<br /><small>WASD 移动 · Shift 快走 · Space 小跳</small></button>}
 
-      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={STORY_CONTENT} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={() => undefined} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={STORY_CONTENT} settings={save.settings} suspended={showCaseFile} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={() => undefined} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第五章 · 今晚你没回来" onClose={() => setCaseFileOpen(false)} />}
 
-      {phase === "loading" && <Modal eyebrow="第五章" title="正在重建已经确认过的折返路线"><p>这不是无条件播放的“真相录像”。场景只使用前四章已经固定过的路线与事实。</p></Modal>}
-      {phase === "complete" && <Modal eyebrow="第五章结束" title="今晚，你回来过"><p>赵映回来过，但没有推沈老爷。湿木阶事故、保护性的删除计划和连续延误共同组成了案发夜。</p><blockquote>没有隐藏凶手，也不需要再补一个新的罪名。下一步是把已经验证过的事实放进同一座听雨轩。</blockquote><button type="button" className="primary-button" onClick={onContinue ?? onExit}>进入终章：第五种听雨轩</button></Modal>}
-      {phase === "error" && <Modal eyebrow="可恢复错误" title="案发雨夜场景未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
+      {phase === "loading" && <Modal eyebrow="第五章" title="正在回到那条折返路线"><p>脚印、木阶、门锁与时间，正再次在雨里重合。</p></Modal>}
+      {phase === "complete" && <Modal eyebrow="第五章结束" title="今晚，你回来过"><p>赵映回来过，但没有推沈老爷。湿木阶上的意外、四个人随后做出的保护，以及一次次迟到的承认，共同组成案发夜。</p><blockquote>所有人都把同一晚藏进了不同的听雨轩。现在，该带着这些共同留下的痕迹，最后走一次园子。</blockquote><button type="button" className="primary-button" onClick={onContinue ?? onExit}>进入终章：第五种听雨轩</button></Modal>}
+      {phase === "error" && <Modal eyebrow="雨夜中断" title="折返路线没有完整显现"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
     </main>
   );
 }

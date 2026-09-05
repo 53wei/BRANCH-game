@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { CheckpointState } from "../types";
 import { campaignManifest } from "../manifests/campaign";
+import { CASE_FILE_DOCUMENTS } from "../runtime/document-content";
 import {
   discoveredCaseEvidence,
   evidenceChannelLabel,
@@ -11,6 +12,7 @@ import {
   unlockedCasePeople,
   unlockedCaseQuestions,
 } from "../runtime/case-file-content";
+import { DocumentViewer, type DocumentDefinition } from "./DocumentViewer";
 
 interface CaseFilePanelProps {
   checkpoint: CheckpointState;
@@ -18,6 +20,15 @@ interface CaseFilePanelProps {
   chapterTitle: string;
   onClose: () => void;
   onOpenMap?: () => void;
+  initialTab?: CaseFileTab;
+  questionAction?: CaseFileQuestionAction;
+}
+
+export interface CaseFileQuestionAction {
+  questionId: string;
+  requiredEvidenceIds: readonly string[];
+  label: string;
+  onConfirm: () => void;
 }
 
 const tabs: readonly { id: CaseFileTab; label: string }[] = [
@@ -28,8 +39,9 @@ const tabs: readonly { id: CaseFileTab; label: string }[] = [
   { id: "review", label: "回顾" },
 ];
 
-export function CaseFilePanel({ checkpoint, completedChapters, chapterTitle, onClose, onOpenMap }: CaseFilePanelProps) {
-  const [tab, setTab] = useState<CaseFileTab>("evidence");
+export function CaseFilePanel({ checkpoint, completedChapters, chapterTitle, onClose, onOpenMap, initialTab = "evidence", questionAction }: CaseFilePanelProps) {
+  const [tab, setTab] = useState<CaseFileTab>(initialTab);
+  const [openDocument, setOpenDocument] = useState<DocumentDefinition>();
   const evidence = useMemo(() => discoveredCaseEvidence(checkpoint), [checkpoint]);
   const people = useMemo(() => unlockedCasePeople(checkpoint), [checkpoint]);
   const questions = useMemo(() => unlockedCaseQuestions(checkpoint), [checkpoint]);
@@ -70,6 +82,7 @@ export function CaseFilePanel({ checkpoint, completedChapters, chapterTitle, onC
                   <ul>{item.observableFacts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
                   {item.relatedCharacters && item.relatedCharacters.length > 0 && <p className="case-file-meta"><b>关联人物</b>{item.relatedCharacters.join(" · ")}</p>}
                   {item.protagonistReaction && <p className="case-file-reaction">赵映：{item.protagonistReaction}</p>}
+                  {CASE_FILE_DOCUMENTS[item.id] && <button type="button" className="case-file-document-button" onClick={() => setOpenDocument(CASE_FILE_DOCUMENTS[item.id])}>查看留存扫描件</button>}
                 </article>
               ))}
             </section>
@@ -86,10 +99,36 @@ export function CaseFilePanel({ checkpoint, completedChapters, chapterTitle, onC
               {questions.length === 0 && <EmptyState title="问题还没有形成" body="先观察异常，再让问题从事实中出现。" />}
               {questions.map((question, index) => {
                 const resolved = isQuestionResolved(question, checkpoint);
+                const action = questionAction?.questionId === question.id && !resolved ? questionAction : undefined;
+                const supportingEvidence = action?.requiredEvidenceIds
+                  .map((id) => evidence.find((item) => item.id === id)) ?? [];
+                const actionReady = Boolean(action) && supportingEvidence.every(Boolean) && supportingEvidence.length === action?.requiredEvidenceIds.length;
                 return (
-                  <article key={question.id} className={resolved ? "resolved" : "open"}>
+                  <article key={question.id} data-question-id={question.id} className={`${resolved ? "resolved" : "open"}${action ? " actionable" : ""}`}>
                     <b>{String(index + 1).padStart(2, "0")}</b>
-                    <div><span>{resolved ? "已核清" : "待核清"}</span><h2>{question.question}</h2>{resolved && question.resolvedText && <p>{question.resolvedText}</p>}</div>
+                    <div>
+                      <span>{resolved ? "已核清" : "待核清"}</span>
+                      <h2>{question.question}</h2>
+                      {resolved && question.resolvedText && <p>{question.resolvedText}</p>}
+                      {action && (
+                        <div className="case-file-synthesis" aria-label="交叉核对证据">
+                          <p>分别核对生活痕迹、文字记录与图像框景。三条独立来源必须同时成立。</p>
+                          <ul>
+                            {action.requiredEvidenceIds.map((id) => {
+                              const item = evidence.find((entry) => entry.id === id);
+                              return (
+                                <li key={id} className={item ? "available" : "missing"}>
+                                  <span>{item ? evidenceChannelLabel(item.channel) : "未取得"}</span>
+                                  <strong>{item?.title ?? "这条事实尚未归档"}</strong>
+                                  <small>{item ? item.observableFacts[0] : "继续现场调查"}</small>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          <button type="button" className="primary-button" disabled={!actionReady} onClick={action.onConfirm}>{action.label}</button>
+                        </div>
+                      )}
+                    </div>
                   </article>
                 );
               })}
@@ -124,8 +163,9 @@ export function CaseFilePanel({ checkpoint, completedChapters, chapterTitle, onC
           )}
         </div>
 
-        <footer className="case-file-footer"><kbd>N</kbd> 或 <kbd>Esc</kbd> 关闭案卷</footer>
+        <footer className="case-file-footer"><kbd>N</kbd> 关闭案卷</footer>
       </section>
+      {openDocument && <DocumentViewer document={openDocument} contextLabel="案卷留存 · 扫描件" closeLabel="放回案卷" onClose={() => setOpenDocument(undefined)} />}
     </div>
   );
 }

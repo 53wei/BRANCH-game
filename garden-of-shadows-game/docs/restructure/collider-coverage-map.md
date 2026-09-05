@@ -14,7 +14,7 @@ TASK-017 的正式碰撞链路已经闭合：
             ↓
     七锚点截图 + 连续 CharacterController 行走 + 逐墙穿越反测
 
-正式视觉 Mesh 不直接充当物理网格。门洞、月洞门、屋顶、格栅、栏杆等特殊结构继续显式排除，交由 TASK-018 专项处理。
+正式视觉 Mesh 不直接充当物理网格。门洞、月洞门、屋顶、格栅、栏杆等特殊结构已在 TASK-018 专项关闭，见下文「TASK-018 特殊通行结构」。
 
 ## 实际运行数据
 
@@ -79,3 +79,18 @@ Master GLB 中有 71 个建筑候选共享相同世界 Bounds；另有 3 个 PLA
 ## 上限策略
 
 旧逻辑 boxes.slice(0, 96) 已删除。当前策略为动态注册全部有效 Collider；超过 256 只发出明确性能告警，不截断、不静默丢失。Runtime 报告必须满足 truncatedColliderCount = 0，视觉回归才允许通过。
+
+## TASK-018 特殊通行结构
+
+更新时间：2026-09-04。门洞、月洞门、台阶、栏杆与不可见挡路清理由 `app/game/runtime/special-structure-collision.ts` 专项关闭，并接入 `registerArchitectureCollisionCoverage` 的统一注册链（六个正式 3D Runtime 共用）。
+
+| 结构 | 碰撞策略 | 验证 |
+|---|---|---|
+| 正门门框 | 左右墙（z-low / z-high）+ 上梁 + 门槛四段复合 Box | 真实 capsule 双向穿越 + 门槛 autostep 反测 |
+| 月洞门 | 左/右/上三段复合 Box，洞口保持净空 | capsule 双向穿越；gardener 认知下证词锁仍物理阻挡 |
+| C 区木质台阶 | Master 节点 `214b32a0.o` 静态 trimesh 精确提取 + `c-wooden-steps-approach` 引道 | trimesh 注册计数 + 跳跃/行走物理测试 |
+| 栏杆 | 高度按跳跃抛物线校准：`jumpApexRise + 0.12m` 安全余量 | 跳跃峰值实测 > 0.45m，栏杆高度 < 0.8m，无法跃过 |
+| 不可见挡路 | 隐藏节点 33 个 + 专项结构 52 个显式排除并记录原因 | architecture-collision.test.ts 排除原因互斥校验 |
+| 序章门锁 | `prologue-gate-lock` 独立 progression-lock，默认禁用 | 启用后 capsule 被可靠阻挡 |
+
+验收状态：`special-structure-collision.test.ts` 7/7 通过；`registerArchitectureCollisionCoverage` 报告新增 `specialStructureRegistrationComplete`，必须与场景审计、Physics 计数三方一致才判定 complete。

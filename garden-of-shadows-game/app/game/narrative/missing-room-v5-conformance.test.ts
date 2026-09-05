@@ -87,4 +87,14 @@ describe("TASK-010 third chapter V5 conformance", () => {
     expect(runtime).toContain('compileInkSource("missing-room", missingRoomInkSource)');
     expect(runtime).toContain('dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson }');
   });
+
+  it("aligns the four remembered conditions into an ordinary formal room instead of a debug ghost box", () => {
+    expect(runtime).toContain('new THREE.LineSegments');
+    expect(runtime).toContain('world.cloneFormalAsset("tyx-arch-house-a")');
+    expect(runtime).toContain("animateRoomReconstruction(visuals, delta)");
+    expect(runtime).toContain("reconstructionAlignedPosition");
+    expect(runtime).toContain('box.visible = flags.includes("room.dialogue.reconstructed-complete")');
+    expect(runtime).not.toContain("new THREE.BoxGeometry");
+    expect(runtime).not.toContain("GhostRoom");
+  });
 });

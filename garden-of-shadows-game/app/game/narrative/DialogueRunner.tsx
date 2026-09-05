@@ -3,19 +3,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Story } from "inkjs";
-import type { CampaignSave, DialogueCommand, DialogueSequence, SpeakerId } from "../types";
+import type { CampaignSave, DialogueCommand, DialogueSequence } from "../types";
 import westInkSource from "./west-onboarding.ink?raw";
 import { parseDialogueTags, type ParsedDialogueTags } from "./dialogue";
 import { SemanticMorphText, morphLogText } from "./SemanticMorphText";
-import { narrativeDisplayLabel } from "./content-schema";
+import { narrativeDisplayLabel, narrativeLogLabel } from "./content-schema";
 import { compileInkSource } from "./ink-runtime";
 import { speakerProfiles } from "./speakers";
+import { choicePositionForNumberKey, steppedChoicePosition } from "./choice-navigation";
 
 interface DialogueLine extends ParsedDialogueTags {
   text: string;
 }
 
-export type InkStoryContent = string | Record<string, unknown>;
+export type InkStoryContent = string;
 
 interface DialogueRunnerProps {
   sequence: DialogueSequence;
@@ -31,13 +32,12 @@ interface DialogueRunnerProps {
 }
 
 const speedMs = { slow: 46, normal: 28, fast: 14, instant: 0 } as const;
-const createStory = (content: InkStoryContent) => (typeof content === "string" ? new Story(content) : new Story(content as Record<string, any>));
+const createStory = (content: InkStoryContent) => new Story(content);
 const defaultStoryContent = (): string => compileInkSource("west-onboarding", westInkSource);
 
 export function DialogueRunner({ sequence, storyContent, settings, suspended = false, restoredState, seenLineIds, onCommand, onProgress, onSeen, onComplete }: DialogueRunnerProps) {
   const storyRef = useRef<Story | undefined>(undefined);
   const callbackRef = useRef({ onCommand, onProgress, onSeen, onComplete });
-  const [rightSpeakerId, setRightSpeakerId] = useState<SpeakerId>(sequence.defaultRightSpeaker ?? "steward");
   const [line, setLine] = useState<DialogueLine>();
   const [visibleLength, setVisibleLength] = useState(0);
   const [choices, setChoices] = useState<Array<{ index: number; text: string }>>([]);
@@ -45,6 +45,8 @@ export function DialogueRunner({ sequence, storyContent, settings, suspended = f
   const [showLog, setShowLog] = useState(false);
   const [autoplay, setAutoplay] = useState(false);
   const [morphSettled, setMorphSettled] = useState(true);
+  const [focusedChoice, setFocusedChoice] = useState(0);
+  const choiceButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => { callbackRef.current = { onCommand, onProgress, onSeen, onComplete }; }, [onCommand, onComplete, onProgress, onSeen]);
 
@@ -56,17 +58,18 @@ export function DialogueRunner({ sequence, storyContent, settings, suspended = f
       tags.commands.forEach((command) => callbackRef.current.onCommand(command));
       callbackRef.current.onProgress(stateBeforeLine);
       if (!text) continue;
-      if (tags.speakerId !== "narrator" && tags.speakerId !== "zhaoying") setRightSpeakerId(tags.speakerId);
       const nextLine = { ...tags, text };
       setLine(nextLine);
       setHistory((current) => [...current, nextLine]);
       setChoices(story.currentChoices.map((choice) => ({ index: choice.index, text: choice.text.trim() })));
+      setFocusedChoice(0);
       setVisibleLength(speedMs[settings.dialogueSpeed] === 0 ? text.length : 0);
       setMorphSettled(!tags.semanticMorph || (tags.semanticMorph.once && seenLineIds.includes(tags.lineId)));
       return;
     }
     const nextChoices = story.currentChoices.map((choice) => ({ index: choice.index, text: choice.text.trim() }));
     setChoices(nextChoices);
+    setFocusedChoice(0);
     if (nextChoices.length === 0) callbackRef.current.onComplete();
   }, [history.length, seenLineIds, sequence.id, settings.dialogueSpeed]);
 
@@ -109,9 +112,57 @@ export function DialogueRunner({ sequence, storyContent, settings, suspended = f
     return () => window.clearTimeout(timer);
   }, [advance, autoplay, choices.length, line, morphSettled, suspended, visibleLength]);
 
+  const choiceVisible = choices.length > 0 && visibleLength >= (line?.text.length ?? 0) && morphSettled;
+
+  const choose = useCallback((index: number) => {
+    const story = storyRef.current;
+    if (!story) return;
+    if (line) callbackRef.current.onSeen(line.lineId);
+    story.ChooseChoiceIndex(index);
+    // Persist immediately after the choice, before the branch advances. This keeps
+    // a save made on a terminal choice from replaying the decision on resume.
+    callbackRef.current.onProgress(story.state.ToJson());
+    setChoices([]);
+    setFocusedChoice(0);
+    pullNext(story);
+  }, [line, pullNext]);
+
+  const focusChoice = useCallback((position: number) => {
+    setFocusedChoice(position);
+    choiceButtonRefs.current[position]?.focus();
+  }, []);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (suspended) return;
+      if (choiceVisible) {
+        const numberPosition = choicePositionForNumberKey(event.code, choices.length);
+        if (numberPosition !== undefined) {
+          event.preventDefault();
+          choose(choices[numberPosition].index);
+          return;
+        }
+        if (event.code === "ArrowDown" || event.code === "ArrowRight") {
+          event.preventDefault();
+          focusChoice(steppedChoicePosition(focusedChoice, choices.length, 1));
+          return;
+        }
+        if (event.code === "ArrowUp" || event.code === "ArrowLeft") {
+          event.preventDefault();
+          focusChoice(steppedChoicePosition(focusedChoice, choices.length, -1));
+          return;
+        }
+        if (event.code === "Home" || event.code === "End") {
+          event.preventDefault();
+          focusChoice(event.code === "Home" ? 0 : choices.length - 1);
+          return;
+        }
+        if (event.code === "Space" || event.code === "Enter") {
+          event.preventDefault();
+          choose(choices[focusedChoice].index);
+        }
+        return;
+      }
       if (event.code === "Space" || event.code === "Enter") {
         event.preventDefault();
         advance();
@@ -119,53 +170,53 @@ export function DialogueRunner({ sequence, storyContent, settings, suspended = f
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [advance, suspended]);
+  }, [advance, choiceVisible, choices, choose, focusChoice, focusedChoice, suspended]);
 
-  const choose = (index: number) => {
-    const story = storyRef.current;
-    if (!story) return;
-    if (line) callbackRef.current.onSeen(line.lineId);
-    story.ChooseChoiceIndex(index);
-    setChoices([]);
-    pullNext(story);
-  };
-
-  const left = speakerProfiles.zhaoying;
-  const right = speakerProfiles[rightSpeakerId] ?? speakerProfiles.steward;
-  const activeSpeaker = line && (line.kind === "spoken" || line.kind === "inner") ? speakerProfiles[line.speakerId] : undefined;
-  const isAudibleSpeech = line?.kind === "spoken";
-  const leftExpression = line?.speakerId === "zhaoying" ? line.portrait : left.defaultPortrait;
-  const rightExpression = line?.speakerId === right.id ? line.portrait : right.defaultPortrait;
-  const leftImage = left.portraits[leftExpression ?? left.defaultPortrait];
-  const rightImage = right.portraits[rightExpression ?? right.defaultPortrait];
+  const activeSpeaker = line?.kind === "spoken" ? speakerProfiles[line.speakerId] : undefined;
+  const activeExpression = line?.portrait ?? activeSpeaker?.defaultPortrait;
+  const activePortrait = activeSpeaker && activeExpression ? activeSpeaker.portraits[activeExpression] : undefined;
+  const activePortraitSide = activeSpeaker?.side === "left" ? "left" : "right";
   const isRead = line ? seenLineIds.includes(line.lineId) : false;
   const morphDisabled = Boolean(line?.semanticMorph?.once && isRead) || morphSettled;
   const rootClass = useMemo(() => `dialogue dialogue-${sequence.presentation}`, [sequence.presentation]);
   const lineKind = line?.kind ?? "narration";
   const displayName = narrativeDisplayLabel(lineKind, activeSpeaker?.name) ?? "";
+  const toolbarLabel = lineKind === "spoken" ? (sequence.presentation === "stage" ? "剧情对话" : "证词回声") : undefined;
 
   return (
     <section className={`${rootClass} dialogue-kind-${lineKind}`} data-line-kind={lineKind} role="dialog" aria-modal={sequence.presentation === "stage"} aria-label="剧情对话">
       {sequence.presentation === "stage" && sequence.backdrop && <div className="dialogue-scene" style={{ backgroundImage: `url(${sequence.backdrop})` }} aria-hidden="true" />}
       {sequence.presentation === "stage" && <div className="dialogue-curtain" aria-hidden="true" />}
-      {sequence.presentation === "stage" && <div className={`portrait portrait-left ${isAudibleSpeech && line?.speakerId === "zhaoying" ? "active" : "inactive"}`}><img src={leftImage} alt="我" /></div>}
-      {rightImage && <div className={`portrait portrait-right ${isAudibleSpeech && line?.speakerId === right.id ? "active" : "inactive"}`}><img src={rightImage} alt={right.name} /></div>}
-      <div className="dialogue-box" style={{ "--speaker-color": activeSpeaker?.themeColor ?? "#b9a87b" } as React.CSSProperties}>
+      {activeSpeaker && activePortrait && <div className={`portrait portrait-${activePortraitSide} active`}><img src={activePortrait} alt={activeSpeaker.name} /></div>}
+      <div className={`dialogue-box${choiceVisible ? " dialogue-box-has-choices" : ""}`} style={{ "--speaker-color": activeSpeaker?.themeColor ?? "#b9a87b" } as React.CSSProperties}>
         <div className="dialogue-toolbar">
-          <span>{lineKind === "spoken" ? (sequence.presentation === "stage" ? "剧情对话" : "证词回声") : displayName}</span>
+          {toolbarLabel && <span>{toolbarLabel}</span>}
           <button type="button" onClick={(event) => { event.stopPropagation(); setAutoplay((value) => !value); }}>{autoplay ? "停止自动" : "自动"}</button>
           <button type="button" onClick={(event) => { event.stopPropagation(); setShowLog((value) => !value); }}>记录</button>
           {isRead && <button type="button" onClick={(event) => { event.stopPropagation(); setVisibleLength(line?.text.length ?? 0); setMorphSettled(true); }}>跳过已读</button>}
         </div>
         <button type="button" className="dialogue-advance" onClick={advance} aria-label="推进对话">
-          <strong className="dialogue-name">{displayName}</strong>
-          <p>{line && <SemanticMorphText text={line.text} visibleLength={visibleLength} spec={line.semanticMorph} lineKey={line.lineId} disabled={morphDisabled} onSettled={() => setMorphSettled(true)} />}<i className={visibleLength >= (line?.text.length ?? 0) && morphSettled ? "ready" : ""} /></p>
+          {displayName && <strong className="dialogue-name">{displayName}</strong>}
+          <p>{lineKind === "inner" && "（"}{line && <SemanticMorphText text={line.text} visibleLength={visibleLength} spec={line.semanticMorph} lineKey={line.lineId} disabled={morphDisabled} onSettled={() => setMorphSettled(true)} />}{lineKind === "inner" && "）"}<i className={visibleLength >= (line?.text.length ?? 0) && morphSettled ? "ready" : ""} /></p>
         </button>
-        {choices.length > 0 && visibleLength >= (line?.text.length ?? 0) && morphSettled && <div className="dialogue-choices">{choices.map((choice) => <button key={choice.index} type="button" onClick={(event) => { event.stopPropagation(); choose(choice.index); }}>{choice.text}</button>)}</div>}
+        {choiceVisible && <div className="dialogue-choice-panel" aria-label="选择赵映的回应方式">
+          <p className="dialogue-choice-prompt"><span>选择回应方式</span><small>方向键移动 · 回车确认 · 数字键直选</small></p>
+          <div className="dialogue-choices">{choices.map((choice, position) => <button
+            key={choice.index}
+            ref={(node) => { choiceButtonRefs.current[position] = node; }}
+            type="button"
+            className={position === focusedChoice ? "selected" : ""}
+            aria-label={`${position + 1}。${choice.text}`}
+            onFocus={() => setFocusedChoice(position)}
+            onMouseEnter={() => setFocusedChoice(position)}
+            onClick={(event) => { event.stopPropagation(); choose(choice.index); }}
+          ><b>{String(position + 1).padStart(2, "0")}</b><span>{choice.text}</span><i aria-hidden="true">选择</i></button>)}</div>
+        </div>}
       </div>
       {showLog && <aside className="dialogue-log"><button type="button" onClick={() => setShowLog(false)}>关闭记录</button>{history.map((item, index) => {
         const logText = morphLogText(item.text, item.semanticMorph);
-        return logText ? <p key={`${item.lineId}-${index}`}><b>{speakerProfiles[item.speakerId]?.name ?? "听雨轩"}</b>{logText}</p> : null;
+        const historySpeaker = item.kind === "spoken" ? speakerProfiles[item.speakerId]?.name : undefined;
+        return logText ? <p key={`${item.lineId}-${index}`} data-line-kind={item.kind}><b>{narrativeLogLabel(item.kind, historySpeaker)}</b>{logText}</p> : null;
       })}</aside>}
     </section>
   );

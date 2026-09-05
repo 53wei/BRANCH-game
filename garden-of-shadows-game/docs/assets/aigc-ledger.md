@@ -83,6 +83,39 @@
 
 > Use case: stylized-concept. Asset type: production game character portrait sprite sheet. Create the same Chinese man three times: Zhou Shoupu, the quiet groundskeeper and guilty witness in a 1923 Jiangnan psychological-horror mystery. Three expressions: taciturn and grounded; inwardly guilty; startled and protective. Preserve the same broad weathered face, cloth headwrap, rough indigo work jacket, hemp inner shirt, and calloused hands. Exquisite Chinese gongbi heavy-color illustration with mineral pigments and paper texture. Transparent background; no tools, text, border, watermark, modern clothing, martial-arts hero styling or identity drift.
 
+## AIGC-IMG-006 · 序章前厅补绘旧画像
+
+- 文件：`public/media/evidence/prologue-family-portrait-v1.webp`
+- 日期：2026-09-04
+- 工具：OpenAI 内置 ImageGen
+- 调用结果 ID：`exec-94410960-c183-4611-a2ab-2ef94b0b356a`
+- 模式：全新生成；未传入参考图片
+- 输入参考与权利：无输入图片；人物、年代与“沈夫人右侧补画空位”只来自项目自有 V5 剧情母稿
+- 人工修改：原始 1448×1086 PNG 转为质量 88 的 WebP；未裁切、未重绘
+- 导出版本：v1，1448×1086，WebP，227664 bytes
+- SHA-256：`3e6ffb978d0c3cbdb980c0905b6297e94e711cbd9febd3043afb815aad358271`
+- NoAI 检查：未使用任何第三方输入素材
+- 使用章节：序章 0-2 前厅旧画像的世界内画布；原 `cg-02-family-portrait-v1.png` 只保留为剧情演出 CG
+- 下架负责人：项目维护者；若最终发行权利复核不通过则从 Runtime 与 manifest 同步移除
+
+加框修订：
+
+- 文件：`public/media/evidence/prologue-family-portrait-v2.webp`
+- 调用结果 ID：`exec-fb4e5a2b-11eb-4b42-aa31-458cc6340459`
+- 模式：精确物件编辑；输入为本条 v1 项目自有生成资产
+- 人工修改：编辑结果原始 1448×1086 PNG 转为质量 88 的 WebP；未裁切、未重绘
+- 导出版本：v2，1448×1086，WebP，239266 bytes
+- SHA-256：`f3c74132697bd549ada2929d6cd087a488fe1b16bcff432e72f158e34ab79c4f`
+- Runtime：v2 为墙面正式引用；v1 保留为无框母版，不覆盖原文件
+
+加框修订提示词：
+
+> Use case: precise-object-edit. Image 1 is the exact approved family portrait artwork to preserve. Add a slim, historically plausible early-20th-century Chinese dark hardwood picture frame around Image 1. Straight-on orthographic view; landscape 4:3 outer silhouette; narrow aged dark hardwood moulding with restrained carved inner bead, slight damp wear and rubbed corners. Crop to the frame’s outside edges. Preserve all five adults, poses, clothes, patched empty area, foliage, color, lighting, aging and restoration marks. No wall, room, observer, glare, mat, hanging wire, text, labels, logo, watermark, extra person, face, ghost, silhouette or prop.
+
+最终提示词：
+
+> Use case: historical-scene. Asset type: production game prop texture for an old framed family portrait hanging inside a 1920s Jiangnan garden residence. Create only the rectangular painted family portrait that Zhao Ying examines in the prologue of 《游园惊梦：四面证词》, without showing Zhao Ying, the surrounding room, a picture frame, or anyone looking at the portrait. Five Chinese adults: Master Shen, Madam Shen, Mr. Qian, old steward Zhou at the far edge, and painter Liu Sheng. Include an intentional subtly patched empty space immediately to Madam Shen’s right, where fabric edges and garden foliage overlap unnaturally; show no sixth person or ghost there. Republican-era China, early 1920s; aged hand-painted oil portrait on canvas, restrained realism, faded pigments, fine craquelure, faint damp damage and restoration marks. Landscape 4:3, straight-on, subdued warm light, aged umber and moss green. No external frame, room, foreground observer, text, characters, labels, logo, watermark, border, modern items, or supernatural effects.
+
 ## 后续生成资产必填字段
 
 图片、视频、配音和音乐均需记录：工具、模型、提示词、种子、输入参考、输入权利、人工修改、导出版本、SHA-256、使用章节与下架负责人。任何含第三方 `NoAI` 输入的记录直接判为不合格。

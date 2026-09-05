@@ -1,6 +1,6 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import type { CognitionId, Vec3Tuple } from "./types";
-import { PLAYER_BODY_CALIBRATION } from "../runtime/player-calibration";
+import { PLAYER_BODY_CALIBRATION, PLAYER_MOVEMENT_CALIBRATION } from "../runtime/player-calibration";
 
 export interface PhysicsPose {
   x: number;
@@ -18,6 +18,7 @@ export interface PhysicsBoxDefinition {
 
 export class PlayerPhysics {
   private readonly colliders = new Map<string, { collider: RAPIER.Collider; cognitionIds?: readonly CognitionId[] }>();
+  private verticalVelocity = 0;
 
   private constructor(
     private readonly world: RAPIER.World,
@@ -28,7 +29,7 @@ export class PlayerPhysics {
 
   static async create(spawn: PhysicsPose, boxes: readonly PhysicsBoxDefinition[]): Promise<PlayerPhysics> {
     await RAPIER.init();
-    const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    const world = new RAPIER.World({ x: 0, y: PLAYER_MOVEMENT_CALIBRATION.gravity, z: 0 });
     const body = world.createRigidBody(
       RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(spawn.x, spawn.y, spawn.z),
     );
@@ -70,17 +71,36 @@ export class PlayerPhysics {
     });
   }
 
-  move(translation: PhysicsPose): PhysicsPose {
-    this.character.computeColliderMovement(this.playerCollider, translation);
+  move(translation: PhysicsPose, deltaSeconds?: number): PhysicsPose {
+    let requested = translation;
+    if (deltaSeconds !== undefined) {
+      const delta = Math.max(0, Math.min(deltaSeconds, 0.05));
+      if (this.character.computedGrounded() && this.verticalVelocity < 0) this.verticalVelocity = 0;
+      this.verticalVelocity += PLAYER_MOVEMENT_CALIBRATION.gravity * delta;
+      requested = { ...translation, y: this.verticalVelocity * delta };
+    }
+    this.character.computeColliderMovement(this.playerCollider, requested);
     const movement = this.character.computedMovement();
     const current = this.body.translation();
     const next = { x: current.x + movement.x, y: current.y + movement.y, z: current.z + movement.z };
     this.body.setNextKinematicTranslation(next);
     this.world.step();
+    if (deltaSeconds !== undefined && this.character.computedGrounded() && this.verticalVelocity < 0) this.verticalVelocity = 0;
     return this.pose();
   }
 
+  isGrounded(): boolean {
+    return this.character.computedGrounded();
+  }
+
+  requestJump(): boolean {
+    if (!this.character.computedGrounded() || this.verticalVelocity > 0.01) return false;
+    this.verticalVelocity = PLAYER_MOVEMENT_CALIBRATION.jumpSpeed;
+    return true;
+  }
+
   teleport(pose: PhysicsPose): void {
+    this.verticalVelocity = 0;
     this.body.setTranslation(pose, true);
     this.body.setNextKinematicTranslation(pose);
     this.world.step();
@@ -116,7 +136,7 @@ export class PlayerPhysics {
       this.playerCollider,
       this.body,
     );
-    return hit ? Math.max(0.38, hit.timeOfImpact - margin) : distance;
+    return hit ? Math.max(0, hit.timeOfImpact - margin) : distance;
   }
 
   dispose(): void {

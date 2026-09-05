@@ -20,9 +20,11 @@ export class PlayerAvatar {
   update(
     pose: { x: number; y: number; z: number },
     yaw: number,
-    _moving: boolean,
-    _deltaSeconds: number,
+    moving: boolean,
+    deltaSeconds: number,
   ): void {
+    void moving;
+    void deltaSeconds;
     this.root.position.set(pose.x, playerPoseToFeetY(pose.y), pose.z);
     this.root.rotation.y = yaw;
   }

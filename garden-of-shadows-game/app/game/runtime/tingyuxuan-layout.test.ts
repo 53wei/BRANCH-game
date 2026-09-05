@@ -196,6 +196,29 @@ describe("TingYuXuan Runtime Gameplay Map V1 layout", () => {
     }
   });
 
+  it("keeps camera obstruction queries on the active cognition collision group", async () => {
+    const controller = await PhysicsController.create(
+      { x: 0, y: 0.9, z: 0 },
+      [
+        { id: "test-ground", center: [0, -0.1, 0], halfExtents: [4, 0.1, 4], category: "ground" },
+        { id: "gardener-camera-wall", center: [0, 1.6, -1], halfExtents: [1, 1.6, 0.1], category: "memory-wall", memoryIds: ["gardener"] },
+      ],
+    );
+    try {
+      const eye = { x: 0, y: 1.64, z: 0 };
+      const desired = { x: 0, y: 1.64, z: -2 };
+
+      controller.setMemory("wife");
+      expect(controller.cameraSafeDistance(eye, desired, 0.04)).toBeCloseTo(2);
+
+      controller.setMemory("gardener");
+      expect(controller.cameraSafeDistance(eye, desired, 0.04)).toBeLessThan(1);
+      expect(controller.cameraCollisionId()).toBe("gardener-camera-wall");
+    } finally {
+      controller.dispose();
+    }
+  });
+
   it("allows one grounded small jump and blocks air-jumping", async () => {
     const spawn = getLayoutAnchor("ROUTE_02_A_ENTRY");
     const controller = await PhysicsController.create(

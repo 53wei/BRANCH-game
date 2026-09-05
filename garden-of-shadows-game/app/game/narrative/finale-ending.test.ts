@@ -46,12 +46,12 @@ describe("TASK-013 ending stability metrics", () => {
     expect(target.reconstructionTrace.anchoredFragments).toEqual(["west.borrowed-step"]);
   });
 
-  it("normalizes legacy saves that have no cognitionUsage", () => {
+  it("defaults missing current-schema cognition metrics to an empty record", () => {
     const checkpoint = createCheckpoint("fifth-tingyuxuan", "zhaoying");
-    const legacyTrace = checkpoint.reconstructionTrace as Partial<CheckpointState["reconstructionTrace"]>;
-    delete legacyTrace.cognitionUsage;
+    const partialTrace = checkpoint.reconstructionTrace as Partial<CheckpointState["reconstructionTrace"]>;
+    delete partialTrace.cognitionUsage;
     const normalized = normalizeSave({
-      schemaVersion: 2,
+      schemaVersion: 3,
       activeCheckpoint: checkpoint,
       completedChapters: [],
       unlockedChapters: ["fifth-tingyuxuan"],

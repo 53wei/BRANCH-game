@@ -1,5 +1,5 @@
-import type { DialogueCommand, MemoryId, SpeakerId } from "../types";
-import type { NarrativeNodeKind } from "./content-schema";
+import { MEMORY_IDS, SPEAKER_IDS, type DialogueCommand, type MemoryId, type SpeakerId } from "../types";
+import { isNarrativeNodeKind, narrativeCanUseVoice, type NarrativeNodeKind } from "./content-schema";
 
 export interface SemanticMorphSpec {
   source: string;
@@ -28,10 +28,10 @@ const clampMs = (value: string, fallback: number) => {
 };
 
 export function parseDialogueTags(tags: string[], fallbackLineId: string): ParsedDialogueTags {
-  let speakerId: SpeakerId = "narrator";
-  let kind: NarrativeNodeKind = "spoken";
+  let speakerId: SpeakerId | undefined;
+  let kind: NarrativeNodeKind | undefined;
   let portrait: string | undefined;
-  let lineId = fallbackLineId;
+  let lineId: string | undefined;
   let voiceAssetId: string | undefined;
   let morphSource = "";
   let morphSequence: string[] = [];
@@ -44,10 +44,15 @@ export function parseDialogueTags(tags: string[], fallbackLineId: string): Parse
 
   for (const rawTag of tags) {
     const tag = rawTag.trim();
-    if (tag.startsWith("speaker:")) speakerId = tag.slice("speaker:".length) as SpeakerId;
+    if (tag.startsWith("speaker:")) {
+      const value = tag.slice("speaker:".length);
+      if ((SPEAKER_IDS as readonly string[]).includes(value)) speakerId = value as SpeakerId;
+      else throw new Error(`Unknown dialogue speaker: ${value}`);
+    }
     else if (tag.startsWith("kind:")) {
-      const value = tag.slice("kind:".length) as NarrativeNodeKind;
-      if (["spoken", "inner", "narration", "action", "choice", "cg", "interaction"].includes(value)) kind = value;
+      const value = tag.slice("kind:".length);
+      if (isNarrativeNodeKind(value)) kind = value;
+      else throw new Error(`Unknown narrative kind: ${value}`);
     }
     else if (tag.startsWith("portrait:")) portrait = tag.slice("portrait:".length);
     else if (tag.startsWith("line:")) lineId = tag.slice("line:".length);
@@ -68,7 +73,11 @@ export function parseDialogueTags(tags: string[], fallbackLineId: string): Parse
       if (value === "stable" || value === "final" || value === "none") morphLogMode = value;
     } else if (tag.startsWith("morph-once:")) morphOnce = tag.slice("morph-once:".length) !== "false";
     else if (tag.startsWith("flag:set:")) commands.push({ type: "flag:set", flag: tag.slice("flag:set:".length) });
-    else if (tag.startsWith("memory:unlock:")) commands.push({ type: "memory:unlock", memoryId: tag.slice("memory:unlock:".length) as MemoryId });
+    else if (tag.startsWith("memory:unlock:")) {
+      const value = tag.slice("memory:unlock:".length);
+      if ((MEMORY_IDS as readonly string[]).includes(value)) commands.push({ type: "memory:unlock", memoryId: value as MemoryId });
+      else throw new Error(`Unknown memory id: ${value}`);
+    }
     else if (tag.startsWith("objective:start:")) {
       const [, , objectiveId, stepId] = tag.split(":");
       if (objectiveId && stepId) commands.push({ type: "objective:start", objectiveId, stepId });
@@ -91,8 +100,11 @@ export function parseDialogueTags(tags: string[], fallbackLineId: string): Parse
     once: morphOnce,
   } satisfies SemanticMorphSpec : undefined;
 
-  // Legacy Ink without an explicit kind keeps backwards compatibility, but narrator
-  // lines are never ordinary audible character speech.
-  if (kind === "spoken" && speakerId === "narrator") kind = "narration";
+  if (!speakerId) throw new Error(`Dialogue line ${fallbackLineId} is missing speaker tag`);
+  if (!kind) throw new Error(`Dialogue line ${fallbackLineId} is missing kind tag`);
+  if (!lineId) throw new Error(`Dialogue line ${fallbackLineId} is missing line tag`);
+  if (!narrativeCanUseVoice(kind)) voiceAssetId = undefined;
+  if (kind !== "spoken") portrait = undefined;
+  if (kind === "spoken" && speakerId === "narrator") throw new Error(`Narrator cannot be spoken dialogue: ${lineId}`);
   return { speakerId, kind, portrait, lineId, voiceAssetId, semanticMorph, commands };
 }

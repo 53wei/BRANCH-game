@@ -36,12 +36,15 @@ interface RuntimeSettingsPanelProps {
 
 export function RuntimeSettingsPanel({ settings, onChange, onClose }: RuntimeSettingsPanelProps) {
   const toggle = (key: "subtitles" | "stableCamera" | "guidanceAssist") => onChange({ ...settings, [key]: !settings[key] });
+  const update = <K extends keyof GameSettings>(key: K, value: GameSettings[K]) => onChange({ ...settings, [key]: value });
   return (
     <div className="system-panel-backdrop">
       <section className="runtime-settings-panel" role="dialog" aria-modal="true" aria-labelledby="runtime-settings-title">
         <header><div><p className="eyebrow">显示与辅助</p><h1 id="runtime-settings-title">调查设置</h1></div><button type="button" className="panel-close" onClick={onClose}>×</button></header>
         <label htmlFor="runtime-guidance-assist" aria-label="辅助引导"><span><b>辅助引导</b><small>停留 20 秒后给方向，45 秒后补充提示，90 秒后显示调查位置</small></span><input id="runtime-guidance-assist" type="checkbox" checked={settings.guidanceAssist} onChange={() => toggle("guidanceAssist")} /></label>
-        <label htmlFor="runtime-subtitles" aria-label="字幕"><span><b>字幕</b><small>显示环境对白与方向提示</small></span><input id="runtime-subtitles" type="checkbox" checked={settings.subtitles} onChange={() => toggle("subtitles")} /></label>
+        <label htmlFor="runtime-subtitles" aria-label="行走字幕"><span><b>行走字幕</b><small>显示探索时的环境短句与调查提示；主剧情文字始终保留</small></span><input id="runtime-subtitles" type="checkbox" checked={settings.subtitles} onChange={() => toggle("subtitles")} /></label>
+        <label htmlFor="runtime-dialogue-speed" aria-label="对话速度"><span><b>对话速度</b><small>只改变逐字出现速度，不让重要文字自动消失</small></span><select id="runtime-dialogue-speed" value={settings.dialogueSpeed} onChange={(event) => update("dialogueSpeed", event.target.value as GameSettings["dialogueSpeed"])}><option value="slow">慢</option><option value="normal">标准</option><option value="fast">快</option><option value="instant">立即显示</option></select></label>
+        <label htmlFor="runtime-text-scale" aria-label="文字大小"><span><b>文字大小</b><small>同时放大对白、文书、案卷和调查提示</small></span><select id="runtime-text-scale" value={settings.textScale} onChange={(event) => update("textScale", event.target.value as GameSettings["textScale"])}><option value="normal">标准</option><option value="large">大字</option></select></label>
         <label htmlFor="runtime-stable-camera" aria-label="稳定镜头"><span><b>稳定镜头</b><small>增加第一人称镜头平滑</small></span><input id="runtime-stable-camera" type="checkbox" checked={settings.stableCamera} onChange={() => toggle("stableCamera")} /></label>
         <button type="button" className="primary-button" onClick={onClose}>返回暂停菜单</button>
       </section>

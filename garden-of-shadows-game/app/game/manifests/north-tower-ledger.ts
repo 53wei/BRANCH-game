@@ -45,7 +45,7 @@ export const northTowerChapter: ChapterManifest = {
   logline: "旧脚印把赵映带进主宅。钱先生无意中摆出第六只茶杯，离园记录留下改写痕迹，柳生的旧画又在特定角度显出额外人影。三件事共同指向同一个结论：案发当晚还存在第五个人。",
   estimatedMinutes: [20, 35],
   status: "playable",
-  unlock: { chapterId: "west-corridor-loop", requiredFlags: ["west.chapter.complete", "campaign.route.a-to-b-open"] },
+  unlock: { chapterId: "west-corridor-loop", requiredFlags: ["west-corridor-loop.complete", "campaign.route.a-to-b-open"] },
   assetPack: {
     id: "tingyuxuan-master-v1",
     initialBudgetMb: 100,
@@ -97,7 +97,7 @@ export const northTowerChapter: ChapterManifest = {
   },
   trustNodes: [],
   chaseSegments: [],
-  completionFlags: ["north.chapter.complete", "north.fifth-person.confirmed", "campaign.route.b-investigation-complete"],
+  completionFlags: ["north-tower-ledger.complete", "north.fifth-person.confirmed", "campaign.route.b-investigation-complete"],
   dialogueSequences: northDialogueSequences,
   objectives: northObjectives,
 };

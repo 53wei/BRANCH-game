@@ -55,6 +55,7 @@ describe("west onboarding dialogue", () => {
   it("parses objective, trust, voice and speaker tags", () => {
     const parsed = parseDialogueTags([
       "speaker:wife",
+      "kind:spoken",
       "portrait:guarded",
       "line:trust.001",
       "voice:west.wife.001",
@@ -69,14 +70,19 @@ describe("west onboarding dialogue", () => {
   });
 
   it("keeps narrative semantics separate from speaker identity", () => {
-    expect(parseDialogueTags(["speaker:narrator", "kind:action"], "fallback").kind).toBe("action");
-    expect(parseDialogueTags(["speaker:zhaoying", "kind:inner"], "fallback").kind).toBe("inner");
-    expect(parseDialogueTags(["speaker:narrator"], "fallback").kind).toBe("narration");
+    expect(parseDialogueTags(["speaker:narrator", "kind:action", "line:test.action"], "fallback").kind).toBe("action");
+    expect(parseDialogueTags(["speaker:zhaoying", "kind:inner", "line:test.inner"], "fallback").kind).toBe("inner");
+    expect(parseDialogueTags(["speaker:narrator", "kind:narration", "line:test.narration"], "fallback").kind).toBe("narration");
+    expect(parseDialogueTags(["speaker:zhaoying", "kind:inner", "line:test.inner-voice", "portrait:guarded", "voice:forbidden.inner"], "fallback")).toMatchObject({ voiceAssetId: undefined, portrait: undefined });
+    expect(parseDialogueTags(["speaker:narrator", "kind:narration", "line:test.narration-voice", "voice:forbidden.narration"], "fallback").voiceAssetId).toBeUndefined();
+    expect(() => parseDialogueTags(["speaker:wife", "kind:spoken"], "missing-line")).toThrow("missing line tag");
+    expect(() => parseDialogueTags(["speaker:narrator", "kind:spoken", "line:invalid.narrator"], "invalid.narrator")).toThrow("Narrator cannot be spoken dialogue");
   });
 
   it("parses semantic ink-rewrite tags", () => {
     const parsed = parseDialogueTags([
       "speaker:narrator",
+      "kind:narration",
       "line:prologue.ledger",
       "morph:四>五>四",
       "morph-delay:900",

@@ -8,31 +8,32 @@ export const PROLOGUE_DEPARTURE_DOCUMENT: DocumentDefinition = {
   id: "prologue-departure-record",
   kind: "record",
   title: "七年前的离家登记",
-  subtitle: "旧箱内保存的原始纸面之一",
+  subtitle: "从沈夫人收好的旧箱中取出",
   owner: "听雨轩旧档",
   date: "七年前 · 雨夜",
   pages: [
     {
       id: "record-front",
       heading: "离家登记",
-      subheading: "按原纸面逐行查看；未辨认内容不补写",
+      subheading: "纸边被潮气洇软，墨色已经褪淡",
       rows: [
-        { id: "background-before", left: "同页旧记录", text: "字迹已褪，不作为本次调查信息。", right: "—" },
-        { id: "zhaoying", left: "赵映", text: "傍晚六点十分离开听雨轩。", right: "18:10", emphasis: true, annotation: "纸角在同一数字位置留有非常浅的二次压痕；现阶段无法可靠读出原数字。" },
-        { id: "background-after", left: "同页旧记录", text: "雨夜登记继续，内容与当前问题无直接关联。", right: "—" },
+        { id: "column-head", left: "姓名", text: "离园记事", right: "时刻" },
+        { id: "background-before", left: "上一行", text: "字迹受潮，姓名与时刻已经难以辨认。", right: "—" },
+        { id: "zhaoying", left: "赵映", text: "傍晚离开听雨轩。", right: "六点十分", emphasis: true, annotation: "纸角有非常浅的压痕，像同一位置曾写过另一组数字后又被处理。" },
+        { id: "background-after", left: "下一行", text: "墨迹被水晕开，只剩零散笔画。", right: "—" },
       ],
-      footer: "可确认事实：现有文字与赵映记忆一致；纸面同时保留过另一组数字被处理后的压痕。两件事可以同时成立。",
+      footer: "纸面所记与赵映此时的记忆一致；压痕的原数字和留下它的人，此时都还无法确认。",
     },
     {
       id: "box-context",
       heading: "旧箱内物件",
-      subheading: "与登记表放在同一层",
+      subheading: "钥匙、怀表和票据平码在登记表下面",
       rows: [
         { id: "keys", left: "物件", text: "一串旧钥匙。", right: "保留" },
         { id: "watch", left: "物件", text: "一只旧怀表。", right: "保留" },
         { id: "tickets", left: "物件", text: "一沓用牛皮纸包起来的旧票据。", right: "保留" },
       ],
-      footer: "老周确认这些东西由沈夫人保存。它们说明旧物被长期留下，但本页不把“为什么留下”写成结论。",
+      footer: "沈夫人把这些东西留了七年，一件也没有扔。",
     },
   ],
 };
@@ -96,26 +97,32 @@ export const NORTH_DEPARTURE_DOCUMENT: DocumentDefinition = {
   date: "案发当晚记录 · 事后有修改",
   pages: [
     {
-      id: "ink-order",
+      id: "record-flat-light",
       heading: "离园记录",
-      subheading: "先看纸面，不先解释身份",
+      subheading: "平放在桌面时，三份时间彼此吻合",
       rows: [
-        { id: "original", left: "原字", text: "原始登记墨迹已经完全干透。", right: "先写" },
-        { id: "addition", left: "时间栏", text: "现有时间旁存在后来补过的一笔。", right: "后补", emphasis: true, annotation: "补笔墨色与落笔状态和原字不同。" },
-        { id: "indent", left: "纸背", text: "原先数字留下的压痕仍可见，但不足以可靠还原完整数字。", right: "压痕" },
+        { id: "departure", left: "离园登记", text: "赵映于六点十分离开听雨轩。", right: "18:10", emphasis: true },
+        { id: "ticket", left: "车票底联", text: "六点四十五分上车。", right: "18:45" },
+        { id: "town", left: "镇口抄记", text: "车在七点前离开镇口。", right: "七点前" },
       ],
-      footer: "钱先生：账目能改，落笔的先后不能改。",
+      footer: "钱先生：六点十分离园，六点四十五分上车，车在七点前离开镇口。三份记录互相对得上。",
     },
     {
-      id: "observation-limit",
-      heading: "本页可记录到哪里",
-      subheading: "事实与身份判断分开",
+      id: "record-raking-light",
+      heading: "离园记录",
+      subheading: "把时间栏侧过灯光后，纸面纤维显出逆毛",
       rows: [
-        { id: "fact-1", left: "事实 01", text: "这张离园记录在原字干透后被再次落笔。", right: "可确认" },
-        { id: "fact-2", left: "事实 02", text: "纸背保留原先数字的压痕。", right: "可确认" },
-        { id: "limit", left: "暂不确认", text: "单凭这张纸不能确认是谁要求修改，也不能单独确认第五个人身份。", right: "待核对" },
+        { id: "departure", left: "离园登记", text: "赵映于六点十分离开听雨轩。", right: "18:10", emphasis: true, abraded: true, annotation: "现有墨迹下面有轻微刮擦；刮纸留下的逆毛在侧光下可见。" },
+        { id: "ticket", left: "车票底联", text: "六点四十五分上车。", right: "18:45" },
+        { id: "town", left: "镇口抄记", text: "车在七点前离开镇口。", right: "七点前" },
       ],
-      footer: "赵映只把“修改发生过”记入案卷；身份答案需要与生活痕迹、图像证据交叉验证。",
+      footer: "这里只能确认离园时间被改过；原来写的几点、由谁改动，纸面没有直接给出答案。",
     },
   ],
+};
+
+export const CASE_FILE_DOCUMENTS: Readonly<Partial<Record<string, DocumentDefinition>>> = {
+  "prologue-departure-record": PROLOGUE_DEPARTURE_DOCUMENT,
+  "north-departure-record": NORTH_DEPARTURE_DOCUMENT,
+  "deleted-unsent-letter": DELETED_PERSON_UNSENT_LETTER,
 };

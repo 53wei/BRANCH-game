@@ -30,28 +30,28 @@
   ],
   "capturedShots": [
     {
-      "id": "node-01",
-      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-01.png",
-      "bytes": 638332,
-      "sha256": "7efc89a659d09b09a59bf6afb641df5b08cb0fc76a48ea89af5cc1f3d0a3544f",
+      "id": "front-hall-evidence",
+      "file": "docs/development-records/prologue-spawn-captures/front-hall-evidence.png",
+      "bytes": 1135706,
+      "sha256": "1785ca49bda769fb2adc6537f599c8f233a96390f756df0d2cc8b1238b0d59d9",
       "telemetry": {
-        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214b32a0o&renderer=webgl",
-        "fps": 60,
-        "drawCalls": 163,
-        "triangles": 20335,
+        "url": "http://localhost:43952/?visualTest=1&visualChapter=prologue-rain&visualUi=1&debugGameplay=1&visualScenario=front-hall-evidence&renderer=webgl",
+        "fps": 5.3,
+        "drawCalls": 34,
+        "triangles": 195508,
         "points": 1390,
         "visibleModels": [
           "master-scene"
         ],
         "loadedAssetIds": [
           "tyx-master-scene",
-          "tyx-nat-rock-set-a"
+          "tyx-arch-pavilion-a"
         ],
-        "loadedAssetBytes": 101202548,
+        "loadedAssetBytes": 107749492,
         "rendererBackend": "webgl2",
         "architectureMode": "master",
-        "architectureColliderCount": 16,
-        "masterArchitectureColliderCount": 0,
+        "architectureColliderCount": 17,
+        "masterArchitectureColliderCount": 1,
         "specialStructureColliderCount": 1,
         "specialStructureCollision": "complete",
         "specialStructureCollisionReport": {
@@ -109,53 +109,53 @@
           "jumpApexRise": 0.5219,
           "complete": true
         },
-        "colliderCoverage": "incomplete",
+        "colliderCoverage": "complete",
         "colliderCoverageReport": {
           "scene": {
             "totalMeshCount": 1457,
-            "candidateArchitectureMeshCount": 0,
-            "generatedColliderCount": 0,
-            "excludedMeshCount": 1457,
+            "candidateArchitectureMeshCount": 76,
+            "generatedColliderCount": 1,
+            "excludedMeshCount": 1456,
             "exclusions": {
-              "hidden": 1456,
-              "nonArchitecture": 1,
-              "openingOrDetail": 0,
+              "hidden": 33,
+              "nonArchitecture": 1296,
+              "openingOrDetail": 52,
               "emptyBounds": 0,
-              "invalidSize": 0,
-              "duplicate": 0
+              "invalidSize": 4,
+              "duplicate": 71
             },
             "categories": {
-              "architecture": 0
+              "architecture": 1
             },
             "regionCoverage": {
               "AREA_A": {
                 "regionId": "AREA_A",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
+                "totalMeshCount": 1157,
+                "candidateArchitectureMeshCount": 75,
+                "generatedColliderCount": 1,
                 "explicitArchitectureColliderCount": 11,
                 "routeWaypointCount": 2
               },
               "AREA_B": {
                 "regionId": "AREA_B",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
+                "totalMeshCount": 82,
+                "candidateArchitectureMeshCount": 3,
                 "generatedColliderCount": 0,
                 "explicitArchitectureColliderCount": 11,
                 "routeWaypointCount": 1
               },
               "AREA_C": {
                 "regionId": "AREA_C",
-                "totalMeshCount": 1,
-                "candidateArchitectureMeshCount": 0,
+                "totalMeshCount": 128,
+                "candidateArchitectureMeshCount": 3,
                 "generatedColliderCount": 0,
                 "explicitArchitectureColliderCount": 3,
                 "routeWaypointCount": 2
               },
               "OUTSIDE": {
                 "regionId": "OUTSIDE",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
+                "totalMeshCount": 177,
+                "candidateArchitectureMeshCount": 1,
                 "generatedColliderCount": 0,
                 "explicitArchitectureColliderCount": 0,
                 "routeWaypointCount": 0
@@ -167,39 +167,39 @@
                 "label": "Entrance",
                 "anchorId": "ROUTE_02_A_ENTRY",
                 "regionId": "AREA_A",
-                "visualAssetCovered": false,
+                "visualAssetCovered": true,
                 "colliderCovered": true,
-                "masterColliderCovered": false,
+                "masterColliderCovered": true,
                 "gameplayRouteCovered": true,
                 "nearestArchitectureColliderDistance": 0,
                 "coverageRadius": 10,
-                "complete": false
+                "complete": true
               },
               {
                 "id": "west-court",
                 "label": "West Court",
                 "anchorId": "ROUTE_03_A_LOOP",
                 "regionId": "AREA_A",
-                "visualAssetCovered": false,
+                "visualAssetCovered": true,
                 "colliderCovered": true,
-                "masterColliderCovered": false,
+                "masterColliderCovered": true,
                 "gameplayRouteCovered": true,
                 "nearestArchitectureColliderDistance": 3.98,
                 "coverageRadius": 10,
-                "complete": false
+                "complete": true
               },
               {
                 "id": "north-tower",
                 "label": "North Tower",
                 "anchorId": "ROUTE_05_B_MAIN_COURT",
                 "regionId": "AREA_B",
-                "visualAssetCovered": false,
+                "visualAssetCovered": true,
                 "colliderCovered": true,
                 "masterColliderCovered": false,
                 "gameplayRouteCovered": true,
                 "nearestArchitectureColliderDistance": 4.75,
                 "coverageRadius": 10,
-                "complete": false
+                "complete": true
               },
               {
                 "id": "water-court",
@@ -232,8 +232,416 @@
             "truncatedColliderCount": 0,
             "warningThreshold": 256,
             "warningThresholdExceeded": false,
-            "candidateMeshSamples": [],
+            "candidateMeshSamples": [
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0002",
+                "materials": "StingrayPBSwalls",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "PLASTER_OVEN1_StingrayPBSwalls_0001",
+                "materials": "StingrayPBSwalls.001",
+                "center": [
+                  -47.501,
+                  208.564,
+                  -217.682
+                ],
+                "size": [
+                  531.2,
+                  417.233,
+                  637.262
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              }
+            ],
             "geometryReviewSamples": [
+              {
+                "name": "1d5b65a0o",
+                "materials": "Material #1621",
+                "center": [
+                  -0.918,
+                  1.894,
+                  27.478
+                ],
+                "size": [
+                  0.217,
+                  0.27,
+                  0.738
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d7c2560o",
+                "materials": "Material #73",
+                "center": [
+                  -7.863,
+                  0.799,
+                  29.854
+                ],
+                "size": [
+                  0.499,
+                  0.274,
+                  0.329
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d68d3e0o",
+                "materials": "Material #133",
+                "center": [
+                  3.927,
+                  0.906,
+                  27.535
+                ],
+                "size": [
+                  0.447,
+                  0.402,
+                  0.437
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d66ed98o",
+                "materials": "Material #1391",
+                "center": [
+                  3.676,
+                  1.992,
+                  28.234
+                ],
+                "size": [
+                  2.232,
+                  2.591,
+                  3.438
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20ca4e00o",
+                "materials": "Material #87",
+                "center": [
+                  -14.205,
+                  2.212,
+                  23.732
+                ],
+                "size": [
+                  2.627,
+                  1.145,
+                  2.625
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6743c0o",
+                "materials": "Material #1381",
+                "center": [
+                  3.404,
+                  3.01,
+                  28.088
+                ],
+                "size": [
+                  3.629,
+                  2.568,
+                  4.529
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d77e798o",
+                "materials": "Material #851",
+                "center": [
+                  -9.467,
+                  0.549,
+                  34.822
+                ],
+                "size": [
+                  3.933,
+                  0.634,
+                  25.809
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d588e38o",
+                "materials": "Material #1721",
+                "center": [
+                  -2.456,
+                  1.073,
+                  32
+                ],
+                "size": [
+                  9.132,
+                  0.941,
+                  5.475
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_01",
+                "materials": "Material #135",
+                "center": [
+                  8.552,
+                  -0.396,
+                  15.204
+                ],
+                "size": [
+                  6.798,
+                  4.597,
+                  6.702
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6787b0o",
+                "materials": "Material #1371",
+                "center": [
+                  9.237,
+                  0.746,
+                  31.151
+                ],
+                "size": [
+                  13.387,
+                  1.141,
+                  8.551
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "TREE_RING_01_00",
+                "materials": "Material #134",
+                "center": [
+                  8.34,
+                  0.86,
+                  15.72
+                ],
+                "size": [
+                  9.221,
+                  4.626,
+                  9.116
+                ],
+                "regions": [
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5ae8f0o",
+                "materials": "Material #1641",
+                "center": [
+                  3.994,
+                  2.27,
+                  26.428
+                ],
+                "size": [
+                  10.081,
+                  3.207,
+                  9.702
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d5a7bf8o",
+                "materials": "Material #1651",
+                "center": [
+                  4.01,
+                  1.926,
+                  26.241
+                ],
+                "size": [
+                  9.828,
+                  2.548,
+                  10.12
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "1d6175b8o",
+                "materials": "Material #147",
+                "center": [
+                  -7.143,
+                  0.517,
+                  28.836
+                ],
+                "size": [
+                  9.618,
+                  0.574,
+                  31.611
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d5c3df0o",
+                "materials": "Material #158",
+                "center": [
+                  -1.009,
+                  1.033,
+                  32.084
+                ],
+                "size": [
+                  9.929,
+                  1.351,
+                  38.318
+                ],
+                "regions": [
+                  "AREA_A",
+                  "AREA_B"
+                ]
+              },
+              {
+                "name": "20c740a0o",
+                "materials": "Material #97",
+                "center": [
+                  -27.652,
+                  1.049,
+                  20.038
+                ],
+                "size": [
+                  29.642,
+                  0.856,
+                  10.171
+                ],
+                "regions": [
+                  "AREA_B",
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214b9790o",
+                "materials": "Material #56",
+                "center": [
+                  -13.59,
+                  0.6,
+                  0.278
+                ],
+                "size": [
+                  1.041,
+                  1.437,
+                  6.035
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20caad68o",
+                "materials": "Material #86",
+                "center": [
+                  -30.69,
+                  1.362,
+                  18.738
+                ],
+                "size": [
+                  0.662,
+                  1.331,
+                  0.972
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20bb6798o",
+                "materials": "Material #128",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "1d694c10o",
+                "materials": "Material #1311",
+                "center": [
+                  -11.915,
+                  0.436,
+                  12.901
+                ],
+                "size": [
+                  0.755,
+                  1.22,
+                  0.697
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
               {
                 "name": "214b32a0o",
                 "materials": "Material #57",
@@ -250,23 +658,210 @@
                 "regions": [
                   "AREA_C"
                 ]
+              },
+              {
+                "name": "214afe40o",
+                "materials": "Material #58",
+                "center": [
+                  -13.597,
+                  0.621,
+                  0.223
+                ],
+                "size": [
+                  0.98,
+                  0.814,
+                  5.825
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "214417f8o",
+                "materials": "Material #39",
+                "center": [
+                  -16.636,
+                  0.236,
+                  1.284
+                ],
+                "size": [
+                  1.364,
+                  0.804,
+                  1.675
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7af98o",
+                "materials": "Material #42",
+                "center": [
+                  -23.108,
+                  0.991,
+                  13.211
+                ],
+                "size": [
+                  0.838,
+                  0.669,
+                  0.834
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c5e100o",
+                "materials": "Material #101",
+                "center": [
+                  -22.221,
+                  1.093,
+                  18.749
+                ],
+                "size": [
+                  0.464,
+                  0.514,
+                  2.508
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d208d0o",
+                "materials": "Material #64",
+                "center": [
+                  -18.817,
+                  0.792,
+                  13.383
+                ],
+                "size": [
+                  0.901,
+                  0.289,
+                  1.029
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d77a48o",
+                "materials": "Material #43",
+                "center": [
+                  -23.124,
+                  1.028,
+                  13.232
+                ],
+                "size": [
+                  1.036,
+                  0.286,
+                  1.011
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20c68c70o",
+                "materials": "Material #100",
+                "center": [
+                  -22.233,
+                  0.732,
+                  18.749
+                ],
+                "size": [
+                  0.48,
+                  0.228,
+                  2.547
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d2eb70o",
+                "materials": "Material #62",
+                "center": [
+                  -18.577,
+                  0.953,
+                  13.684
+                ],
+                "size": [
+                  0.585,
+                  0.073,
+                  0.084
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d31f18o",
+                "materials": "Material #61",
+                "center": [
+                  -22.483,
+                  0.807,
+                  13.341
+                ],
+                "size": [
+                  0.402,
+                  0.274,
+                  0.466
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20d7e298o",
+                "materials": "Material #41",
+                "center": [
+                  -23.34,
+                  1.166,
+                  13.43
+                ],
+                "size": [
+                  1.754,
+                  0.987,
+                  1.683
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
+              },
+              {
+                "name": "20cb1e78o",
+                "materials": "Material #85",
+                "center": [
+                  -30.69,
+                  1.49,
+                  18.737
+                ],
+                "size": [
+                  0.357,
+                  0.455,
+                  0.357
+                ],
+                "regions": [
+                  "AREA_C"
+                ]
               }
             ]
           },
           "physics": {
-            "staticColliderCount": 33,
-            "enabledColliderCount": 33,
-            "cameraIgnoredCount": 1,
-            "architectureColliderCount": 16,
-            "masterArchitectureColliderCount": 0,
+            "staticColliderCount": 35,
+            "enabledColliderCount": 34,
+            "cameraIgnoredCount": 2,
+            "architectureColliderCount": 17,
+            "masterArchitectureColliderCount": 1,
             "specialStructureColliderCount": 1,
             "categoryCounts": {
               "ground": 3,
               "route-ground": 7,
               "world-boundary": 4,
-              "architecture": 16,
+              "architecture": 17,
               "memory-wall": 2,
-              "progression-lock": 1
+              "progression-lock": 2
             },
             "hasStaticArchitecture": true
           },
@@ -325,1151 +920,39 @@
             "jumpApexRise": 0.5219,
             "complete": true
           },
-          "routeCoverageComplete": false,
-          "physicsRegistrationComplete": false,
+          "routeCoverageComplete": true,
+          "physicsRegistrationComplete": true,
           "specialStructureRegistrationComplete": true,
-          "complete": false
+          "complete": true
         },
         "playerPose": [
-          -11,
+          7.25,
           0.89,
-          0.25
+          43.45
         ],
         "playerAvatarVisible": false,
         "cameraPose": [
-          0
+          7.25,
+          1.71,
+          43.45
         ],
-        "visualScenario": "",
-        "cameraFov": 0,
-        "characterHeight": 0,
-        "wallHeight": 0,
-        "doorHeight": 0,
-        "masterScaleFactor": 0,
+        "visualScenario": "front-hall-evidence",
+        "cameraFov": 65,
+        "characterHeight": 1.693,
+        "wallHeight": 2.946,
+        "doorHeight": 2.155,
+        "masterScaleFactor": 3.2,
         "cameraCollisionId": "",
         "spawnVisualOccluders": [],
-        "spawnScreenSamples": "",
+        "spawnScreenSamples": "0.22/-0.38=1d4a6d90o001_7<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #1591,BufferGeometry,#ffffff,center:8.8/0.9/43.8,min:8.44/0.20/43.78,max:9.16/1.56/43.78,hit:8.75/1.39/43.78];0.32/-0.48=1d4a6d90o001_5<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #181,BufferGeometry,#ffffff,center:8.8/0.9/47.1,min:8.02/0.21/43.78,max:9.48/1.56/50.33,hit:8.28/1.43/43.78];0.42/-0.5=1d4a6d90o001_5<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #181,BufferGeometry,#ffffff,center:8.8/0.9/47.1,min:8.02/0.21/43.78,max:9.48/1.56/50.33,hit:8.04/1.49/43.79];0.24/-0.6=1d4a6d90o001_7<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #1591,BufferGeometry,#ffffff,center:8.8/0.9/43.8,min:8.44/0.20/43.78,max:9.16/1.56/43.78,hit:8.63/1.22/43.78];0.36/-0.62=1d4a6d90o001_5<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #181,BufferGeometry,#ffffff,center:8.8/0.9/47.1,min:8.02/0.21/43.78,max:9.48/1.56/50.33,hit:8.17/1.38/43.78];0.48/-0.62=1d4e7970o<RootNode005<A_OuterGarden_Environment<master-scene[Material #183,BufferGeometry,#ffffff,center:2.1/2.3/40.9,min:-12.43/0.80/12.60,max:16.70/3.87/69.14,hit:9.37/0.93/44.48];-0.42/-0.12=20be3f40o001_22<TYX_MAIN_GATE_SOUTH_GEO<TYX_MAIN_GATE_SOUTH<A_ExpandedBoundary[Material #184,BufferGeometry,#ffffff,center:7.7/1.5/39.4,min:5.78/0.80/36.20,max:9.66/2.14/42.60,hit:9.46/1.60/42.50];0.38/-0.12=1d4a6d90o001_3<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #184,BufferGeometry,#ffffff,center:9.1/1.4/46.9,min:8.02/0.80/43.24,max:10.10/1.90/50.62,hit:9.02/1.62/44.13];0.62/-0.14=1d4a6d90o001_3<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #184,BufferGeometry,#ffffff,center:9.1/1.4/46.9,min:8.02/0.80/43.24,max:10.10/1.90/50.62,hit:8.41/1.64/44.18];0.82/-0.18=1d4a6d90o001_3<TYX_BOUNDARY_E00_00_GEO<TYX_BOUNDARY_E00_00<A_ExpandedBoundary[Material #184,BufferGeometry,#ffffff,center:9.1/1.4/46.9,min:8.02/0.80/43.24,max:10.10/1.90/50.62,hit:8.12/1.64/44.18]",
         "interactionPrompt": "",
         "grounded": true,
-        "gameplayArea": "AREA_C",
-        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
-        "nearestRouteDistance": 17.77,
-        "prologuePhase": "",
-        "transferBytes": 126293655,
-        "durationMs": 49197.39999997616,
-        "fallbackEnabled": false,
-        "errorModal": false
-      }
-    },
-    {
-      "id": "node-02",
-      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-02.png",
-      "bytes": 472217,
-      "sha256": "20ac5b94c1e92e05244a6645745e34569d5b69e99e3a1d34ba81aabad65d21e7",
-      "telemetry": {
-        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214afe40o&renderer=webgl",
-        "fps": 50.3,
-        "drawCalls": 88,
-        "triangles": 20107,
-        "points": 1390,
-        "visibleModels": [
-          "master-scene"
-        ],
-        "loadedAssetIds": [
-          "tyx-master-scene",
-          "tyx-nat-rock-set-a"
-        ],
-        "loadedAssetBytes": 101202548,
-        "rendererBackend": "webgl2",
-        "architectureMode": "master",
-        "architectureColliderCount": 15,
-        "masterArchitectureColliderCount": 0,
-        "specialStructureColliderCount": 0,
-        "specialStructureCollision": "incomplete",
-        "specialStructureCollisionReport": {
-          "requiredBoxColliderIds": [
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top",
-            "c-wooden-steps-approach"
-          ],
-          "presentBoxColliderIds": [
-            "c-wooden-steps-approach",
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top"
-          ],
-          "missingBoxColliderIds": [],
-          "boxSourceReferencesComplete": true,
-          "masterMeshSources": [],
-          "missingMasterNodeNames": [
-            "214b32a0.o"
-          ],
-          "minimumRailingHeight": 0.6419,
-          "jumpApexRise": 0.5219,
-          "complete": false
-        },
-        "colliderCoverage": "incomplete",
-        "colliderCoverageReport": {
-          "scene": {
-            "totalMeshCount": 1457,
-            "candidateArchitectureMeshCount": 0,
-            "generatedColliderCount": 0,
-            "excludedMeshCount": 1457,
-            "exclusions": {
-              "hidden": 1456,
-              "nonArchitecture": 1,
-              "openingOrDetail": 0,
-              "emptyBounds": 0,
-              "invalidSize": 0,
-              "duplicate": 0
-            },
-            "categories": {
-              "architecture": 0
-            },
-            "regionCoverage": {
-              "AREA_A": {
-                "regionId": "AREA_A",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 2
-              },
-              "AREA_B": {
-                "regionId": "AREA_B",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 1
-              },
-              "AREA_C": {
-                "regionId": "AREA_C",
-                "totalMeshCount": 1,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 3,
-                "routeWaypointCount": 2
-              },
-              "OUTSIDE": {
-                "regionId": "OUTSIDE",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 0,
-                "routeWaypointCount": 0
-              }
-            },
-            "routeCoverage": [
-              {
-                "id": "entrance",
-                "label": "Entrance",
-                "anchorId": "ROUTE_02_A_ENTRY",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 0,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "west-court",
-                "label": "West Court",
-                "anchorId": "ROUTE_03_A_LOOP",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 3.98,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "north-tower",
-                "label": "North Tower",
-                "anchorId": "ROUTE_05_B_MAIN_COURT",
-                "regionId": "AREA_B",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 4.75,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "water-court",
-                "label": "Water Court",
-                "anchorId": "C_WATER_EDGE",
-                "regionId": "AREA_C",
-                "visualAssetCovered": true,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 2.263,
-                "coverageRadius": 10,
-                "complete": true
-              },
-              {
-                "id": "finale-area",
-                "label": "Finale Area",
-                "anchorId": "C_FINAL_PAVILION",
-                "regionId": "AREA_C",
-                "visualAssetCovered": true,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 8.43,
-                "coverageRadius": 10,
-                "complete": true
-              }
-            ],
-            "colliderLimit": null,
-            "truncatedColliderCount": 0,
-            "warningThreshold": 256,
-            "warningThresholdExceeded": false,
-            "candidateMeshSamples": [],
-            "geometryReviewSamples": [
-              {
-                "name": "214afe40o",
-                "materials": "Material #58",
-                "center": [
-                  -13.597,
-                  0.621,
-                  0.223
-                ],
-                "size": [
-                  0.98,
-                  0.814,
-                  5.825
-                ],
-                "regions": [
-                  "AREA_C"
-                ]
-              }
-            ]
-          },
-          "physics": {
-            "staticColliderCount": 32,
-            "enabledColliderCount": 32,
-            "cameraIgnoredCount": 1,
-            "architectureColliderCount": 15,
-            "masterArchitectureColliderCount": 0,
-            "specialStructureColliderCount": 0,
-            "categoryCounts": {
-              "ground": 3,
-              "route-ground": 7,
-              "world-boundary": 4,
-              "architecture": 15,
-              "memory-wall": 2,
-              "progression-lock": 1
-            },
-            "hasStaticArchitecture": true
-          },
-          "specialStructures": {
-            "requiredBoxColliderIds": [
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top",
-              "c-wooden-steps-approach"
-            ],
-            "presentBoxColliderIds": [
-              "c-wooden-steps-approach",
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top"
-            ],
-            "missingBoxColliderIds": [],
-            "boxSourceReferencesComplete": true,
-            "masterMeshSources": [],
-            "missingMasterNodeNames": [
-              "214b32a0.o"
-            ],
-            "minimumRailingHeight": 0.6419,
-            "jumpApexRise": 0.5219,
-            "complete": false
-          },
-          "routeCoverageComplete": false,
-          "physicsRegistrationComplete": false,
-          "specialStructureRegistrationComplete": false,
-          "complete": false
-        },
-        "playerPose": [
-          -11,
-          0.89,
-          0.25
-        ],
-        "playerAvatarVisible": false,
-        "cameraPose": [
-          0
-        ],
-        "visualScenario": "",
-        "cameraFov": 0,
-        "characterHeight": 0,
-        "wallHeight": 0,
-        "doorHeight": 0,
-        "masterScaleFactor": 0,
-        "cameraCollisionId": "",
-        "spawnVisualOccluders": [],
-        "spawnScreenSamples": "",
-        "interactionPrompt": "",
-        "grounded": true,
-        "gameplayArea": "AREA_C",
-        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
-        "nearestRouteDistance": 17.77,
-        "prologuePhase": "",
-        "transferBytes": 99150796,
-        "durationMs": 16952.5,
-        "fallbackEnabled": false,
-        "errorModal": false
-      }
-    },
-    {
-      "id": "node-03",
-      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-03.png",
-      "bytes": 537526,
-      "sha256": "fca693b29ee17123d2635a7ad8a215648bef43b561b447d155e6768f3a85e591",
-      "telemetry": {
-        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-11&visualY=1&visualZ=0.25&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=214b9790o&renderer=webgl",
-        "fps": 50.3,
-        "drawCalls": 88,
-        "triangles": 20275,
-        "points": 1390,
-        "visibleModels": [
-          "master-scene"
-        ],
-        "loadedAssetIds": [
-          "tyx-master-scene",
-          "tyx-nat-rock-set-a"
-        ],
-        "loadedAssetBytes": 101202548,
-        "rendererBackend": "webgl2",
-        "architectureMode": "master",
-        "architectureColliderCount": 15,
-        "masterArchitectureColliderCount": 0,
-        "specialStructureColliderCount": 0,
-        "specialStructureCollision": "incomplete",
-        "specialStructureCollisionReport": {
-          "requiredBoxColliderIds": [
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top",
-            "c-wooden-steps-approach"
-          ],
-          "presentBoxColliderIds": [
-            "c-wooden-steps-approach",
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top"
-          ],
-          "missingBoxColliderIds": [],
-          "boxSourceReferencesComplete": true,
-          "masterMeshSources": [],
-          "missingMasterNodeNames": [
-            "214b32a0.o"
-          ],
-          "minimumRailingHeight": 0.6419,
-          "jumpApexRise": 0.5219,
-          "complete": false
-        },
-        "colliderCoverage": "incomplete",
-        "colliderCoverageReport": {
-          "scene": {
-            "totalMeshCount": 1457,
-            "candidateArchitectureMeshCount": 0,
-            "generatedColliderCount": 0,
-            "excludedMeshCount": 1457,
-            "exclusions": {
-              "hidden": 1456,
-              "nonArchitecture": 1,
-              "openingOrDetail": 0,
-              "emptyBounds": 0,
-              "invalidSize": 0,
-              "duplicate": 0
-            },
-            "categories": {
-              "architecture": 0
-            },
-            "regionCoverage": {
-              "AREA_A": {
-                "regionId": "AREA_A",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 2
-              },
-              "AREA_B": {
-                "regionId": "AREA_B",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 1
-              },
-              "AREA_C": {
-                "regionId": "AREA_C",
-                "totalMeshCount": 1,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 3,
-                "routeWaypointCount": 2
-              },
-              "OUTSIDE": {
-                "regionId": "OUTSIDE",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 0,
-                "routeWaypointCount": 0
-              }
-            },
-            "routeCoverage": [
-              {
-                "id": "entrance",
-                "label": "Entrance",
-                "anchorId": "ROUTE_02_A_ENTRY",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 0,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "west-court",
-                "label": "West Court",
-                "anchorId": "ROUTE_03_A_LOOP",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 3.98,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "north-tower",
-                "label": "North Tower",
-                "anchorId": "ROUTE_05_B_MAIN_COURT",
-                "regionId": "AREA_B",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 4.75,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "water-court",
-                "label": "Water Court",
-                "anchorId": "C_WATER_EDGE",
-                "regionId": "AREA_C",
-                "visualAssetCovered": true,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 2.263,
-                "coverageRadius": 10,
-                "complete": true
-              },
-              {
-                "id": "finale-area",
-                "label": "Finale Area",
-                "anchorId": "C_FINAL_PAVILION",
-                "regionId": "AREA_C",
-                "visualAssetCovered": true,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 8.43,
-                "coverageRadius": 10,
-                "complete": true
-              }
-            ],
-            "colliderLimit": null,
-            "truncatedColliderCount": 0,
-            "warningThreshold": 256,
-            "warningThresholdExceeded": false,
-            "candidateMeshSamples": [],
-            "geometryReviewSamples": [
-              {
-                "name": "214b9790o",
-                "materials": "Material #56",
-                "center": [
-                  -13.59,
-                  0.6,
-                  0.278
-                ],
-                "size": [
-                  1.041,
-                  1.437,
-                  6.035
-                ],
-                "regions": [
-                  "AREA_C"
-                ]
-              }
-            ]
-          },
-          "physics": {
-            "staticColliderCount": 32,
-            "enabledColliderCount": 32,
-            "cameraIgnoredCount": 1,
-            "architectureColliderCount": 15,
-            "masterArchitectureColliderCount": 0,
-            "specialStructureColliderCount": 0,
-            "categoryCounts": {
-              "ground": 3,
-              "route-ground": 7,
-              "world-boundary": 4,
-              "architecture": 15,
-              "memory-wall": 2,
-              "progression-lock": 1
-            },
-            "hasStaticArchitecture": true
-          },
-          "specialStructures": {
-            "requiredBoxColliderIds": [
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top",
-              "c-wooden-steps-approach"
-            ],
-            "presentBoxColliderIds": [
-              "c-wooden-steps-approach",
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top"
-            ],
-            "missingBoxColliderIds": [],
-            "boxSourceReferencesComplete": true,
-            "masterMeshSources": [],
-            "missingMasterNodeNames": [
-              "214b32a0.o"
-            ],
-            "minimumRailingHeight": 0.6419,
-            "jumpApexRise": 0.5219,
-            "complete": false
-          },
-          "routeCoverageComplete": false,
-          "physicsRegistrationComplete": false,
-          "specialStructureRegistrationComplete": false,
-          "complete": false
-        },
-        "playerPose": [
-          -11,
-          0.89,
-          0.25
-        ],
-        "playerAvatarVisible": false,
-        "cameraPose": [
-          0
-        ],
-        "visualScenario": "",
-        "cameraFov": 0,
-        "characterHeight": 0,
-        "wallHeight": 0,
-        "doorHeight": 0,
-        "masterScaleFactor": 0,
-        "cameraCollisionId": "",
-        "spawnVisualOccluders": [],
-        "spawnScreenSamples": "",
-        "interactionPrompt": "",
-        "grounded": true,
-        "gameplayArea": "AREA_C",
-        "nearestRouteAnchor": "ROUTE_07_C_ENTRY",
-        "nearestRouteDistance": 17.77,
-        "prologuePhase": "",
-        "transferBytes": 99150796,
-        "durationMs": 11087.5,
-        "fallbackEnabled": false,
-        "errorModal": false
-      }
-    },
-    {
-      "id": "node-04",
-      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-04.png",
-      "bytes": 214452,
-      "sha256": "42133b22b4f178525e56d6e883dc4a686816970483346a9ce32624751c938a8d",
-      "telemetry": {
-        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=18&visualY=1&visualZ=9.5&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=1d6638d0o&renderer=webgl",
-        "fps": 60,
-        "drawCalls": 172,
-        "triangles": 20239,
-        "points": 1390,
-        "visibleModels": [
-          "master-scene"
-        ],
-        "loadedAssetIds": [
-          "tyx-master-scene",
-          "tyx-nat-rock-set-a"
-        ],
-        "loadedAssetBytes": 101202548,
-        "rendererBackend": "webgl2",
-        "architectureMode": "master",
-        "architectureColliderCount": 15,
-        "masterArchitectureColliderCount": 0,
-        "specialStructureColliderCount": 0,
-        "specialStructureCollision": "incomplete",
-        "specialStructureCollisionReport": {
-          "requiredBoxColliderIds": [
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top",
-            "c-wooden-steps-approach"
-          ],
-          "presentBoxColliderIds": [
-            "c-wooden-steps-approach",
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top"
-          ],
-          "missingBoxColliderIds": [],
-          "boxSourceReferencesComplete": true,
-          "masterMeshSources": [],
-          "missingMasterNodeNames": [
-            "214b32a0.o"
-          ],
-          "minimumRailingHeight": 0.6419,
-          "jumpApexRise": 0.5219,
-          "complete": false
-        },
-        "colliderCoverage": "incomplete",
-        "colliderCoverageReport": {
-          "scene": {
-            "totalMeshCount": 1457,
-            "candidateArchitectureMeshCount": 0,
-            "generatedColliderCount": 0,
-            "excludedMeshCount": 1457,
-            "exclusions": {
-              "hidden": 1456,
-              "nonArchitecture": 1,
-              "openingOrDetail": 0,
-              "emptyBounds": 0,
-              "invalidSize": 0,
-              "duplicate": 0
-            },
-            "categories": {
-              "architecture": 0
-            },
-            "regionCoverage": {
-              "AREA_A": {
-                "regionId": "AREA_A",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 2
-              },
-              "AREA_B": {
-                "regionId": "AREA_B",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 1
-              },
-              "AREA_C": {
-                "regionId": "AREA_C",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 3,
-                "routeWaypointCount": 2
-              },
-              "OUTSIDE": {
-                "regionId": "OUTSIDE",
-                "totalMeshCount": 1,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 0,
-                "routeWaypointCount": 0
-              }
-            },
-            "routeCoverage": [
-              {
-                "id": "entrance",
-                "label": "Entrance",
-                "anchorId": "ROUTE_02_A_ENTRY",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 0,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "west-court",
-                "label": "West Court",
-                "anchorId": "ROUTE_03_A_LOOP",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 3.98,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "north-tower",
-                "label": "North Tower",
-                "anchorId": "ROUTE_05_B_MAIN_COURT",
-                "regionId": "AREA_B",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 4.75,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "water-court",
-                "label": "Water Court",
-                "anchorId": "C_WATER_EDGE",
-                "regionId": "AREA_C",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 2.263,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "finale-area",
-                "label": "Finale Area",
-                "anchorId": "C_FINAL_PAVILION",
-                "regionId": "AREA_C",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 8.43,
-                "coverageRadius": 10,
-                "complete": false
-              }
-            ],
-            "colliderLimit": null,
-            "truncatedColliderCount": 0,
-            "warningThreshold": 256,
-            "warningThresholdExceeded": false,
-            "candidateMeshSamples": [],
-            "geometryReviewSamples": []
-          },
-          "physics": {
-            "staticColliderCount": 32,
-            "enabledColliderCount": 32,
-            "cameraIgnoredCount": 1,
-            "architectureColliderCount": 15,
-            "masterArchitectureColliderCount": 0,
-            "specialStructureColliderCount": 0,
-            "categoryCounts": {
-              "ground": 3,
-              "route-ground": 7,
-              "world-boundary": 4,
-              "architecture": 15,
-              "memory-wall": 2,
-              "progression-lock": 1
-            },
-            "hasStaticArchitecture": true
-          },
-          "specialStructures": {
-            "requiredBoxColliderIds": [
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top",
-              "c-wooden-steps-approach"
-            ],
-            "presentBoxColliderIds": [
-              "c-wooden-steps-approach",
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top"
-            ],
-            "missingBoxColliderIds": [],
-            "boxSourceReferencesComplete": true,
-            "masterMeshSources": [],
-            "missingMasterNodeNames": [
-              "214b32a0.o"
-            ],
-            "minimumRailingHeight": 0.6419,
-            "jumpApexRise": 0.5219,
-            "complete": false
-          },
-          "routeCoverageComplete": false,
-          "physicsRegistrationComplete": false,
-          "specialStructureRegistrationComplete": false,
-          "complete": false
-        },
-        "playerPose": [
-          18,
-          -9.396,
-          9.5
-        ],
-        "playerAvatarVisible": false,
-        "cameraPose": [
-          0
-        ],
-        "visualScenario": "",
-        "cameraFov": 0,
-        "characterHeight": 0,
-        "wallHeight": 0,
-        "doorHeight": 0,
-        "masterScaleFactor": 0,
-        "cameraCollisionId": "",
-        "spawnVisualOccluders": [],
-        "spawnScreenSamples": "",
-        "interactionPrompt": "",
-        "grounded": false,
-        "gameplayArea": "OUTSIDE",
-        "nearestRouteAnchor": "ROUTE_05_B_MAIN_COURT",
-        "nearestRouteDistance": 23.9,
-        "prologuePhase": "",
-        "transferBytes": 99150796,
-        "durationMs": 16744.59999999404,
-        "fallbackEnabled": false,
-        "errorModal": false
-      }
-    },
-    {
-      "id": "node-05",
-      "file": "assets-source/blender-working/runtime-test/master-node-audit/node-05.png",
-      "bytes": 496461,
-      "sha256": "c8c66b91b1bec9fe4fdd71eb346584fd9ef812ff9e092ac31bd205ac01c4aa31",
-      "telemetry": {
-        "url": "http://localhost:43952/?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=-10.5&visualY=2.5&visualZ=23.7&visualYaw=1.5707963267948966&visualPitch=-0.08&auditMasterNode=20ca4e00o&renderer=webgl",
-        "fps": 50,
-        "drawCalls": 91,
-        "triangles": 20296,
-        "points": 1390,
-        "visibleModels": [
-          "master-scene"
-        ],
-        "loadedAssetIds": [
-          "tyx-master-scene",
-          "tyx-nat-rock-set-a"
-        ],
-        "loadedAssetBytes": 101202548,
-        "rendererBackend": "webgl2",
-        "architectureMode": "master",
-        "architectureColliderCount": 15,
-        "masterArchitectureColliderCount": 0,
-        "specialStructureColliderCount": 0,
-        "specialStructureCollision": "incomplete",
-        "specialStructureCollisionReport": {
-          "requiredBoxColliderIds": [
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top",
-            "c-wooden-steps-approach"
-          ],
-          "presentBoxColliderIds": [
-            "c-wooden-steps-approach",
-            "main-gate-frame-z-low",
-            "main-gate-frame-z-high",
-            "main-gate-frame-top",
-            "main-gate-threshold",
-            "wife-moon-gate-left",
-            "wife-moon-gate-right",
-            "wife-moon-gate-top"
-          ],
-          "missingBoxColliderIds": [],
-          "boxSourceReferencesComplete": true,
-          "masterMeshSources": [],
-          "missingMasterNodeNames": [
-            "214b32a0.o"
-          ],
-          "minimumRailingHeight": 0.6419,
-          "jumpApexRise": 0.5219,
-          "complete": false
-        },
-        "colliderCoverage": "incomplete",
-        "colliderCoverageReport": {
-          "scene": {
-            "totalMeshCount": 1457,
-            "candidateArchitectureMeshCount": 0,
-            "generatedColliderCount": 0,
-            "excludedMeshCount": 1457,
-            "exclusions": {
-              "hidden": 1456,
-              "nonArchitecture": 1,
-              "openingOrDetail": 0,
-              "emptyBounds": 0,
-              "invalidSize": 0,
-              "duplicate": 0
-            },
-            "categories": {
-              "architecture": 0
-            },
-            "regionCoverage": {
-              "AREA_A": {
-                "regionId": "AREA_A",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 2
-              },
-              "AREA_B": {
-                "regionId": "AREA_B",
-                "totalMeshCount": 1,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 11,
-                "routeWaypointCount": 1
-              },
-              "AREA_C": {
-                "regionId": "AREA_C",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 3,
-                "routeWaypointCount": 2
-              },
-              "OUTSIDE": {
-                "regionId": "OUTSIDE",
-                "totalMeshCount": 0,
-                "candidateArchitectureMeshCount": 0,
-                "generatedColliderCount": 0,
-                "explicitArchitectureColliderCount": 0,
-                "routeWaypointCount": 0
-              }
-            },
-            "routeCoverage": [
-              {
-                "id": "entrance",
-                "label": "Entrance",
-                "anchorId": "ROUTE_02_A_ENTRY",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 0,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "west-court",
-                "label": "West Court",
-                "anchorId": "ROUTE_03_A_LOOP",
-                "regionId": "AREA_A",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 3.98,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "north-tower",
-                "label": "North Tower",
-                "anchorId": "ROUTE_05_B_MAIN_COURT",
-                "regionId": "AREA_B",
-                "visualAssetCovered": true,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 4.75,
-                "coverageRadius": 10,
-                "complete": true
-              },
-              {
-                "id": "water-court",
-                "label": "Water Court",
-                "anchorId": "C_WATER_EDGE",
-                "regionId": "AREA_C",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 2.263,
-                "coverageRadius": 10,
-                "complete": false
-              },
-              {
-                "id": "finale-area",
-                "label": "Finale Area",
-                "anchorId": "C_FINAL_PAVILION",
-                "regionId": "AREA_C",
-                "visualAssetCovered": false,
-                "colliderCovered": true,
-                "masterColliderCovered": false,
-                "gameplayRouteCovered": true,
-                "nearestArchitectureColliderDistance": 8.43,
-                "coverageRadius": 10,
-                "complete": false
-              }
-            ],
-            "colliderLimit": null,
-            "truncatedColliderCount": 0,
-            "warningThreshold": 256,
-            "warningThresholdExceeded": false,
-            "candidateMeshSamples": [],
-            "geometryReviewSamples": [
-              {
-                "name": "20ca4e00o",
-                "materials": "Material #87",
-                "center": [
-                  -14.205,
-                  2.212,
-                  23.732
-                ],
-                "size": [
-                  2.627,
-                  1.145,
-                  2.625
-                ],
-                "regions": [
-                  "AREA_B"
-                ]
-              }
-            ]
-          },
-          "physics": {
-            "staticColliderCount": 32,
-            "enabledColliderCount": 32,
-            "cameraIgnoredCount": 1,
-            "architectureColliderCount": 15,
-            "masterArchitectureColliderCount": 0,
-            "specialStructureColliderCount": 0,
-            "categoryCounts": {
-              "ground": 3,
-              "route-ground": 7,
-              "world-boundary": 4,
-              "architecture": 15,
-              "memory-wall": 2,
-              "progression-lock": 1
-            },
-            "hasStaticArchitecture": true
-          },
-          "specialStructures": {
-            "requiredBoxColliderIds": [
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top",
-              "c-wooden-steps-approach"
-            ],
-            "presentBoxColliderIds": [
-              "c-wooden-steps-approach",
-              "main-gate-frame-z-low",
-              "main-gate-frame-z-high",
-              "main-gate-frame-top",
-              "main-gate-threshold",
-              "wife-moon-gate-left",
-              "wife-moon-gate-right",
-              "wife-moon-gate-top"
-            ],
-            "missingBoxColliderIds": [],
-            "boxSourceReferencesComplete": true,
-            "masterMeshSources": [],
-            "missingMasterNodeNames": [
-              "214b32a0.o"
-            ],
-            "minimumRailingHeight": 0.6419,
-            "jumpApexRise": 0.5219,
-            "complete": false
-          },
-          "routeCoverageComplete": false,
-          "physicsRegistrationComplete": false,
-          "specialStructureRegistrationComplete": false,
-          "complete": false
-        },
-        "playerPose": [
-          -10.5,
-          0.89,
-          23.7
-        ],
-        "playerAvatarVisible": false,
-        "cameraPose": [
-          0
-        ],
-        "visualScenario": "",
-        "cameraFov": 0,
-        "characterHeight": 0,
-        "wallHeight": 0,
-        "doorHeight": 0,
-        "masterScaleFactor": 0,
-        "cameraCollisionId": "",
-        "spawnVisualOccluders": [],
-        "spawnScreenSamples": "",
-        "interactionPrompt": "",
-        "grounded": true,
-        "gameplayArea": "AREA_B",
-        "nearestRouteAnchor": "ROUTE_06_B_NORTHEAST_LINK",
-        "nearestRouteDistance": 4.61,
-        "prologuePhase": "",
-        "transferBytes": 99150796,
-        "durationMs": 11697.5,
+        "gameplayArea": "AREA_A",
+        "nearestRouteAnchor": "ROUTE_02_A_ENTRY",
+        "nearestRouteDistance": 4.06,
+        "prologuePhase": "explore",
+        "transferBytes": 134451389,
+        "durationMs": 19866.29999998212,
         "fallbackEnabled": false,
         "errorModal": false
       }
@@ -1488,5 +971,5 @@
     "Run npm run visual:capture after assets:prepare when local command execution is available. The script writes five PNG files and telemetry but never auto-approves them.",
     "25 MiB per-file and 18 MiB preload values are publishing references, not reasons to replace formal architecture with greybox geometry."
   ],
-  "capturedAt": "2026-09-03T16:49:55.223Z"
+  "capturedAt": "2026-09-04T08:29:05.750Z"
 }

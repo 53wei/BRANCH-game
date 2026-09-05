@@ -1,4 +1,5 @@
 import { createCheckpoint, createDefaultSave } from "./campaign-save";
+import { markTutorialSeen } from "./tutorial-state";
 import type { CampaignSave, MemoryId } from "./types";
 
 export const QA_FIRST_RUN_QUERY = "devFirstRun";
@@ -17,20 +18,16 @@ export const QA_CHAPTERS = [
 
 export type QaChapterId = (typeof QA_CHAPTERS)[number][0];
 
-type SmokeConfig = {
-  memoryId: MemoryId;
-  anchorId: string;
-  flags: string[];
-};
+type SmokeConfig = { memoryId: MemoryId };
 
 const SMOKE_CONFIG: Record<QaChapterId, SmokeConfig> = {
-  "prologue-rain": { memoryId: "baseline", anchorId: "ROUTE_01_START", flags: [] },
-  "west-corridor-loop": { memoryId: "wife", anchorId: "ROUTE_02_A_ENTRY", flags: ["prologue.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"] },
-  "north-tower-ledger": { memoryId: "wife", anchorId: "ROUTE_05_B_MAIN_COURT", flags: ["prologue.complete", "west.complete"] },
-  "missing-room": { memoryId: "gardener", anchorId: "ROUTE_06_B_NORTHEAST_LINK", flags: ["prologue.complete", "west.complete", "north.complete"] },
-  "deleted-person": { memoryId: "baseline", anchorId: "deleted-person-entry", flags: [] },
-  "you-did-not-return": { memoryId: "zhaoying", anchorId: "ROUTE_04_A_EAST_EXIT", flags: [] },
-  "fifth-tingyuxuan": { memoryId: "zhaoying", anchorId: "ROUTE_01_START", flags: [] },
+  "prologue-rain": { memoryId: "baseline" },
+  "west-corridor-loop": { memoryId: "wife" },
+  "north-tower-ledger": { memoryId: "wife" },
+  "missing-room": { memoryId: "gardener" },
+  "deleted-person": { memoryId: "baseline" },
+  "you-did-not-return": { memoryId: "zhaoying" },
+  "fifth-tingyuxuan": { memoryId: "zhaoying" },
 };
 
 export const isQaChapterId = (value: string): value is QaChapterId => value in SMOKE_CONFIG;
@@ -40,16 +37,11 @@ export const isQaChapterId = (value: string): value is QaChapterId => value in S
  * to the formal SAVE_KEY. Keeping construction pure makes that boundary testable.
  */
 export function createIsolatedQaChapterSave(chapterId: QaChapterId): CampaignSave {
-  const base = createDefaultSave();
+  const base = markTutorialSeen(createDefaultSave());
   const config = SMOKE_CONFIG[chapterId];
   return {
     ...base,
     unlockedChapters: [...new Set([...base.unlockedChapters, chapterId])],
-    activeCheckpoint: {
-      ...createCheckpoint(chapterId, config.memoryId),
-      anchorId: config.anchorId,
-      earnedFlags: [...config.flags],
-    },
-    tutorial: { controls: { seen: true, autoShow: false } },
+    activeCheckpoint: createCheckpoint(chapterId, config.memoryId),
   };
 }

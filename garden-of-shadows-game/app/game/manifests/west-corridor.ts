@@ -98,7 +98,7 @@ export const westCorridorChapter: ChapterManifest = {
   },
   trustNodes: [],
   chaseSegments: [],
-  completionFlags: ["west.chapter.complete", "campaign.witness.wife", "campaign.witness.gardener", "campaign.route.a-to-b-open"],
+  completionFlags: ["west-corridor-loop.complete", "campaign.witness.wife", "campaign.witness.gardener", "campaign.route.a-to-b-open"],
   dialogueSequences: westDialogueSequences,
   objectives: westObjectives,
 };

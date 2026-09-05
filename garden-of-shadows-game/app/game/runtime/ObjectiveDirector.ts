@@ -1,5 +1,5 @@
 import type { CheckpointState, ObjectiveDefinition, TutorialStep } from "../types";
-import { GUIDANCE_TIMING_SECONDS } from "./guidance-config";
+import { guidanceLevelForElapsed } from "./guidance-config";
 
 export interface ActiveObjective {
   objective: ObjectiveDefinition;
@@ -33,13 +33,7 @@ export class ObjectiveDirector {
     }
     if (paused || !nextKey) return undefined;
     this.elapsedSeconds += deltaSeconds;
-    const level = this.elapsedSeconds >= GUIDANCE_TIMING_SECONDS.worldMarker
-      ? 3
-      : this.elapsedSeconds >= GUIDANCE_TIMING_SECONDS.spokenHint
-        ? 2
-        : this.elapsedSeconds >= GUIDANCE_TIMING_SECONDS.distance
-          ? 1
-          : 0;
+    const level = guidanceLevelForElapsed(this.elapsedSeconds);
     if (level > this.emittedLevel) {
       this.emittedLevel = level;
       return level;

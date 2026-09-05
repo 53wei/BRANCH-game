@@ -53,7 +53,7 @@ export const prologueRainChapter: ChapterManifest = {
   },
   trustNodes: [],
   chaseSegments: [],
-  completionFlags: ["prologue.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"],
+  completionFlags: ["prologue-rain.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"],
   dialogueSequences: [],
   objectives: [],
 };

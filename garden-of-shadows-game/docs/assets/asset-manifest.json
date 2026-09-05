@@ -1,5 +1,31 @@
 [
   {
+    "id": "aigc-prologue-family-portrait-v1",
+    "title": "序章前厅补绘旧画像",
+    "sourceUrl": "internal://openai-imagegen/exec-94410960-c183-4611-a2ab-2ef94b0b356a",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "1",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/evidence/prologue-family-portrait-v1.webp",
+    "integritySha256": "3e6ffb978d0c3cbdb980c0905b6297e94e711cbd9febd3043afb815aad358271",
+    "status": "approved"
+  },
+  {
+    "id": "aigc-prologue-family-portrait-v2",
+    "title": "序章前厅补绘旧画像（加框版）",
+    "sourceUrl": "internal://openai-imagegen/exec-fb4e5a2b-11eb-4b42-aa31-458cc6340459",
+    "author": "OpenAI ImageGen + project art direction",
+    "version": "2",
+    "license": "project-owned generated asset; final release rights review required",
+    "webDistribution": "allowed",
+    "aiUsage": "allowed",
+    "compressedBundle": "public/media/evidence/prologue-family-portrait-v2.webp",
+    "integritySha256": "f3c74132697bd549ada2929d6cd087a488fe1b16bcff432e72f158e34ab79c4f",
+    "status": "approved"
+  },
+  {
     "id": "aigc-hero-hearing-rain-v1",
     "title": "雨入听轩项目主视觉",
     "sourceUrl": "internal://openai-imagegen/exec-f5b41549-e17d-4451-878f-eb303b4676a4",

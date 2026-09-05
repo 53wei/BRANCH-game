@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "activeCheckpoint": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "layoutVersion": "tingyuxuan-gameplay-map-v1",
     "chapterId": "west-corridor-loop",
     "anchorId": "ROUTE_02_A_ENTRY",
@@ -72,8 +72,7 @@
   },
   "tutorial": {
     "controls": {
-      "seen": true,
-      "autoShow": true
+      "seen": true
     }
   }
 }

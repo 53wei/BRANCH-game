@@ -14,9 +14,9 @@ describe("TASK-006 unified narrative semantics", () => {
     expect(narrativePresentationRole("inner")).toBe("thought");
     expect(narrativePresentationRole("narration")).toBe("world");
     expect(narrativePresentationRole("action")).toBe("stage");
-    expect(narrativeDisplayLabel("inner")).toBe("赵映 · 心声");
-    expect(narrativeDisplayLabel("narration")).toBe("环境");
-    expect(parseDialogueTags(["speaker:narrator"], "legacy.1").kind).toBe("narration");
+    expect(narrativeDisplayLabel("inner")).toBe("心声");
+    expect(narrativeDisplayLabel("narration")).toBeUndefined();
+    expect(parseDialogueTags(["speaker:narrator", "kind:narration", "line:narration.1"], "narration.1").kind).toBe("narration");
   });
 
   it("routes all four 3D runtimes through the shared lightweight semantic renderer", () => {

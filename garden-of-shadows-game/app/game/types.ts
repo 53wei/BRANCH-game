@@ -1,10 +1,13 @@
 import type { MechanicSaveState } from "./mechanics/types";
 
 export type ChapterStatus = "playable" | "prototype" | "planned";
-export type MemoryId = "baseline" | "wife" | "gardener" | "accountant" | "painter" | "zhaoying";
+export const MEMORY_IDS = ["baseline", "wife", "gardener", "accountant", "painter", "zhaoying"] as const;
+export type MemoryId = (typeof MEMORY_IDS)[number];
 export type ContradictionKind = "geometry" | "time" | "object" | "identity" | "causality";
-export type EndingId = "domestic" | "spatial" | "documentary" | "pictorial" | "composite";
-export type SpeakerId = "narrator" | "zhaoying" | "young-zhaoying" | "master" | "steward" | "wife" | "gardener" | "accountant" | "painter";
+export const ENDING_IDS = ["domestic", "spatial", "documentary", "pictorial", "composite"] as const;
+export type EndingId = (typeof ENDING_IDS)[number];
+export const SPEAKER_IDS = ["narrator", "zhaoying", "young-zhaoying", "master", "steward", "wife", "gardener", "accountant", "painter"] as const;
+export type SpeakerId = (typeof SPEAKER_IDS)[number];
 export type DialoguePresentation = "stage" | "bark";
 export type GuidanceChannel = "objective" | "direction" | "world-marker" | "outline" | "light" | "audio";
 
@@ -59,7 +62,7 @@ export interface DialogueSequence {
   knotId: string;
   presentation: DialoguePresentation;
   participants: SpeakerId[];
-  defaultRightSpeaker?: SpeakerId;
+
   completionFlag?: string;
   backdrop?: string;
 }
@@ -90,10 +93,18 @@ export interface ObjectiveDefinition {
   completionFlags: string[];
 }
 
+export type ObjectiveTargetRef =
+  | { kind: "anchor"; id: string }
+  | { kind: "interactable"; id: string }
+  | { kind: "trigger"; id: string };
+
 export interface TutorialStep {
   id: string;
   instruction: string;
-  targetPosition?: [number, number, number];
+  /** Canonical world target used by direction, map and world marker. */
+  targetRef?: ObjectiveTargetRef;
+
+
   targetInteractableId?: string;
   guidance: GuidanceChannel[];
   hints: [string, string, string];
@@ -188,7 +199,7 @@ export interface FinalAssemblyState {
 }
 
 export interface CheckpointState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   layoutVersion: string;
   chapterId: string;
   anchorId: string;
@@ -215,7 +226,7 @@ export interface CheckpointState {
 }
 
 export interface CampaignSave {
-  schemaVersion: 2;
+  schemaVersion: 3;
   activeCheckpoint: CheckpointState;
   completedChapters: string[];
   unlockedChapters: string[];
@@ -224,7 +235,6 @@ export interface CampaignSave {
   tutorial: {
     controls: {
       seen: boolean;
-      autoShow: boolean;
     };
   };
 }
@@ -237,6 +247,7 @@ export interface GameSettings {
   guidanceAssist: boolean;
   masterVolume: number;
   dialogueSpeed: "slow" | "normal" | "fast" | "instant";
+  textScale: "normal" | "large";
 }
 
 export interface VoiceAssetManifest {

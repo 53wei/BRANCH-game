@@ -21,4 +21,12 @@ describe("vertical-slice content coordinate source", () => {
     expect(landmark("lantern-turn").position).toBe(getGameplayAnchor("PROLOGUE_LANTERN_TURN").position);
     expect(landmark("gate-back-view").position).toBe(getGameplayAnchor("PROLOGUE_MOONGATE_VIEW").position);
   });
+
+  it("retains the V5 pressure mark without inventing the erased digits or author", () => {
+    const departureRecord = `${evidence("ledger").body}${evidence("ledger").note}`;
+    expect(departureRecord).toContain("六点十分");
+    expect(departureRecord).toContain("压痕");
+    expect(departureRecord).toMatch(/看不清|不能/);
+    expect(departureRecord).not.toMatch(/原来写着.{0,8}(?:七点|八点)|钱先生改/);
+  });
 });

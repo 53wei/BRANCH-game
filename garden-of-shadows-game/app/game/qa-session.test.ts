@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { SAVE_KEY } from "./campaign-save";
 import { createIsolatedQaChapterSave, isQaChapterId, QA_CHAPTERS } from "./qa-session";
-
-const formalSaveKey = "garden-of-shadows.save.v2";
 
 describe("TASK-004 repeatable QA sessions", () => {
   it("recognizes every advertised smoke chapter and rejects arbitrary input", () => {
@@ -13,7 +12,7 @@ describe("TASK-004 repeatable QA sessions", () => {
     const west = createIsolatedQaChapterSave("west-corridor-loop");
     expect(west.activeCheckpoint.chapterId).toBe("west-corridor-loop");
     expect(west.activeCheckpoint.anchorId).toBe("ROUTE_02_A_ENTRY");
-    expect(west.tutorial.controls).toEqual({ seen: true, autoShow: false });
+    expect(west.tutorial.controls).toEqual({ seen: true });
     expect(west.unlockedChapters).toContain("west-corridor-loop");
 
     const prologue = createIsolatedQaChapterSave("prologue-rain");
@@ -29,7 +28,7 @@ describe("TASK-004 repeatable QA sessions", () => {
   });
 
   it("keeps the formal storage key out of the pure smoke-save constructor", () => {
-    expect(createIsolatedQaChapterSave.toString()).not.toContain(formalSaveKey);
+    expect(createIsolatedQaChapterSave.toString()).not.toContain(SAVE_KEY);
     expect(createIsolatedQaChapterSave.toString()).not.toContain("localStorage");
   });
 });

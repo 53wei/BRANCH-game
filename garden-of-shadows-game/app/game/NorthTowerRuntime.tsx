@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
+import { completeCampaignChapter } from "./campaign-progress";
 import { createCheckpoint } from "./campaign-save";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueCommand, DialogueSequence, MemoryId } from "./types";
 import { CameraRig } from "./mechanics/CameraRig";
@@ -12,14 +13,16 @@ import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/Physics
 import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
 import { TingYuXuanScene } from "./runtime/TingYuXuanScene";
 import { PlayerAvatar } from "./runtime/PlayerAvatar";
+import type { CaseFileTab } from "./runtime/case-file-content";
 import { NORTH_DEPARTURE_DOCUMENT } from "./runtime/document-content";
 import { DialogueRunner } from "./narrative/DialogueRunner";
 import { compileInkSource } from "./narrative/ink-runtime";
 import northInkSource from "./narrative/north-tower-ledger.ink?raw";
 import { CaseFilePanel } from "./ui/CaseFilePanel";
 import { DocumentViewer } from "./ui/DocumentViewer";
+import { ExplorationHud } from "./ui/ExplorationHud";
 import { NarrativeInline } from "./narrative/NarrativeInline";
-import { guidanceLevelForElapsed } from "./runtime/guidance-config";
+import { guidanceLevelForElapsed, guidanceLevelForProximity } from "./runtime/guidance-config";
 import { getGameplayAnchor, resolveGameplayRegionForPoint } from "./runtime/tingyuxuan-gameplay-map";
 import { tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
@@ -32,15 +35,10 @@ interface NorthTowerRuntimeProps {
 }
 
 type NorthPhase = "loading" | "playing" | "complete" | "error";
-type EvidenceId = "sixth-teacup" | "departure-record" | "artist-viewpoint" | "fifth-person-board";
+type EvidenceId = "sixth-teacup" | "departure-record" | "artist-viewpoint";
 
 const unique = <T,>(values: T[]) => [...new Set(values)];
 const memoryOrder: MemoryId[] = ["wife", "accountant", "painter"];
-const memoryName: Record<string, string> = {
-  wife: "沈夫人的认知",
-  accountant: "钱先生的认知",
-  painter: "柳生的认知",
-};
 const evidenceFlags = [
   "north.evidence.sixth-cup",
   "north.evidence.departure-record",
@@ -51,8 +49,7 @@ const NORTH_STORY_CONTENT = compileInkSource("north-tower-ledger", northInkSourc
 const evidenceAnchor = (id: EvidenceId) => {
   const anchorId = id === "sixth-teacup" ? "B_TEA_TABLE"
     : id === "departure-record" ? "B_LEDGER"
-      : id === "artist-viewpoint" ? "B_IMAGE_EVIDENCE"
-        : "B_MISSING_ROOM";
+      : "B_IMAGE_EVIDENCE";
   return getGameplayAnchor(anchorId);
 };
 
@@ -74,13 +71,13 @@ const objectiveFor = (checkpoint: CheckpointState) => {
     return { title: "先确认多出来的生活痕迹", detail: "主院茶桌上有六只杯子。先证明第六只确实被人用过。", hint: "先数杯子，再看杯沿与杯底是否有刚留下的水痕。", targetId: "sixth-teacup" as const };
   }
   if (!flags.includes("north.evidence.departure-record")) {
-    return { title: "去看被改过的纸面事实", detail: "按 Tab 切到钱先生的认知，去主宅内侧检查离园记录的补墨和压痕。", hint: "纸面上后补的墨色，与原字并不完全一样。", targetId: "departure-record" as const };
+    return { title: "去看那张被改过的离园记录", detail: "回到钱先生记得的主宅内侧，看看纸上的补墨和压痕。", hint: "后补的墨色，与原来的字并不完全一样。", targetId: "departure-record" as const };
   }
   if (!flags.includes("north.evidence.rain-figure")) {
-    return { title: "复现柳生的观看位置", detail: "按 Tab 切到柳生的认知，在旧画旁对准远处框景，再按 F 固定人影。", hint: "站在旧画旁，缓慢转动视线，让远处人影落进画框中心。", targetId: "artist-viewpoint" as const };
+    return { title: "站到柳生当年画画的位置", detail: "在旧画旁顺着他的视线望出去，让远处的人影落进画框。", hint: "站在旧画旁，缓慢转动视线，让远处人影落进画框中心。", targetId: "artist-viewpoint" as const };
   }
   if (!flags.includes("north.fifth-person.confirmed")) {
-    return { title: "把三件事实放在一起", detail: "回到主宅深处的案卷板，只回答一个问题：案发当晚有没有第五个人？", hint: "茶杯、离园记录和雨夜人影都确认后，再回案卷板。", targetId: "fifth-person-board" as const };
+    return { title: "在案卷中交叉核对三件事实", detail: "打开案卷的问题页，只回答一个问题：案发当晚有没有第五个人？", hint: "按 N 打开案卷。生活痕迹、文字记录和图像框景都已归档。", targetId: undefined };
   }
   return { title: "第五人确实存在", detail: "本章到这里为止。身份仍然未知。", hint: "", targetId: undefined };
 };
@@ -91,7 +88,6 @@ interface EvidenceVisuals {
   ledgerAnchor: THREE.Group;
   painting: THREE.Mesh;
   figure: THREE.Group;
-  synthesisAnchor: THREE.Group;
 }
 
 async function buildEvidenceVisuals(world: TingYuXuanScene): Promise<EvidenceVisuals> {
@@ -132,14 +128,8 @@ async function buildEvidenceVisuals(world: TingYuXuanScene): Promise<EvidenceVis
   figure.position.set(paintingPosition[0] - 3.1, 0.7, paintingPosition[2] - 3.7);
   root.add(figure);
 
-  const board = evidenceAnchor("fifth-person-board").position;
-  const synthesisAnchor = new THREE.Group();
-  synthesisAnchor.name = "B_FifthPerson_CaseFileAnchor";
-  synthesisAnchor.position.set(board[0], 1.05, board[2]);
-  root.add(synthesisAnchor);
-
   world.proceduralDressing.add(root);
-  return { root, teaAnchor, ledgerAnchor, painting, figure, synthesisAnchor };
+  return { root, teaAnchor, ledgerAnchor, painting, figure };
 }
 
 function setEvidenceMemory(visuals: EvidenceVisuals, memory: MemoryId, aligned: boolean) {
@@ -147,7 +137,6 @@ function setEvidenceMemory(visuals: EvidenceVisuals, memory: MemoryId, aligned: 
   paintingMaterial.opacity = memory === "painter" ? (aligned ? 0.98 : 0.72) : 0.26;
   visuals.teaAnchor.visible = memory === "wife";
   visuals.ledgerAnchor.visible = memory === "accountant";
-  visuals.synthesisAnchor.visible = true;
 }
 
 export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }: NorthTowerRuntimeProps) {
@@ -192,6 +181,7 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
   const guidanceKeyRef = useRef("");
   const guidanceElapsedRef = useRef(0);
   const guidanceLevelRef = useRef(0);
+  const lastGuideUiUpdateRef = useRef(0);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const [phase, setPhaseState] = useState<NorthPhase>(initialPhase);
@@ -201,11 +191,14 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
   const [subtitle, setSubtitle] = useState("西侧旧园的脚印把你带进主宅。现在先查清：今晚到底有没有多出来一个人。");
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
-  const areaRef = useRef("AREA_B");
-  const [area, setArea] = useState("AREA_B");
-  const [error, setError] = useState("");
   const [guidanceLevel, setGuidanceLevel] = useState(0);
+  const [guideDistance, setGuideDistance] = useState<number>();
+  const [guideAngle, setGuideAngle] = useState(0);
+
+  const [error, setError] = useState("");
+
   const [showCaseFile, setShowCaseFileState] = useState(false);
+  const [caseFileInitialTab, setCaseFileInitialTab] = useState<CaseFileTab>("evidence");
   const [showDepartureDocument, setShowDepartureDocument] = useState(false);
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
 
@@ -221,8 +214,9 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
   }, []);
 
-  const setCaseFileOpen = useCallback((next: boolean) => {
+  const setCaseFileOpen = useCallback((next: boolean, initialTab: CaseFileTab = "evidence") => {
     caseFileOpenRef.current = next;
+    if (next) setCaseFileInitialTab(initialTab);
     setShowCaseFileState(next);
     keysRef.current.clear();
     runtimeRef.current?.interaction.clearFocus();
@@ -313,10 +307,10 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
       },
     }));
     setSubtitle(next === "wife"
-      ? "沈夫人的认知让生活使用痕迹更醒目。茶杯、座位和被收起的东西比纸面更稳定。"
+      ? "沈夫人记得茶杯、座位和那些被收起来的东西。"
       : next === "accountant"
-        ? "钱先生的认知强调被写下来的事实。改字、补墨和压痕会变得更清楚。"
-        : "柳生的认知依赖观看位置。你必须站对地方，额外的人影才会成立。"
+        ? "钱先生记得被写下来的事实。改字、补墨和压痕会变得更清楚。"
+        : "柳生只记得自己当时看见的画面。站回原来的位置，远处的人影才看得清。"
     );
   }, [commitCheckpoint]);
 
@@ -328,19 +322,16 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
       mechanics: { ...current.mechanics, safeAnchorId: "ROUTE_06_B_NORTHEAST_LINK" },
       activeObjectiveId: undefined,
       objectiveStepId: undefined,
-      earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags, "north.fifth-person.confirmed"]),
+      earnedFlags: unique([...current.earnedFlags, "north.fifth-person.confirmed"]),
     }));
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      activeCheckpoint: finalCheckpoint,
-      completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      unlockedChapters: unique([...saveRef.current.unlockedChapters, "missing-room"]),
-    };
+    const nextSave = completeCampaignChapter(saveRef.current, chapter.id, finalCheckpoint);
+    checkpointRef.current = nextSave.activeCheckpoint;
+    setCheckpoint(nextSave.activeCheckpoint);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     document.exitPointerLock?.();
     setPhase("complete");
-  }, [chapter.completionFlags, chapter.id, commitCheckpoint, setPhase]);
+  }, [chapter.id, commitCheckpoint, setPhase]);
 
   const completeDialogue = useCallback((sequence: DialogueSequence) => {
     dialogueRef.current = undefined;
@@ -366,12 +357,12 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
       setSubtitle("");
       requestPointerLock();
     } else if (sequence.id === "north-image-confirmed") {
-      setSubtitle("");
-      requestPointerLock();
+      setSubtitle("三条事实已经分别归档。现在去案卷的问题页交叉核对。 ");
+      setCaseFileOpen(true, "questions");
     } else if (sequence.id === "north-completion") {
       finishChapter();
     }
-  }, [commitCheckpoint, finishChapter, requestPointerLock, startDialogue]);
+  }, [commitCheckpoint, finishChapter, requestPointerLock, setCaseFileOpen, startDialogue]);
 
   const handleEvidence = useCallback((id: EvidenceId) => {
     const flags = checkpointRef.current.earnedFlags;
@@ -384,14 +375,14 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
     }
     if (id === "departure-record") {
       if (!flags.includes("north.evidence.sixth-cup")) { setSubtitle("先确认茶桌上多出来的生活痕迹。"); return; }
-      if (memoryRef.current !== "accountant") { setSubtitle("先切到钱先生的认知。这里要检查的是纸面事实。"); return; }
+      if (memoryRef.current !== "accountant") { setSubtitle("先回到钱先生记得的主宅。这里要查的是纸上的痕迹。"); return; }
       if (flags.includes("north.evidence.departure-record")) return;
       setDepartureDocumentOpen(true);
       return;
     }
     if (id === "artist-viewpoint") {
       if (!flags.includes("north.evidence.departure-record")) { setSubtitle("先把文字记录的修改痕迹固定下来。"); return; }
-      if (memoryRef.current !== "painter") { setSubtitle("按 Tab 切到柳生的认知。这里需要复现他的观看位置。"); return; }
+      if (memoryRef.current !== "painter") { setSubtitle("先回到柳生画画时看见的主宅，再站到旧画旁。"); return; }
       if (!viewAlignedRef.current) { setSubtitle("位置差不多，但角度还不对。慢慢转动镜头，让远处人影落进画框中心。"); return; }
       if (flags.includes("north.evidence.rain-figure")) return;
       addFlag("north.evidence.rain-figure");
@@ -399,11 +390,19 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
       startDialogue("north-image-confirmed");
       return;
     }
+  }, [addFlag, setDepartureDocumentOpen, startDialogue]);
+
+  const synthesizeFifthPerson = useCallback(() => {
     const ready = evidenceFlags.every((flag) => checkpointRef.current.earnedFlags.includes(flag));
-    if (!ready) { setSubtitle("还缺事实。茶杯、离园记录和旧画里的人影都要先查清。"); return; }
+    if (!ready) {
+      setSubtitle("还缺事实。茶杯、离园记录和旧画里的人影都要先查清。");
+      setCaseFileOpen(false);
+      return;
+    }
+    setCaseFileOpen(false);
     setSubtitle("");
     startDialogue("north-completion");
-  }, [addFlag, setDepartureDocumentOpen, startDialogue]);
+  }, [setCaseFileOpen, startDialogue]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -432,22 +431,22 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
         world.proceduralDressing.add(playerAvatar.root);
         const visuals = await buildEvidenceVisuals(world);
         const evidenceItems: Array<{ id: EvidenceId; label: string }> = [
-          { id: "sixth-teacup", label: "[F] 检查第六只茶杯" },
-          { id: "departure-record", label: "[F] 核对离园记录" },
-          { id: "artist-viewpoint", label: "[F] 固定柳生框景中的人影" },
-          { id: "fifth-person-board", label: "[F] 整理已经查清的三件事" },
+          { id: "sixth-teacup", label: "检查第六只茶杯" },
+          { id: "departure-record", label: "核对离园记录" },
+          { id: "artist-viewpoint", label: "固定柳生框景中的人影" },
         ];
         evidenceItems.forEach((item) => {
           const anchor = evidenceAnchor(item.id);
           const position = new THREE.Vector3(anchor.position[0], item.id === "artist-viewpoint" ? 1.15 : 0.9, anchor.position[2]);
+          const focusRoot = item.id === "artist-viewpoint" ? visuals.painting : undefined;
           interaction.registerPoint({
             id: item.id,
             type: "evidence",
             label: item.label,
             maxDistance: item.id === "artist-viewpoint" ? INTERACTION_RANGE_CALIBRATION.viewpoint : INTERACTION_RANGE_CALIBRATION.standardEvidence,
-            enabledWhen: () => phaseRef.current === "playing",
+            enabledWhen: () => phaseRef.current === "playing" && objectiveFor(checkpointRef.current).targetId === item.id,
             onInteract: () => handleEvidence(item.id),
-          }, position, INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+          }, position, INTERACTION_RANGE_CALIBRATION.standardProxyRadius, focusRoot);
         });
         world.setMemory(memoryRef.current);
         setEvidenceMemory(visuals, memoryRef.current, false);
@@ -505,35 +504,43 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
             setEvidenceMemory(visuals, memoryRef.current, aligned);
           }
 
-          const focus = caseFileOpenRef.current || documentOpenRef.current || dialogueRef.current ? undefined : interaction.focus(world.camera, world.camera.position);
-          setPrompt(focus?.definition.label);
+          const focus = caseFileOpenRef.current || documentOpenRef.current || dialogueRef.current
+            ? (interaction.clearFocus(), undefined)
+            : interaction.focus(world.camera, world.camera.position);
+          setPrompt(focus?.canInteract ? focus.definition.label : undefined);
           const currentObjective = objectiveFor(checkpointRef.current);
           const guidanceKey = currentObjective.targetId ?? "";
+          const targetAnchor = currentObjective.targetId ? evidenceAnchor(currentObjective.targetId) : undefined;
+          const targetDistance = targetAnchor ? Math.hypot(targetAnchor.position[0] - pose.x, targetAnchor.position[2] - pose.z) : undefined;
           if (guidanceKey !== guidanceKeyRef.current) {
             guidanceKeyRef.current = guidanceKey;
             guidanceElapsedRef.current = 0;
             guidanceLevelRef.current = 0;
             setGuidanceLevel(0);
+            setGuideDistance(undefined);
+
           } else if (phaseRef.current === "playing" && !caseFileOpenRef.current && !documentOpenRef.current && !dialogueRef.current && saveRef.current.settings.guidanceAssist && guidanceKey) {
             guidanceElapsedRef.current += delta;
-            const nextLevel = guidanceLevelForElapsed(guidanceElapsedRef.current);
-            if (nextLevel > guidanceLevelRef.current) {
+            const nextLevel = guidanceLevelForProximity(guidanceLevelForElapsed(guidanceElapsedRef.current), targetDistance);
+            if (nextLevel !== guidanceLevelRef.current) {
+              const previousLevel = guidanceLevelRef.current;
               guidanceLevelRef.current = nextLevel;
               setGuidanceLevel(nextLevel);
-              if (nextLevel === 2) setSubtitle(currentObjective.hint);
+
+              if (nextLevel === 2 && previousLevel < 2) setSubtitle(currentObjective.hint);
             }
           }
-          if (currentObjective.targetId && saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3) {
-            const targetAnchor = evidenceAnchor(currentObjective.targetId);
-            world.setGuidanceTarget(new THREE.Vector3(targetAnchor.position[0], 0, targetAnchor.position[2]));
+          if (targetAnchor && now - lastGuideUiUpdateRef.current >= 120) {
+            lastGuideUiUpdateRef.current = now;
+            setGuideDistance(targetDistance);
+            setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(targetAnchor.position[0] - pose.x, -(targetAnchor.position[2] - pose.z)) - yawRef.current));
+          }
+          if (targetAnchor && saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3) {
+            world.setGuidanceTarget(new THREE.Vector3(targetAnchor.position[0], 0, targetAnchor.position[2]), "subtle");
           } else {
             world.setGuidanceTarget(undefined);
           }
           const currentArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
-          if (currentArea !== areaRef.current) {
-            areaRef.current = currentArea;
-            setArea(currentArea);
-          }
           canvas.dataset.playerPose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)},${pose.z.toFixed(2)}`;
           canvas.dataset.playerAvatarVisible = String(playerAvatar.root.visible && playerAvatar.root.parent !== null);
           canvas.dataset.gameplayArea = currentArea;
@@ -550,7 +557,8 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
         }
         return () => window.removeEventListener("resize", resize);
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "无法初始化主宅调查场景");
+        console.error("[north-tower] scene failed to appear", reason);
+        setError("主宅与画室的旧日痕迹没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
         setPhase("error");
       }
     };
@@ -622,18 +630,23 @@ export function NorthTowerRuntime({ chapter, save, onSave, onExit, onContinue }:
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>第二章</span><strong>多出来的人</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {area === "AREA_B" ? "主宅" : "园中"}</div>
+
       </div>
-      {phase !== "complete" && !activeDialogue && <section className="objective-card" aria-live="polite"><span>当前问题</span><strong>{objective.title}</strong><p>{objective.detail}</p>{guidanceLevel >= 1 && <small>提示：{objective.hint}</small>}</section>}
-      {!activeDialogue && <section className="memory-card"><span>当前证词 · TAB 切换</span><strong>{memoryName[memory] ?? memory}</strong><small>每个人只记得自己看见、写下或保留下来的那一部分。</small></section>}
-      {prompt && phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && <div className="interaction-prompt">{prompt}</div>}
-      {save.settings.subtitles && subtitle && phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && <div className="bark-subtitle"><NarrativeInline kind="interaction" text={subtitle} /></div>}
+      <ExplorationHud
+        objective={phase !== "complete" && !activeDialogue ? { label: "当前问题", title: objective.title, detail: objective.detail } : undefined}
+        direction={guideDistance !== undefined && guidanceLevel >= 1 ? <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div> : undefined}
+        prompt={phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue ? prompt : undefined}
+        subtitle={save.settings.subtitles && subtitle && phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue ? <NarrativeInline kind="interaction" text={subtitle} /> : undefined}
+      />
+
+
+
       {phase === "playing" && !showCaseFile && !showDepartureDocument && !activeDialogue && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续调查<br /><small>回到主宅雨夜</small></button>}
       {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={NORTH_STORY_CONTENT} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={applyDialogueCommand} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
       {showDepartureDocument && <DocumentViewer document={NORTH_DEPARTURE_DOCUMENT} onClose={finishDepartureDocument} />}
-      {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第二章 · 多出来的人" onClose={() => setCaseFileOpen(false)} />}
-      {phase === "complete" && <NorthModal eyebrow="第二章结束" title="被所有人删掉的第五个人是谁？"><img className="chapter-cg-inline" src="/media/cg/story-v1/cg-03-liusheng-fifth-figure-v1.png" alt="柳生雨夜画中只有特定观看角度才能成立的人影" /><p>侧路脚印、第六只反复使用过的茶杯、被改过的离园记录和柳生的雨夜画稿已经被放在一起。</p><blockquote>老周留下了一把北墙旧锁的备份钥匙。下一步不是继续猜凶手，而是去找这个人在听雨轩里真正生活过的位置。</blockquote>{onContinue && <button type="button" className="primary-button" onClick={onContinue}>继续第三章：不存在的房间</button>}<button type="button" className="text-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
-      {phase === "error" && <NorthModal eyebrow="可恢复错误" title="主宅场景未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
+      {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第二章 · 多出来的人" initialTab={caseFileInitialTab} questionAction={{ questionId: "was-there-fifth-person", requiredEvidenceIds: ["north-sixth-cup", "north-departure-record", "north-rain-figure"], label: "确认：案发当晚确实还有第五个人", onConfirm: synthesizeFifthPerson }} onClose={() => setCaseFileOpen(false)} />}
+      {phase === "complete" && <NorthModal eyebrow="第二章结束" title="被所有人删掉的第五个人是谁？"><img className="chapter-cg-inline" src="/media/cg/story-v1/cg-03-liusheng-fifth-figure-v1.png" alt="柳生雨夜画中只有特定观看角度才能成立的人影" /><p>侧路脚印、第六只反复使用过的茶杯、被改过的离园记录和柳生的雨夜画稿已经被放在一起。</p><blockquote>老周留下了一把北墙旧锁的备份钥匙。下一步不去猜这个人是谁，而是去找这个人在听雨轩里真正生活过的位置。</blockquote>{onContinue && <button type="button" className="primary-button" onClick={onContinue}>继续第三章：不存在的房间</button>}<button type="button" className="text-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
+      {phase === "error" && <NorthModal eyebrow="旧影中断" title="主宅没有完整显现"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></NorthModal>}
     </main>
   );
 }

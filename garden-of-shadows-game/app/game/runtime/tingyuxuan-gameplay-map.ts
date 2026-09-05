@@ -88,7 +88,7 @@ export interface RuntimeGroundPatchDefinition {
   size: readonly [number, number];
   thickness: number;
   rotationY?: number;
-  material: "mud-wet" | "stone-wet" | "stone-moss";
+  material: "mud-wet" | "stone-old" | "stone-wet" | "stone-moss";
   layer: "base" | "region" | "route";
   regionId?: Exclude<GameplayRegionId, "OUTSIDE">;
 }
@@ -164,10 +164,13 @@ export const tingYuXuanChapterAnchors: readonly GameplayAnchorDefinition[] = [
   { id: "A_WET_FOOTPRINT", position: [2, GAMEPLAY_ANCHOR_REFERENCE_Y, 32.2], yaw: 0.37, regionId: "AREA_A", firstPass: "open", confidence: "provisional" },
   // Prologue anchors are the one coordinate source used by world objects, objective/map targets and interactions.
   { id: "PROLOGUE_STEWARD", position: [3.35, GAMEPLAY_ANCHOR_REFERENCE_Y, 40.0], yaw: -2.46, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
-  { id: "PROLOGUE_UMBRELLA", position: [5.4, GAMEPLAY_ANCHOR_REFERENCE_Y, 43.45], yaw: -0.5, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
+  // Front-hall vignette: the former z=41–43 points sat inside the dense
+  // vegetation/roof overlap behind the entry path. These points use the clear
+  // authored facade immediately south of the measured entrance axis.
+  { id: "PROLOGUE_UMBRELLA", position: [5.15, GAMEPLAY_ANCHOR_REFERENCE_Y, 37.7], yaw: 0, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
   // Legacy id retained for save/content compatibility; V5.0 uses this point for the front-hall refreshments rather than an old-shoes clue.
-  { id: "PROLOGUE_SHOES", position: [4.55, GAMEPLAY_ANCHOR_REFERENCE_Y, 41.55], yaw: 0, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
-  { id: "PROLOGUE_LEDGER", position: [6.1, GAMEPLAY_ANCHOR_REFERENCE_Y, 41.05], yaw: -0.28, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
+  { id: "PROLOGUE_SHOES", position: [4.25, GAMEPLAY_ANCHOR_REFERENCE_Y, 37.95], yaw: 0, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
+  { id: "PROLOGUE_LEDGER", position: [6.75, GAMEPLAY_ANCHOR_REFERENCE_Y, 37.75], yaw: 0, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
   { id: "PROLOGUE_WINDOW_ROW", position: [5.85, GAMEPLAY_ANCHOR_REFERENCE_Y, 43.25], yaw: 0.78, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
   { id: "PROLOGUE_LANTERN_TURN", position: [3.9, GAMEPLAY_ANCHOR_REFERENCE_Y, 42.05], yaw: 0.72, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
   { id: "PROLOGUE_MOONGATE_VIEW", position: [6.45, GAMEPLAY_ANCHOR_REFERENCE_Y, 39.65], yaw: 0.72, regionId: "AREA_A", firstPass: "open", confidence: "runtime-reviewed" },
@@ -271,7 +274,7 @@ const routeGroundPatches: RuntimeGroundPatchDefinition[] = routeSegments.map((se
   size: [3.05, segment.halfExtents[2] * 2],
   thickness: 0.04,
   rotationY: segment.rotationY,
-  material: index < 3 ? "stone-moss" : index < 5 ? "stone-wet" : "mud-wet",
+  material: index < 5 ? "stone-wet" : "mud-wet",
   layer: "route",
   regionId: index < 3 ? "AREA_A" : index < 5 ? "AREA_B" : "AREA_C",
 }));
@@ -285,7 +288,7 @@ export const tingYuXuanPrologueColliders: readonly GameplayColliderDefinition[] 
 
 export const tingYuXuanGroundPatches: readonly RuntimeGroundPatchDefinition[] = [
   { id: "base-ground", center: [-8, -0.09, 27.5], size: [54, 57], thickness: 0.12, material: "mud-wet", layer: "base" },
-  { id: "area-a-ground", center: [7, -0.055, 42.5], size: [24, 27], thickness: 0.06, material: "stone-moss", layer: "region", regionId: "AREA_A" },
+  { id: "area-a-ground", center: [7, -0.055, 42.5], size: [24, 27], thickness: 0.06, material: "stone-old", layer: "region", regionId: "AREA_A" },
   { id: "area-b-ground", center: [-5, -0.055, 24], size: [22, 14], thickness: 0.06, material: "stone-wet", layer: "region", regionId: "AREA_B" },
   { id: "area-c-entry-ground", center: [-18.5, -0.06, 16.5], size: [13, 9], thickness: 0.06, material: "mud-wet", layer: "region", regionId: "AREA_C" },
   ...routeGroundPatches,

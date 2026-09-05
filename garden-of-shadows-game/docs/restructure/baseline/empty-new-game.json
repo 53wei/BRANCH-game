@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "activeCheckpoint": {
-    "schemaVersion": 2,
-    "layoutVersion": "campaign-v2",
+    "schemaVersion": 3,
+    "layoutVersion": "tingyuxuan-gameplay-map-v1",
     "chapterId": "prologue-rain",
     "anchorId": "ROUTE_01_START",
     "memoryId": "baseline",
@@ -54,8 +54,7 @@
   },
   "tutorial": {
     "controls": {
-      "seen": false,
-      "autoShow": true
+      "seen": false
     }
   }
 }

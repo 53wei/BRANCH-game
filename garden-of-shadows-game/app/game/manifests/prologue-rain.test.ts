@@ -6,7 +6,7 @@ describe("story-first prologue", () => {
     expect(prologueRainChapter.status).toBe("playable");
     expect(prologueRainChapter.spawnAnchor).toBe("ROUTE_01_START");
     expect(prologueRainChapter.completionFlags).toEqual(expect.arrayContaining([
-      "prologue.complete",
+      "prologue-rain.complete",
       "prologue.dialogue.complete",
       "prologue.examiner-appointed",
     ]));

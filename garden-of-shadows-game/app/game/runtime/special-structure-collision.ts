@@ -1,5 +1,4 @@
 import * as THREE from "three/webgpu";
-import { PLAYER_BODY_CALIBRATION } from "./player-calibration";
 import { PLAYER_PHYSICS_CALIBRATION } from "./PhysicsController";
 import type { LayoutCollider } from "./tingyuxuan-layout";
 

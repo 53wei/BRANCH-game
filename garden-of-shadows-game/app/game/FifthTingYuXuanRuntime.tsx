@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
+import { completeCampaignChapter } from "./campaign-progress";
 import { createCheckpoint } from "./campaign-save";
 import { CameraRig } from "./mechanics/CameraRig";
 import { DialogueRunner } from "./narrative/DialogueRunner";
@@ -19,8 +20,9 @@ import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
 import { PlayerAvatar } from "./runtime/PlayerAvatar";
 import { TingYuXuanScene } from "./runtime/TingYuXuanScene";
 import { FINALE_DOCUMENTARY_ADDENDUM } from "./runtime/document-content";
-import { getGameplayAnchor, resolveGameplayRegionForPoint } from "./runtime/tingyuxuan-gameplay-map";
+import { getGameplayAnchor } from "./runtime/tingyuxuan-gameplay-map";
 import { tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
+import { CaseFilePanel } from "./ui/CaseFilePanel";
 import { DocumentViewer } from "./ui/DocumentViewer";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueSequence } from "./types";
 
@@ -119,6 +121,7 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
   const onSaveRef = useRef(onSave);
   const phaseRef = useRef<Phase>(initialComplete ? "complete" : "loading");
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
+  const caseFileOpenRef = useRef(false);
   const yawRef = useRef(initialCheckpoint.yaw ?? GATE.yaw);
   const pitchRef = useRef(0);
   const keyboardFallbackRef = useRef(false);
@@ -128,10 +131,10 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
   const [phase, setPhaseState] = useState<Phase>(initialComplete ? "complete" : "loading");
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
+  const [showCaseFile, setShowCaseFile] = useState(false);
   const [backend, setBackend] = useState<RendererBackend>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [keyboardFallback, setKeyboardFallback] = useState(false);
-  const [area, setArea] = useState("AREA_A");
   const [error, setError] = useState("");
 
   useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [save, onSave]);
@@ -157,13 +160,21 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
 
   const requestPointerLock = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || phaseRef.current !== "playing" || dialogueRef.current || endingMomentOpenRef.current) return;
+    if (!canvas || phaseRef.current !== "playing" || dialogueRef.current || caseFileOpenRef.current || endingMomentOpenRef.current) return;
     canvas.focus();
     keyboardFallbackRef.current = true;
     setKeyboardFallback(true);
     const result = canvas.requestPointerLock?.();
     if (result instanceof Promise) void result.catch(() => setHasPointerLock(false));
   }, []);
+
+  const setCaseFileOpen = useCallback((next: boolean) => {
+    caseFileOpenRef.current = next;
+    setShowCaseFile(next);
+    keysRef.current.clear();
+    if (next) document.exitPointerLock?.();
+    else if (phaseRef.current === "playing" && !dialogueRef.current && !endingMomentOpenRef.current) requestPointerLock();
+  }, [requestPointerLock]);
 
   const startDialogue = useCallback((id: string) => {
     const sequence = sequenceById(chapter, id);
@@ -196,7 +207,7 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
       activeObjectiveId: undefined,
       objectiveStepId: undefined,
       dialogueProgress: undefined,
-      earnedFlags: unique([...source.earnedFlags, ...chapter.completionFlags, `finale.lens.${lens}`]),
+      earnedFlags: unique([...source.earnedFlags, `finale.lens.${lens}`]),
       finalAssemblyState: {
         ...source.finalAssemblyState,
         endingLens: lens,
@@ -205,19 +216,14 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
       },
       updatedAt: new Date().toISOString(),
     };
-    checkpointRef.current = finalCheckpoint;
-    setCheckpoint(finalCheckpoint);
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      activeCheckpoint: finalCheckpoint,
-      completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      endingIds: unique([...saveRef.current.endingIds, lens]),
-    };
+    const nextSave = completeCampaignChapter(saveRef.current, chapter.id, finalCheckpoint, lens);
+    checkpointRef.current = nextSave.activeCheckpoint;
+    setCheckpoint(nextSave.activeCheckpoint);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     document.exitPointerLock?.();
     setPhase("complete");
-  }, [chapter.completionFlags, chapter.id, setPhase]);
+  }, [chapter.id, setPhase]);
 
   const completeDialogue = useCallback((sequence: DialogueSequence) => {
     dialogueRef.current = undefined;
@@ -309,6 +315,7 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
 
     if (flags.includes("finale.note-written") && lens === "composite" && !flags.includes("finale.composite-sting-seen") && distance2D(pose, OLD_ROOM_WINDOW.position) <= 1.7) {
       const sting = runtimeRef.current?.compositeSting;
+      // eslint-disable-next-line react-hooks/immutability -- Three.js scene-graph visibility is intentionally imperative.
       if (sting) sting.visible = true;
       // Silent by design: the sting only becomes visible, nothing else fires.
       commitCheckpoint((value) => ({ ...value, earnedFlags: unique([...value.earnedFlags, "finale.composite-sting-seen"]) }));
@@ -360,7 +367,6 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
         cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
         runtimeRef.current = { renderer, world, physics, cameraRig, playerAvatar, compositeSting };
         setBackend(renderer.backend);
-        setArea(resolveGameplayRegionForPoint({ x: spawn.x, z: spawn.z }));
 
         const resize = () => {
           const rect = canvas.getBoundingClientRect();
@@ -379,7 +385,7 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
           let pose = physics.pose();
           const inputReady = document.pointerLockElement === canvas || keyboardFallbackRef.current;
           let moving = false;
-          if (phaseRef.current === "playing" && !dialogueRef.current && !endingMomentOpenRef.current) {
+          if (phaseRef.current === "playing" && !dialogueRef.current && !caseFileOpenRef.current && !endingMomentOpenRef.current) {
             const keys = keysRef.current;
             const turn = inputReady ? Number(keys.has("ArrowRight")) - Number(keys.has("ArrowLeft")) : 0;
             yawRef.current -= turn * 1.8 * delta;
@@ -402,8 +408,6 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
           world.update(delta, player, false);
           world.setGuidanceTarget(undefined);
 
-          const currentArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
-          setArea((value) => value === currentArea ? value : currentArea);
           if (now - lastAreaLoadRef.current >= 600) {
             lastAreaLoadRef.current = now;
             void world.ensureAreaAssets({ x: pose.x, z: pose.z }).catch(() => undefined);
@@ -422,7 +426,8 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
           else if (initialCheckpoint.earnedFlags.includes("finale.main-departure-complete")) finishChapter(initialCheckpoint);
         }
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "无法初始化终章场景");
+        console.error("[finale] scene failed to appear", reason);
+        setError("雨停后的听雨轩没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
         setPhase("error");
       }
     };
@@ -443,14 +448,19 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (["ArrowLeft", "ArrowRight", "Space"].includes(event.code)) event.preventDefault();
-      if (event.repeat || phaseRef.current !== "playing" || dialogueRef.current || endingMomentOpenRef.current) return;
+      if (["ArrowLeft", "ArrowRight", "Space", "KeyN"].includes(event.code)) event.preventDefault();
+      if (event.repeat || phaseRef.current !== "playing" || endingMomentOpenRef.current) return;
+      if (event.code === "KeyN") {
+        setCaseFileOpen(!caseFileOpenRef.current);
+        return;
+      }
+      if (dialogueRef.current || caseFileOpenRef.current) return;
       if (event.code === "Space") { runtimeRef.current?.physics.requestJump(); return; }
       keysRef.current.add(event.code);
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
     const onMouseMove = (event: MouseEvent) => {
-      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || dialogueRef.current || endingMomentOpenRef.current) return;
+      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || dialogueRef.current || caseFileOpenRef.current || endingMomentOpenRef.current) return;
       yawRef.current -= event.movementX * 0.0022;
       pitchRef.current = THREE.MathUtils.clamp(pitchRef.current - event.movementY * 0.0019, -1.12, 1.04);
     };
@@ -468,7 +478,7 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
       window.removeEventListener("blur", onBlur);
       document.removeEventListener("pointerlockchange", onLockChange);
     };
-  }, []);
+  }, [setCaseFileOpen]);
 
   const lens = checkpoint.finalAssemblyState.endingLens ?? deriveEndingLens(checkpoint);
   const rule = campaignManifest.endingRules[lens];
@@ -499,22 +509,23 @@ export function FifthTingYuXuanRuntime({ chapter, save, onSave, onExit }: FifthT
 
   return (
     <main className="runtime runtime-zhaoying finale-runtime" data-renderer={backend}>
-      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="终章第五种听雨轩" onClick={() => phase === "playing" && !activeDialogue && requestPointerLock()} />
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="终章第五种听雨轩" onClick={() => phase === "playing" && !activeDialogue && !showCaseFile && requestPointerLock()} />
       <div className="vignette" aria-hidden="true" />
       <header className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>终章</span><strong>第五种听雨轩</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {area === "AREA_A" ? "清晨 · 西院" : area === "AREA_B" ? "清晨 · 旧房" : "清晨 · 水榭"}</div>
+
       </header>
 
-      {phase === "playing" && !activeDialogue && !endingMomentOverlay && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续最后一次走园子</button>}
+      {phase === "playing" && !activeDialogue && !showCaseFile && !endingMomentOverlay && !hasPointerLock && !keyboardFallback && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续最后一次走园子</button>}
 
       {endingMomentOverlay}
-      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={STORY_CONTENT} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={() => undefined} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={STORY_CONTENT} settings={save.settings} suspended={showCaseFile} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={() => undefined} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
+      {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="终章 · 第五种听雨轩" onClose={() => setCaseFileOpen(false)} />}
 
       {phase === "loading" && <Modal eyebrow="终章" title="雨已经停了"><p>天还没有完全亮，听雨轩第一次没有雨声。</p></Modal>}
       {phase === "complete" && <Modal eyebrow={rule.title} title="《游园惊梦：四面证词》"><blockquote>我回来过。<br />我也会再离开。</blockquote><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
-      {phase === "error" && <Modal eyebrow="可恢复错误" title="终章场景未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
+      {phase === "error" && <Modal eyebrow="旧园中断" title="雨停后的听雨轩没有完整显现"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
     </main>
   );
 }

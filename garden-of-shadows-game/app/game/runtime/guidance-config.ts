@@ -4,6 +4,11 @@ export const GUIDANCE_TIMING_SECONDS = {
   worldMarker: 90,
 } as const;
 
+export const GUIDANCE_PROXIMITY_METERS = {
+  quiet: 3.2,
+  directionOnly: 8,
+} as const;
+
 export const CONTROL_GUIDE_GROUPS = [
   {
     id: "movement",
@@ -50,3 +55,11 @@ export const guidanceLevelForElapsed = (elapsedSeconds: number) => elapsedSecond
     : elapsedSeconds >= GUIDANCE_TIMING_SECONDS.distance
       ? 1
       : 0;
+
+export const guidanceLevelForProximity = (level: number, targetDistance?: number) => {
+  const clampedLevel = Math.max(0, Math.min(3, level));
+  if (targetDistance === undefined || !Number.isFinite(targetDistance)) return clampedLevel;
+  if (targetDistance <= GUIDANCE_PROXIMITY_METERS.quiet) return 0;
+  if (targetDistance <= GUIDANCE_PROXIMITY_METERS.directionOnly) return Math.min(1, clampedLevel);
+  return clampedLevel;
+};

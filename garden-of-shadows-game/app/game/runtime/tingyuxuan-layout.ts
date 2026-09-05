@@ -289,7 +289,10 @@ export const tingYuXuanFallbackPlacements: LayoutPlacement[] = [
 
 const interactables: LayoutInteractable[] = [
   { id: "waterline-direction", label: "勘验墙脚与侧路痕迹", position: [4.1, 1.1, 42.9], memoryIds: ["wife", "gardener"], kind: "contradiction" },
-  { id: "corridor-count", label: "核对重复地标", position: [1.8, 1.2, 41.2], memoryIds: ["wife", "gardener"], kind: "contradiction" },
+  // The physical loop trigger sits at ROUTE_03. Investigation happens after
+  // teleport at the repeated A_BASELINE landmark, so the player can actually
+  // focus and press F instead of being moved away before the raycast resolves.
+  { id: "corridor-count", label: "核对重复出现的破损漏窗", position: getGameplayAnchor("A_BASELINE").position, memoryIds: ["wife", "gardener"], kind: "contradiction" },
   { id: "wife-moon-gate", label: "穿过西院东侧门洞", position: [1.9, 1.2, 31.2], memoryIds: ["wife"], kind: "portal" },
 ];
 

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { westCorridorChapter } from "../manifests/west-corridor";
 import { westObjectives } from "../manifests/west-onboarding";
-import { getLayoutTrigger, interactablePosition, resolveLayoutTriggerDestination } from "./tingyuxuan-layout";
+import { resolveObjectiveStepPosition } from "./objective-target";
+import { getLayoutAnchor, getLayoutTrigger, interactablePosition, resolveLayoutTriggerDestination } from "./tingyuxuan-layout";
 import { CH1_ANCHOR_TARGET, CH1_BORROW_SOURCE, CH1_REWARD_POINTS } from "./vertical-slice-content";
 
 describe("west chapter V5 route contract on TingYuXuan", () => {
@@ -11,11 +14,13 @@ describe("west chapter V5 route contract on TingYuXuan", () => {
       "west-waterline",
       "west-loop",
     ]);
-    expect(westObjectives[0].steps[0].targetPosition).toEqual([...getLayoutTrigger("front-hall-to-west").center]);
-    expect(westObjectives[1].steps[0].targetPosition).toEqual(interactablePosition("waterline-direction"));
-    expect(westObjectives[1].steps.at(-1)?.targetPosition).toEqual(interactablePosition("waterline-direction"));
-    expect(westObjectives[2].steps[0].targetPosition).toEqual(interactablePosition("corridor-count"));
-    expect(westObjectives[2].steps[1].targetPosition).toEqual(interactablePosition("corridor-count"));
+    expect(resolveObjectiveStepPosition(westObjectives[0].steps[0])).toEqual([...getLayoutTrigger("front-hall-to-west").center]);
+    expect(resolveObjectiveStepPosition(westObjectives[1].steps[0])).toEqual(interactablePosition("waterline-direction"));
+    expect(resolveObjectiveStepPosition(westObjectives[1].steps.at(-1)!)).toEqual(interactablePosition("waterline-direction"));
+    expect(resolveObjectiveStepPosition(westObjectives[2].steps[0])).toEqual(interactablePosition("corridor-count"));
+    expect(resolveObjectiveStepPosition(westObjectives[2].steps[1])).toEqual(interactablePosition("corridor-count"));
+    expect(interactablePosition("corridor-count")).toEqual([...getLayoutAnchor("front-hall").position]);
+    expect(interactablePosition("corridor-count")).not.toEqual([...getLayoutTrigger("gardener-corridor-loop").center]);
 
     expect(CH1_BORROW_SOURCE.id).toBe("wife-threshold-stone");
     expect(CH1_ANCHOR_TARGET.id).toBe("loop-break-anchor");
@@ -41,5 +46,13 @@ describe("west chapter V5 route contract on TingYuXuan", () => {
     const invertNode = westCorridorChapter.puzzleGraph.nodes.find((node) => node.id === "invert-loop");
     expect(invertNode?.outputFlags).toContain("west.borrow-anchor.solved");
     expect(invertNode?.interaction).toContain("青石");
+  });
+
+  it("cannot inspect the loop before returning or borrow the wife's stone from the wrong cognition", () => {
+    const runtime = readFileSync(join(process.cwd(), "app", "game", "GameRuntime.tsx"), "utf8");
+    expect(runtime).toContain('!current.earnedFlags.includes("west.loop-return.seen")');
+    expect(runtime).toContain('"west.loop-return.seen"');
+    expect(runtime).toMatch(/memoryId === "gardener"[\s\S]{0,180}earnedFlags\.includes\("west\.borrowed-view\.ready"\)/);
+    expect(runtime).toContain("resolveChapterOneObjectivePosition(checkpointRef.current, objective)");
   });
 });

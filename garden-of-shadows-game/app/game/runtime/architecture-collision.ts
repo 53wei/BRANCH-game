@@ -343,7 +343,7 @@ export const extractArchitectureCollisionCoverage = (
           .filter((sample) => sample.regions.includes(regionId))
           .sort((left, right) => left.score - right.score)
           .slice(0, 16)
-          .map(({ score: _score, ...sample }) => sample)),
+          .map(({ score, ...sample }) => { void score; return sample; })),
     },
   };
 };

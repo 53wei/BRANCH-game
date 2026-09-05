@@ -30,5 +30,7 @@ describe("chapter-one vertical slice visuals", () => {
     expect(visuals.anchorMarker.visible).toBe(false);
     expect(visuals.anchorMarker.children).toHaveLength(0);
     expect(visuals.borrowedStone.visible).toBe(false);
+    expect(visuals.loopLandmark.visible).toBe(false);
+    expect(visuals.loopLandmark.name).toContain("BrokenLattice");
   });
 });

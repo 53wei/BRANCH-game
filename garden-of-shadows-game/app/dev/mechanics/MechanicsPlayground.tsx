@@ -22,6 +22,7 @@ import {
 } from "../../game/mechanics/playground-content";
 import { createDefaultMechanicSaveState, type CognitionId, type MechanicSaveState } from "../../game/mechanics/types";
 import { createRenderer } from "../../game/runtime/RendererAdapter";
+import { PLAYER_MOVEMENT_CALIBRATION } from "../../game/runtime/player-calibration";
 
 const PLAYGROUND_SAVE_KEY = "garden-of-shadows.mechanics-playground.v1";
 
@@ -596,6 +597,7 @@ export function MechanicsPlayground() {
         if (event.code === "KeyQ") switchCognition();
         if (event.code === "KeyE") toggleInvestigation();
         if (event.code === "KeyF") actionsRef.current?.interact();
+        if (event.code === "Space") physics.requestJump();
         if (event.code === "KeyR") reset();
       };
       const onKeyUp = (event: KeyboardEvent) => keys.delete(event.code);
@@ -640,17 +642,19 @@ export function MechanicsPlayground() {
         let pose = physics.pose();
         const forward = Number(keys.has("KeyW")) - Number(keys.has("KeyS"));
         const strafe = Number(keys.has("KeyD")) - Number(keys.has("KeyA"));
-        if (cameraRig.mode === "exploration" && (forward || strafe)) {
-          const speed = keys.has("ShiftLeft") ? 4.3 : 2.65;
+        if (cameraRig.mode === "exploration") {
+          const speed = keys.has("ShiftLeft") || keys.has("ShiftRight") ? PLAYER_MOVEMENT_CALIBRATION.fastWalkSpeed : PLAYER_MOVEMENT_CALIBRATION.walkSpeed;
           const length = Math.hypot(forward, strafe) || 1;
           const sin = Math.sin(viewYaw);
           const cos = Math.cos(viewYaw);
           const x = ((forward / length) * -sin + (strafe / length) * cos) * speed * delta;
           const z = ((forward / length) * -cos - (strafe / length) * sin) * speed * delta;
-          pose = physics.move({ x, y: -2.4 * delta, z });
-          avatarYaw = Math.atan2(-x, -z);
+          pose = physics.move({ x, y: 0, z }, delta);
+          if (forward || strafe) avatarYaw = Math.atan2(-x, -z);
           avatar.rotation.y = avatarYaw;
-          body.position.y = 0.9 + Math.sin(now * 0.012) * 0.025;
+          body.position.y = 0.9 + ((forward || strafe) ? Math.sin(now * 0.012) * 0.025 : 0);
+        } else {
+          pose = physics.move({ x: 0, y: 0, z: 0 }, delta);
         }
         avatar.position.set(pose.x, 0, pose.z);
 

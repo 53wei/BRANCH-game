@@ -2,7 +2,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import type { MemoryId } from "../types";
 import type { LayoutCollider } from "./tingyuxuan-layout";
 import type { TrimeshColliderDefinition } from "./special-structure-collision";
-import { PLAYER_BODY_CALIBRATION } from "./player-calibration";
+import { PLAYER_BODY_CALIBRATION, PLAYER_MOVEMENT_CALIBRATION } from "./player-calibration";
 
 export interface PlayerPose {
   x: number;
@@ -19,8 +19,16 @@ const GARDENER_PLAYER_GROUP = 0x0004_ffff;
 // mutually-exclusive testimony walls from wife/gardener cognition layers.
 const ZHAOYING_PLAYER_GROUP = 0x0008_ffff;
 
+const collisionGroupsInteract = (first: number, second: number) => {
+  const firstMembership = first >>> 16;
+  const firstFilter = first & 0xffff;
+  const secondMembership = second >>> 16;
+  const secondFilter = second & 0xffff;
+  return (firstMembership & secondFilter) !== 0 && (secondMembership & firstFilter) !== 0;
+};
+
 export const PLAYER_PHYSICS_CALIBRATION = {
-  gravity: -9.81,
+  ...PLAYER_MOVEMENT_CALIBRATION,
   capsuleHalfHeight: PLAYER_BODY_CALIBRATION.capsuleHalfHeight,
   capsuleRadius: PLAYER_BODY_CALIBRATION.capsuleRadius,
   capsuleTotalHeight: PLAYER_BODY_CALIBRATION.capsuleTotalHeight,
@@ -29,10 +37,6 @@ export const PLAYER_PHYSICS_CALIBRATION = {
   snapToGround: PLAYER_BODY_CALIBRATION.snapToGround,
   maxSlopeClimbDegrees: PLAYER_BODY_CALIBRATION.maxSlopeClimbDegrees,
   minSlopeSlideDegrees: PLAYER_BODY_CALIBRATION.minSlopeSlideDegrees,
-  walkSpeed: 2.55,
-  fastWalkSpeed: 4.0,
-  verticalProbeSpeed: 2.2,
-  jumpSpeed: 3.2,
 } as const;
 
 export class PhysicsController {
@@ -194,20 +198,19 @@ export class PhysicsController {
     const maxDistance = Math.hypot(dx, dy, dz);
     if (maxDistance <= 0.001) return maxDistance;
     const ray = new RAPIER.Ray(target, { x: dx / maxDistance, y: dy / maxDistance, z: dz / maxDistance });
-    const hit = this.world.castRay(
-      ray,
-      maxDistance,
-      true,
-      RAPIER.QueryFilterFlags.EXCLUDE_SENSORS,
-      undefined,
-      this.collider,
-      this.body,
-      (candidate) => !this.cameraIgnoredColliderHandles.has(candidate.handle),
-    );
-    this.lastCameraCollision = hit
-      ? [...this.staticColliders.entries()].find(([, candidate]) => candidate.handle === hit.collider.handle)?.[0] ?? `collider-${hit.collider.handle}`
-      : undefined;
-    return hit ? Math.max(0, hit.timeOfImpact - margin) : maxDistance;
+    const cameraGroups = this.collider.collisionGroups();
+    let closest: { id: string; timeOfImpact: number } | undefined;
+    this.staticColliders.forEach((candidate, id) => {
+      if (!candidate.isEnabled()
+        || candidate.isSensor()
+        || this.cameraIgnoredColliderHandles.has(candidate.handle)
+        || !collisionGroupsInteract(cameraGroups, candidate.collisionGroups())) return;
+      const timeOfImpact = candidate.castRay(ray, maxDistance, true);
+      if (!Number.isFinite(timeOfImpact) || timeOfImpact < 0 || timeOfImpact > maxDistance) return;
+      if (!closest || timeOfImpact < closest.timeOfImpact) closest = { id, timeOfImpact };
+    });
+    this.lastCameraCollision = closest?.id;
+    return closest ? Math.max(0, closest.timeOfImpact - margin) : maxDistance;
   }
 
   cameraCollisionId(): string | undefined {

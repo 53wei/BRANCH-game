@@ -3,7 +3,7 @@ import type { MemoryId, MemoryLayer } from "../types";
 import { RuntimeAssetLoader, type RuntimeAssetId } from "./RuntimeAssetLoader";
 import { PLAYER_BODY_CALIBRATION } from "./player-calibration";
 import { createUnifiedMaterials, hydrateUnifiedMaterials } from "./UnifiedMaterials";
-import { getGameplayAnchor, resolveGameplayRegionForPoint, TINGYUXUAN_MAIN_GATE_AUDIT, tingYuXuanGameplayRegions, tingYuXuanGroundPatches, tingYuXuanRouteAnchors } from "./tingyuxuan-gameplay-map";
+import { getGameplayAnchor, TINGYUXUAN_MAIN_GATE_AUDIT, tingYuXuanGameplayRegions, tingYuXuanGroundPatches, tingYuXuanRouteAnchors } from "./tingyuxuan-gameplay-map";
 import { placementLoadsInZones, resolveLayoutZonesForPoint, TINGYUXUAN_RUNTIME_ZONES, tingYuXuanFallbackPlacements, tingYuXuanLayout, tingYuXuanLegacyPlacements, type LayoutCollider, type LayoutPlacement, type LayoutZone } from "./tingyuxuan-layout";
 import { extractArchitectureCollisionCoverage, type ArchitectureCollisionExtraction } from "./architecture-collision";
 import { extractMasterSpecialStructureCollision, type SpecialStructureCollisionExtraction } from "./special-structure-collision";
@@ -610,40 +610,60 @@ export class TingYuXuanScene {
     this.proceduralDressing.add(trunks, crowns);
   }
 
+  /**
+   * Continuous earth beneath the authored Master surfaces. It fills open soil
+   * without covering courtyard paving because its centre remains below Y=0.
+   */
   private buildPlayableGroundCover() {
-    const textureSize = 64;
+    const textureSize = 96;
     const random = mulberry32(0x1a7d51d);
     const pixels = new Uint8Array(textureSize * textureSize * 4);
     for (let index = 0; index < textureSize * textureSize; index += 1) {
-      const grain = Math.floor((random() - 0.5) * 18);
-      const moss = random() > 0.78 ? 8 : 0;
-      pixels[index * 4] = Math.max(24, 47 + grain - moss);
-      pixels[index * 4 + 1] = Math.max(28, 52 + grain + moss);
-      pixels[index * 4 + 2] = Math.max(20, 37 + Math.floor(grain * 0.55));
+      const grain = Math.floor((random() - 0.5) * 22);
+      const moss = random() > 0.77 ? 9 : 0;
+      pixels[index * 4] = Math.max(20, 45 + grain - moss);
+      pixels[index * 4 + 1] = Math.max(24, 49 + grain + moss);
+      pixels[index * 4 + 2] = Math.max(18, 34 + Math.floor(grain * 0.55));
       pixels[index * 4 + 3] = 255;
     }
     const texture = new THREE.DataTexture(pixels, textureSize, textureSize, THREE.RGBAFormat);
+    texture.name = "TYX_TEX_PlayableEarth";
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(22, 22);
+    texture.repeat.set(24, 24);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.needsUpdate = true;
 
+    const geometry = new THREE.PlaneGeometry(92, 92, 64, 64);
+    geometry.rotateX(-Math.PI / 2);
+    const positions = geometry.getAttribute("position");
+    for (let index = 0; index < positions.count; index += 1) {
+      const x = positions.getX(index);
+      const z = positions.getZ(index);
+      const edgeDistance = Math.max(Math.abs(x) / 46, Math.abs(z) / 46);
+      const edgeDrop = Math.max(0, edgeDistance - 0.76) ** 2 * 4.8;
+      const broadUndulation = Math.sin(x * 0.17) * Math.cos(z * 0.13) * 0.012;
+      const fineUndulation = Math.sin((x + z) * 0.71) * 0.004;
+      positions.setY(index, -0.035 + broadUndulation + fineUndulation - edgeDrop);
+    }
+    positions.needsUpdate = true;
+    geometry.computeVertexNormals();
+
     const material = new THREE.MeshStandardMaterial({
-      name: "TYX_MAT_ProceduralEarthCover",
+      name: "TYX_MAT_PlayableEarth",
       map: texture,
       bumpMap: texture,
-      bumpScale: 0.032,
-      color: "#8a8870",
-      roughness: 0.97,
+      bumpScale: 0.026,
+      color: "#79745f",
+      roughness: 0.98,
       metalness: 0,
     });
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(92, 92), material);
-    ground.name = "WorldGround_ProceduralEarthCover";
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.set(-8, 0.012, 27.5);
+    const ground = new THREE.Mesh(geometry, material);
+    ground.name = "WorldGround_PlayableEarth";
+    ground.position.set(-8, 0, 27.5);
     ground.receiveShadow = true;
     ground.renderOrder = -4;
+    ground.userData.visualRole = "continuous-authored-ground-support";
     this.proceduralDressing.add(ground);
   }
 
@@ -653,6 +673,19 @@ export class TingYuXuanScene {
       // Runtime ground boxes remain in Rapier for stable walking, but must not
       // cover the Blender-authored surface with flat rectangular meshes during
       // normal gameplay. They can still be rendered explicitly for diagnostics.
+      // The source Master leaves the raised front-hall terrace open between its
+      // sill and stone foundation, exposing the distant green terrain through a
+      // horizontal gap. Close only that authored seam with a textured PBR paving
+      // surface; the surrounding irregular terrain geometry stays untouched.
+      const frontHallTerrace = new THREE.Mesh(
+        new THREE.PlaneGeometry(12.4, 2.15),
+        this.materials["stone-wet"],
+      );
+      frontHallTerrace.name = "FrontHall_RaisedStoneTerrace";
+      frontHallTerrace.rotation.x = -Math.PI / 2;
+      frontHallTerrace.position.set(3.8, 0.735, 36.9);
+      frontHallTerrace.receiveShadow = true;
+      this.proceduralDressing.add(frontHallTerrace);
       if (this.runtimeGroundVisualsEnabled) {
         tingYuXuanGroundPatches.forEach((patch) => {
           const ground = new THREE.Mesh(new THREE.BoxGeometry(patch.size[0], patch.thickness, patch.size[1]), this.materials[patch.material]);

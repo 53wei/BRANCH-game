@@ -33,6 +33,11 @@ export const MAP_ROUTE = tingYuXuanRouteAnchors.map((anchor) => ({
   position: { x: anchor.position[0], z: anchor.position[2] },
 }));
 
+export const discoveredMapRoute = (openRegions: readonly GameplayRegionId[]) => {
+  const visible = new Set(openRegions);
+  return MAP_ROUTE.filter((point) => visible.has(point.regionId));
+};
+
 export const MAP_REGION_LABELS: Record<GameplayRegionId, string> = {
   AREA_A: "旧园入口",
   AREA_B: "主宅",
@@ -54,5 +59,13 @@ export function mapPointToPercent(point: MapPoint, bounds: MapBounds) {
   return {
     left: Math.max(0, Math.min(100, x * 100)),
     top: Math.max(0, Math.min(100, y * 100)),
+  };
+}
+
+/** Single world-pose -> north-up map transform shared by MiniMap and FullMap. */
+export function worldPoseToMapPose(pose: MapPoint & { yaw: number }, bounds: MapBounds) {
+  return {
+    ...mapPointToPercent(pose, bounds),
+    rotationDegrees: worldYawToMapDegrees(pose.yaw),
   };
 }

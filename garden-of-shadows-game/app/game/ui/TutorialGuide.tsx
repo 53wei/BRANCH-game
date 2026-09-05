@@ -6,11 +6,10 @@ import { CONTROL_GUIDE_GROUPS, CORE_PLAY_RULE, INVESTIGATION_PRINCIPLES } from "
 import { UI_STORY_ASSETS } from "../runtime/ui-story-assets";
 
 interface TutorialGuideProps {
-  onStart: (dontShowAgain: boolean) => void;
+  onStart: () => void;
 }
 
 export function TutorialGuide({ onStart }: TutorialGuideProps) {
-  const [dontShowAgain, setDontShowAgain] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
@@ -37,8 +36,7 @@ export function TutorialGuide({ onStart }: TutorialGuideProps) {
           </aside>
         </div>
         <footer>
-          <label><input type="checkbox" checked={dontShowAgain} onChange={(event) => setDontShowAgain(event.target.checked)} />不再自动显示</label>
-          <button type="button" className="primary-button" onClick={() => onStart(dontShowAgain)}>开始调查</button>
+          <button type="button" className="primary-button" onClick={onStart}>开始调查</button>
         </footer>
       </section>
     </div>

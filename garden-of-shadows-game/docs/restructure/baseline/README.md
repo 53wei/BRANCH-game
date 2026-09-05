@@ -22,7 +22,7 @@ Updated: 2026-09-03
 | 1 | 建立本轮重构基线标签/分支 | 分支 `codex/restructure-v1` 已存在；历史 V0.1R 物理快照位于 `.work/recovery-20260829/garden-of-shadows-game/`，并提供先备份再恢复的 PowerShell 回退脚本 | DONE（非 git tag 路径） |
 | 2 | 记录 build/test 真实通过/失败项 | 2026-09-03 已实际尝试 `npm test` 与 `npm run typecheck`；两者都在进入 npm 前因 WSL `execvpe(/bin/bash) failed: No such file or directory` 退出。`npm run validate:content` 另被 safe-bash allowlist 拦截 | BLOCKED |
 | 3 | 保存首页、序章、一/二/三章关键截图 | 仓库已有一批 2026-08-29～30 的运行/视觉截图，但缺少能严格证明“重构前首页/序章/二章/三章”的统一基线组 | PARTIAL |
-| 4 | 保存新游戏空存档与章节中段存档 | 本目录新增 `empty-new-game.json` 与 `west-midpoint.json`，字段按当前 schema v2 创建/核对 | DONE（静态） |
+| 4 | 保存新游戏空存档与章节中段存档 | 本目录新增 `empty-new-game.json` 与 `west-midpoint.json`，字段按当前 schema v3 创建/核对 | DONE（静态） |
 | 5 | 记录浏览器与渲染后端 | 既有视觉回归记录明确为 localhost Chromium 自动截图链路，`rendererBackend = webgl2`，architecture=`master`；具体浏览器版本未记录 | PARTIAL |
 | 6 | 建立 baseline 证据目录 | 本目录已建立，并固定证据索引与缺口 | DONE |
 

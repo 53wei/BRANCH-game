@@ -79,4 +79,10 @@ describe("prologue narrative source of truth", () => {
     expect(allLines.map((line) => line.text)).toEqual(authored);
     expect(allLines.map((line) => line.text).join("\n")).not.toContain("第五人");
   });
+
+  it("records the refreshments already observed in the V5 front-hall scene", () => {
+    const runtime = readFileSync(join(process.cwd(), "app", "game", "PrologueRuntime.tsx"), "utf8");
+    expect(runtime).toContain('id === "umbrella" ? ["umbrella", "shoes"] : [id]');
+    expect(PROLOGUE_FRONT_HALL_LINES.map((line) => line.text).join("\n")).toMatch(/两只杯子|桂花糕/);
+  });
 });

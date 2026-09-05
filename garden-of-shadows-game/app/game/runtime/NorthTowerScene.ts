@@ -97,14 +97,14 @@ export class NorthTowerScene {
     this.interactables = [
       {
         id: "sixth-teacup",
-        label: "[F] 检查第六只茶杯",
+        label: "检查第六只茶杯",
         position: new THREE.Vector3(2.2, 1.0, 4.4),
         zones: ["lower"],
         hidesAfterFlag: "north.evidence.sixth-cup",
       },
       {
         id: "north-stairs",
-        label: "[F] 登上二层账房",
+        label: "登上二层账房",
         position: new THREE.Vector3(0, 1.2, -1),
         zones: ["lower"],
         requiresFlags: ["north.evidence.sixth-cup"],
@@ -112,7 +112,7 @@ export class NorthTowerScene {
       },
       {
         id: "departure-record",
-        label: "[F] 检查被改过的离家记录",
+        label: "检查被改过的离家记录",
         position: new THREE.Vector3(0.8, 4.25, -13.4),
         zones: ["upper"],
         memoryIds: ["accountant"],
@@ -121,7 +121,7 @@ export class NorthTowerScene {
       },
       {
         id: "artist-viewpoint",
-        label: "[F] 固定框景中的雨夜人影",
+        label: "固定框景中的雨夜人影",
         position: new THREE.Vector3(-3.25, 4.55, -11),
         zones: ["upper"],
         memoryIds: ["painter"],
@@ -131,7 +131,7 @@ export class NorthTowerScene {
       },
       {
         id: "fifth-person-board",
-        label: "[F] 汇总三个独立证据通道",
+        label: "汇总三个独立证据通道",
         position: new THREE.Vector3(2.45, 4.25, -13.2),
         zones: ["upper"],
         requiresFlags: ["north.evidence.sixth-cup", "north.evidence.departure-record", "north.evidence.rain-figure"],

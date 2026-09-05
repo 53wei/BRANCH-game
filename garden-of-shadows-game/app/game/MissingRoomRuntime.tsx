@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
+import { completeCampaignChapter } from "./campaign-progress";
 import { createCheckpoint } from "./campaign-save";
 import type { CampaignSave, ChapterManifest, CheckpointState, DialogueSequence, MemoryId } from "./types";
 import { CameraRig } from "./mechanics/CameraRig";
 import { InteractionController, INTERACTION_RANGE_CALIBRATION } from "./mechanics/InteractionController";
+import { ObjectInspectionController } from "./mechanics/ObjectInspectionController";
 import { registerArchitectureCollisionCoverage } from "./runtime/architecture-collision-runtime";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
 import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/PhysicsController";
@@ -13,11 +15,13 @@ import { PLAYER_BODY_CALIBRATION } from "./runtime/player-calibration";
 import { TingYuXuanScene } from "./runtime/TingYuXuanScene";
 import { PlayerAvatar } from "./runtime/PlayerAvatar";
 import { CaseFilePanel } from "./ui/CaseFilePanel";
+import { ExplorationHud } from "./ui/ExplorationHud";
+import { ObjectInspector } from "./ui/ObjectInspector";
 import { DialogueRunner } from "./narrative/DialogueRunner";
 import { compileInkSource } from "./narrative/ink-runtime";
 import missingRoomInkSource from "./narrative/missing-room.ink?raw";
 import { NarrativeInline } from "./narrative/NarrativeInline";
-import { guidanceLevelForElapsed } from "./runtime/guidance-config";
+import { guidanceLevelForElapsed, guidanceLevelForProximity } from "./runtime/guidance-config";
 import { getGameplayAnchor, resolveGameplayRegionForPoint, type ChapterAnchorId } from "./runtime/tingyuxuan-gameplay-map";
 import { tingYuXuanLayout } from "./runtime/tingyuxuan-layout";
 
@@ -33,23 +37,23 @@ type Phase = "loading" | "playing" | "complete" | "error";
 type ClueId = "missing-door" | "missing-window" | "missing-boundary" | "missing-furniture" | "reconstruct-room" | "child-box";
 
 const memoryOrder: MemoryId[] = ["gardener", "painter", "accountant", "wife"];
-const memoryLabel: Record<string, string> = {
-  gardener: "老周的认知 · 门与旧路",
-  painter: "柳生的认知 · 窗与框景",
-  accountant: "钱先生的认知 · 尺寸与房号",
-  wife: "沈夫人的认知 · 家具与生活",
+const memoryLabel: Partial<Record<MemoryId, string>> = {
+  gardener: "老周记得的旧路",
+  painter: "柳生画下的窗",
+  accountant: "钱先生记下的尺寸",
+  wife: "沈夫人记得的生活",
 };
 const traceFlags = ["room.trace.door", "room.trace.window", "room.trace.boundary", "room.trace.furniture"] as const;
 const unique = <T,>(values: T[]) => [...new Set(values)];
 const MISSING_ROOM_STORY_CONTENT = compileInkSource("missing-room", missingRoomInkSource);
 
 const clueDefinitions: Record<ClueId, { anchor: ChapterAnchorId; label: string; memory?: MemoryId; flag?: string }> = {
-  "missing-door": { anchor: "B_MISSING_DOOR", label: "[F] 检查旧门痕", memory: "gardener", flag: "room.trace.door" },
-  "missing-window": { anchor: "B_MISSING_WINDOW", label: "[F] 固定旧画里的窗", memory: "painter", flag: "room.trace.window" },
-  "missing-boundary": { anchor: "B_MISSING_BOUNDARY", label: "[F] 核对建筑尺寸", memory: "accountant", flag: "room.trace.boundary" },
-  "missing-furniture": { anchor: "B_MISSING_FURNITURE", label: "[F] 恢复家具位置", memory: "wife", flag: "room.trace.furniture" },
-  "reconstruct-room": { anchor: "B_MISSING_ROOM", label: "[F] 同时锚定四个条件" },
-  "child-box": { anchor: "B_CHILD_BOX", label: "[F] 打开旧盒子" },
+  "missing-door": { anchor: "B_MISSING_DOOR", label: "检查旧门痕", memory: "gardener", flag: "room.trace.door" },
+  "missing-window": { anchor: "B_MISSING_WINDOW", label: "固定旧画里的窗", memory: "painter", flag: "room.trace.window" },
+  "missing-boundary": { anchor: "B_MISSING_BOUNDARY", label: "核对建筑尺寸", memory: "accountant", flag: "room.trace.boundary" },
+  "missing-furniture": { anchor: "B_MISSING_FURNITURE", label: "恢复家具位置", memory: "wife", flag: "room.trace.furniture" },
+  "reconstruct-room": { anchor: "B_MISSING_ROOM", label: "让门、窗、尺寸和家具同时出现" },
+  "child-box": { anchor: "B_CHILD_BOX", label: "打开旧盒子" },
 };
 
 const resumeMissingRoomDialogueId = (checkpoint: CheckpointState): string | undefined => {
@@ -74,8 +78,24 @@ const objectiveFor = (checkpoint: CheckpointState) => {
 interface RoomVisuals {
   root: THREE.Group;
   clueGroups: Record<Exclude<ClueId, "reconstruct-room" | "child-box">, THREE.Group>;
+  structuralTraces: readonly THREE.Group[];
+  furnitureMaterial: THREE.MeshBasicMaterial;
   reconstructed: THREE.Group;
+  reconstructionShell: THREE.Object3D;
+  reconstructionMaterials: readonly ReconstructionMaterialState[];
+  reconstructionAlignedPosition: THREE.Vector3;
+  reconstructionAlignedYaw: number;
+  reconstructionProgress: number;
+  reconstructionTarget: number;
+  ordinaryRoomLight: THREE.PointLight;
   box: THREE.Group;
+}
+
+interface ReconstructionMaterialState {
+  material: THREE.Material;
+  finalOpacity: number;
+  finalTransparent: boolean;
+  finalDepthWrite: boolean;
 }
 
 const anchorVector = (id: ChapterAnchorId, y = 0) => {
@@ -92,7 +112,7 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
     group.name = name;
     group.position.copy(anchorVector(anchorId, 0));
     const geometry = new THREE.BufferGeometry().setFromPoints([...points]);
-    const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.72 }));
+    const line = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.72 }));
     line.name = `${name}_CognitionTrace`;
     group.add(line);
     root.add(group);
@@ -101,15 +121,23 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
 
   const door = makeTrace("MissingRoom_DoorTrace", "B_MISSING_DOOR", [
     new THREE.Vector3(-0.55, 0.02, 0), new THREE.Vector3(-0.55, 1.65, 0),
+    new THREE.Vector3(-0.55, 1.65, 0), new THREE.Vector3(0.55, 1.65, 0),
     new THREE.Vector3(0.55, 1.65, 0), new THREE.Vector3(0.55, 0.02, 0),
+    new THREE.Vector3(-0.55, 0.02, 0), new THREE.Vector3(0.55, 0.02, 0),
   ], "#668c73");
   const window = makeTrace("MissingRoom_WindowTrace", "B_MISSING_WINDOW", [
     new THREE.Vector3(-0.58, 0.65, 0), new THREE.Vector3(-0.58, 1.62, 0),
+    new THREE.Vector3(-0.58, 1.62, 0), new THREE.Vector3(0.58, 1.62, 0),
     new THREE.Vector3(0.58, 1.62, 0), new THREE.Vector3(0.58, 0.65, 0),
-    new THREE.Vector3(-0.58, 0.65, 0),
+    new THREE.Vector3(0.58, 0.65, 0), new THREE.Vector3(-0.58, 0.65, 0),
+    new THREE.Vector3(0, 0.65, 0), new THREE.Vector3(0, 1.62, 0),
+    new THREE.Vector3(-0.58, 1.12, 0), new THREE.Vector3(0.58, 1.12, 0),
   ], "#8f8b80");
   const boundary = makeTrace("MissingRoom_BoundaryTrace", "B_MISSING_BOUNDARY", [
-    new THREE.Vector3(-1.25, 0.05, 0), new THREE.Vector3(1.25, 0.05, 0),
+    new THREE.Vector3(-0.15, 0.05, -0.15), new THREE.Vector3(3.25, 0.05, -0.15),
+    new THREE.Vector3(3.25, 0.05, -0.15), new THREE.Vector3(3.25, 0.05, 2.45),
+    new THREE.Vector3(3.25, 0.05, 2.45), new THREE.Vector3(-0.15, 0.05, 2.45),
+    new THREE.Vector3(-0.15, 0.05, 2.45), new THREE.Vector3(-0.15, 0.05, -0.15),
   ], "#7397aa");
 
   const furniture = new THREE.Group();
@@ -117,9 +145,10 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
   furniture.position.copy(anchorVector("B_MISSING_FURNITURE", 1.08));
   const furnitureTexture = await new THREE.TextureLoader().loadAsync("/media/cg/story-v1/cg-04-child-room-v1.png");
   furnitureTexture.colorSpace = THREE.SRGBColorSpace;
+  const furnitureMaterial = new THREE.MeshBasicMaterial({ map: furnitureTexture, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false });
   const furniturePlane = new THREE.Mesh(
     new THREE.PlaneGeometry(1.48, 0.84),
-    new THREE.MeshBasicMaterial({ map: furnitureTexture, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false }),
+    furnitureMaterial,
   );
   furniturePlane.rotation.y = -0.28;
   furniture.add(furniturePlane);
@@ -141,14 +170,21 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
   const scaledRoomBounds = new THREE.Box3().setFromObject(roomShell);
   const scaledCenter = scaledRoomBounds.getCenter(new THREE.Vector3());
   roomShell.position.set(center.x - scaledCenter.x, -scaledRoomBounds.min.y, center.z - scaledCenter.z);
+  const reconstructionMaterials: ReconstructionMaterialState[] = [];
   roomShell.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return;
     const sourceWasArray = Array.isArray(child.material);
     const materials = sourceWasArray ? child.material : [child.material];
     const prepared = materials.map((source: THREE.Material) => {
       const material = source.clone();
+      reconstructionMaterials.push({
+        material,
+        finalOpacity: source.opacity,
+        finalTransparent: source.transparent,
+        finalDepthWrite: source.depthWrite,
+      });
       material.transparent = true;
-      material.opacity = 0.72;
+      material.opacity = 0;
       material.depthWrite = false;
       return material;
     });
@@ -157,6 +193,14 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
   reconstructed.add(roomShell);
   reconstructed.visible = false;
   root.add(reconstructed);
+
+  const reconstructionAlignedPosition = roomShell.position.clone();
+  const reconstructionAlignedYaw = roomShell.rotation.y;
+  const ordinaryRoomLight = new THREE.PointLight("#d5ad78", 0, 6.5, 1.7);
+  ordinaryRoomLight.name = "MissingRoom_OrdinaryMorningLight";
+  ordinaryRoomLight.position.set(center.x + 0.75, 1.45, center.z + 0.35);
+  root.add(ordinaryRoomLight);
+  world.registerRangeLimitedPointLight(ordinaryRoomLight);
 
   // Reuse the CC-BY incense/storage box already shipped with Pavilion A. This is a
   // real authored prop, not a cube pretending to be a childhood keepsake box.
@@ -180,18 +224,65 @@ async function buildRoomVisuals(world: TingYuXuanScene): Promise<RoomVisuals> {
   return {
     root,
     clueGroups: { "missing-door": door, "missing-window": window, "missing-boundary": boundary, "missing-furniture": furniture },
+    structuralTraces: [door, window, boundary],
+    furnitureMaterial,
     reconstructed,
+    reconstructionShell: roomShell,
+    reconstructionMaterials,
+    reconstructionAlignedPosition,
+    reconstructionAlignedYaw,
+    reconstructionProgress: 0,
+    reconstructionTarget: 0,
+    ordinaryRoomLight,
     box,
   };
 }
 
-function updateRoomVisuals(visuals: RoomVisuals, memory: MemoryId, flags: readonly string[]) {
-  visuals.clueGroups["missing-door"].visible = memory === "gardener" || flags.includes("room.trace.door");
-  visuals.clueGroups["missing-window"].visible = memory === "painter" || flags.includes("room.trace.window");
-  visuals.clueGroups["missing-boundary"].visible = memory === "accountant" || flags.includes("room.trace.boundary");
+function applyReconstructionProgress(visuals: RoomVisuals) {
+  const progress = THREE.MathUtils.clamp(visuals.reconstructionProgress, 0, 1);
+  const eased = THREE.MathUtils.smoothstep(progress, 0, 1);
+  visuals.reconstructed.visible = progress > 0.001;
+  visuals.reconstructionShell.position.copy(visuals.reconstructionAlignedPosition);
+  visuals.reconstructionShell.position.x += (1 - eased) * 0.34;
+  visuals.reconstructionShell.position.z -= (1 - eased) * 0.2;
+  visuals.reconstructionShell.rotation.y = visuals.reconstructionAlignedYaw + (1 - eased) * 0.035;
+  for (const state of visuals.reconstructionMaterials) {
+    state.material.opacity = state.finalOpacity * eased;
+    state.material.transparent = progress < 0.999 || state.finalTransparent;
+    state.material.depthWrite = progress >= 0.62 ? state.finalDepthWrite : false;
+  }
+  for (const trace of visuals.structuralTraces) {
+    trace.visible = progress < 0.995;
+    trace.traverse((child) => {
+      if (child instanceof THREE.LineSegments && child.material instanceof THREE.LineBasicMaterial) {
+        child.material.opacity = 0.72 * (1 - eased);
+      }
+    });
+  }
+  visuals.furnitureMaterial.opacity = 0.72 + eased * 0.24;
+  visuals.ordinaryRoomLight.intensity = eased * 2.1;
+}
+
+function animateRoomReconstruction(visuals: RoomVisuals, delta: number) {
+  if (visuals.reconstructionProgress === visuals.reconstructionTarget) return;
+  const direction = Math.sign(visuals.reconstructionTarget - visuals.reconstructionProgress);
+  visuals.reconstructionProgress = THREE.MathUtils.clamp(visuals.reconstructionProgress + direction * delta / 2.6, 0, 1);
+  if (Math.abs(visuals.reconstructionTarget - visuals.reconstructionProgress) < 0.001) visuals.reconstructionProgress = visuals.reconstructionTarget;
+  applyReconstructionProgress(visuals);
+}
+
+function updateRoomVisuals(visuals: RoomVisuals, memory: MemoryId, flags: readonly string[], immediate = false) {
+  const reconstructed = flags.includes("room.reconstructed");
+  visuals.clueGroups["missing-door"].visible = reconstructed || memory === "gardener" || flags.includes("room.trace.door");
+  visuals.clueGroups["missing-window"].visible = reconstructed || memory === "painter" || flags.includes("room.trace.window");
+  visuals.clueGroups["missing-boundary"].visible = reconstructed || memory === "accountant" || flags.includes("room.trace.boundary");
   visuals.clueGroups["missing-furniture"].visible = memory === "wife" || flags.includes("room.trace.furniture");
-  visuals.reconstructed.visible = flags.includes("room.reconstructed");
-  visuals.box.visible = flags.includes("room.reconstructed");
+  visuals.reconstructionTarget = reconstructed ? 1 : 0;
+  if (immediate) {
+    visuals.reconstructionProgress = visuals.reconstructionTarget;
+    applyReconstructionProgress(visuals);
+  }
+  visuals.box.visible = flags.includes("room.dialogue.reconstructed-complete");
 }
 
 export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }: MissingRoomRuntimeProps) {
@@ -212,6 +303,7 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
     physics: PhysicsController;
     cameraRig: CameraRig;
     interaction: InteractionController;
+    objectInspector: ObjectInspectionController;
     playerAvatar: PlayerAvatar;
     visuals: RoomVisuals;
   } | undefined>(undefined);
@@ -223,11 +315,13 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
   const saveRef = useRef(save);
   const onSaveRef = useRef(onSave);
   const phaseRef = useRef<Phase>(initialPhase);
-  const areaRef = useRef("AREA_B");
+
   const guidanceKeyRef = useRef("");
   const guidanceElapsedRef = useRef(0);
   const guidanceLevelRef = useRef(0);
+  const lastGuideUiUpdateRef = useRef(0);
   const caseFileOpenRef = useRef(false);
+  const boxInspectionOpenRef = useRef(false);
   const dialogueRef = useRef<DialogueSequence | undefined>(undefined);
 
   const [checkpoint, setCheckpoint] = useState(initialCheckpoint);
@@ -236,11 +330,15 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
   const [backend, setBackend] = useState<RendererBackend>();
   const [prompt, setPrompt] = useState<string>();
   const [subtitle, setSubtitle] = useState("第五个人确实存在。现在的问题是：这个人原本在听雨轩里住在哪里？");
-  const [area, setArea] = useState("AREA_B");
+
   const [error, setError] = useState("");
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [guidanceLevel, setGuidanceLevel] = useState(0);
+  const [guideDistance, setGuideDistance] = useState<number>();
+  const [guideAngle, setGuideAngle] = useState(0);
+
   const [showCaseFile, setShowCaseFileState] = useState(false);
+  const [boxInspectionController, setBoxInspectionController] = useState<ObjectInspectionController>();
   const [activeDialogue, setActiveDialogue] = useState<DialogueSequence>();
 
   useEffect(() => { saveRef.current = save; onSaveRef.current = onSave; }, [save, onSave]);
@@ -286,25 +384,21 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
       mechanics: { ...current.mechanics, safeAnchorId: "B_CHILD_BOX" },
       activeObjectiveId: undefined,
       objectiveStepId: undefined,
-      earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]),
     }));
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      activeCheckpoint: finalCheckpoint,
-      completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      unlockedChapters: unique([...saveRef.current.unlockedChapters, "deleted-person"]),
-    };
+    const nextSave = completeCampaignChapter(saveRef.current, chapter.id, finalCheckpoint);
+    checkpointRef.current = nextSave.activeCheckpoint;
+    setCheckpoint(nextSave.activeCheckpoint);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     document.exitPointerLock?.();
     setPhase("complete");
-  }, [chapter.completionFlags, chapter.id, commitCheckpoint, setPhase]);
+  }, [chapter.id, commitCheckpoint, setPhase]);
 
   const inspectClue = useCallback((id: ClueId) => {
     const definition = clueDefinitions[id];
     const flags = checkpointRef.current.earnedFlags;
     if (definition.memory && memoryRef.current !== definition.memory) {
-      setSubtitle(`这条痕迹在${memoryLabel[definition.memory] ?? definition.memory}里才足够稳定。按 Tab 切换认知。`);
+      setSubtitle(`这条痕迹只有在${memoryLabel[definition.memory] ?? definition.memory}里才看得清。按 Tab 回到那段记忆。`);
       return;
     }
     if (id === "missing-window" && !flags.includes("room.trace.door")) { setSubtitle("先找到进入这块缺失体积的门。否则窗只是一幅画里的构图。"); return; }
@@ -320,9 +414,33 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
     }
     if (id === "child-box") {
       if (!flags.includes("room.reconstructed") || !flags.includes("room.dialogue.reconstructed-complete")) return;
-      if (flags.includes("missing-room.identity-confirmed") || dialogueRef.current?.id === "room-identity") return;
+      if (flags.includes("missing-room.identity-confirmed") || dialogueRef.current?.id === "room-identity" || boxInspectionOpenRef.current) return;
+      const runtime = runtimeRef.current;
+      if (!runtime) return;
+      runtime.interaction.clearFocus();
+      runtime.objectInspector.open({
+        id: "child-box",
+        kind: "box",
+        title: "床板下的旧盒子",
+        source: runtime.visuals.box,
+        hotspots: [{
+          id: "rusted-lock",
+          label: "生锈的小锁",
+          fact: "盒子藏在床板下。小锁已经生锈，老周交来的旧钥匙可以打开它。",
+          localDirection: [0, 0, 1],
+          facingThreshold: 0.76,
+        }],
+        onObserve: () => commitCheckpoint((current) => ({
+          ...current,
+          earnedFlags: unique([...current.earnedFlags, "room.evidence.child-box-inspected"]),
+          mechanics: { ...current.mechanics, discoveredEvidence: unique([...current.mechanics.discoveredEvidence, "child-box"]) },
+        })),
+      });
+      boxInspectionOpenRef.current = true;
+      setBoxInspectionController(runtime.objectInspector);
+      keysRef.current.clear();
       setSubtitle("");
-      startDialogue("room-identity");
+      document.exitPointerLock?.();
       return;
     }
     if (definition.flag && !flags.includes(definition.flag)) {
@@ -339,6 +457,13 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
       setSubtitle(text);
     }
   }, [commitCheckpoint, startDialogue]);
+
+  const completeBoxInspection = useCallback(() => {
+    runtimeRef.current?.objectInspector.close();
+    boxInspectionOpenRef.current = false;
+    setBoxInspectionController(undefined);
+    startDialogue("room-identity");
+  }, [startDialogue]);
 
   const changeMemory = useCallback((next: MemoryId) => {
     memoryRef.current = next;
@@ -413,22 +538,30 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
         const playerAvatar = new PlayerAvatar();
         world.proceduralDressing.add(playerAvatar.root);
         const visuals = await buildRoomVisuals(world);
+        const objectInspector = new ObjectInspectionController(world.scene, world.camera);
         (Object.entries(clueDefinitions) as Array<[ClueId, (typeof clueDefinitions)[ClueId]]>).forEach(([id, definition]) => {
           const anchor = getGameplayAnchor(definition.anchor);
+          const focusRoot = id === "reconstruct-room"
+            ? visuals.reconstructed
+            : id === "child-box"
+              ? visuals.box
+              : visuals.clueGroups[id];
           interaction.registerPoint({
             id,
             type: "evidence",
             label: definition.label,
             maxDistance: INTERACTION_RANGE_CALIBRATION.standardEvidence,
-            enabledWhen: () => phaseRef.current === "playing",
+            enabledWhen: () => phaseRef.current === "playing"
+              && objectiveFor(checkpointRef.current).clue === id
+              && (!definition.memory || definition.memory === memoryRef.current),
             onInteract: () => inspectClue(id),
-          }, new THREE.Vector3(anchor.position[0], 0.9, anchor.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+          }, new THREE.Vector3(anchor.position[0], 0.9, anchor.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius, focusRoot);
         });
         world.setMemory(memoryRef.current);
-        updateRoomVisuals(visuals, memoryRef.current, checkpointRef.current.earnedFlags);
+        updateRoomVisuals(visuals, memoryRef.current, checkpointRef.current.earnedFlags, true);
         yawRef.current = initialCheckpoint.yaw ?? spawnAnchor.yaw;
         cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
-        runtimeRef.current = { renderer, world, physics, cameraRig, interaction, playerAvatar, visuals };
+        runtimeRef.current = { renderer, world, physics, cameraRig, interaction, objectInspector, playerAvatar, visuals };
         setBackend(renderer.backend);
 
         const resize = () => {
@@ -446,7 +579,7 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
           const delta = Math.min((now - previous) / 1000, 0.05);
           previous = now;
           let pose = physics.pose();
-          if (phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current) {
+          if (phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current && !boxInspectionOpenRef.current) {
             const forward = Number(keysRef.current.has("KeyW")) - Number(keysRef.current.has("KeyS"));
             const strafe = Number(keysRef.current.has("KeyD")) - Number(keysRef.current.has("KeyA"));
             const turn = Number(keysRef.current.has("ArrowRight")) - Number(keysRef.current.has("ArrowLeft"));
@@ -457,37 +590,49 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
             pose = physics.move({ x: (forward * -sin + strafe * cos) * speed * delta, y: 0, z: (forward * -cos - strafe * sin) * speed * delta }, delta);
           }
           const player = new THREE.Vector3(pose.x, pose.y, pose.z);
-          const avatarMoving = phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current && (keysRef.current.has("KeyW") || keysRef.current.has("KeyA") || keysRef.current.has("KeyS") || keysRef.current.has("KeyD"));
+          const avatarMoving = phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current && !boxInspectionOpenRef.current && (keysRef.current.has("KeyW") || keysRef.current.has("KeyA") || keysRef.current.has("KeyS") || keysRef.current.has("KeyD"));
           playerAvatar.update(pose, yawRef.current, avatarMoving, delta);
           cameraRig.syncExploration(player, yawRef.current, pitchRef.current);
           cameraRig.update(delta);
           world.update(delta, player, false);
-          const focus = caseFileOpenRef.current || dialogueRef.current ? undefined : interaction.focus(world.camera, world.camera.position);
-          setPrompt(focus?.definition.label);
+          animateRoomReconstruction(visuals, delta);
+          const focus = caseFileOpenRef.current || dialogueRef.current || boxInspectionOpenRef.current
+            ? (interaction.clearFocus(), undefined)
+            : interaction.focus(world.camera, world.camera.position);
+          setPrompt(focus?.canInteract ? focus.definition.label : undefined);
 
           const objective = objectiveFor(checkpointRef.current);
           const guidanceKey = objective.clue;
+          const anchor = getGameplayAnchor(clueDefinitions[objective.clue].anchor);
+          const targetDistance = Math.hypot(anchor.position[0] - pose.x, anchor.position[2] - pose.z);
           if (guidanceKey !== guidanceKeyRef.current) {
             guidanceKeyRef.current = guidanceKey;
             guidanceElapsedRef.current = 0;
             guidanceLevelRef.current = 0;
             setGuidanceLevel(0);
-          } else if (phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current && saveRef.current.settings.guidanceAssist) {
+
+          } else if (phaseRef.current === "playing" && !caseFileOpenRef.current && !dialogueRef.current && !boxInspectionOpenRef.current && saveRef.current.settings.guidanceAssist) {
             guidanceElapsedRef.current += delta;
-            const nextLevel = guidanceLevelForElapsed(guidanceElapsedRef.current);
-            if (nextLevel > guidanceLevelRef.current) {
+            const nextLevel = guidanceLevelForProximity(guidanceLevelForElapsed(guidanceElapsedRef.current), targetDistance);
+            if (nextLevel !== guidanceLevelRef.current) {
+              const previousLevel = guidanceLevelRef.current;
               guidanceLevelRef.current = nextLevel;
               setGuidanceLevel(nextLevel);
-              if (nextLevel === 2) setSubtitle(objective.hint);
+
+              if (nextLevel === 2 && previousLevel < 2) setSubtitle(objective.hint);
             }
           }
-          const anchor = getGameplayAnchor(clueDefinitions[objective.clue].anchor);
+          if (now - lastGuideUiUpdateRef.current >= 120) {
+            lastGuideUiUpdateRef.current = now;
+            setGuideDistance(targetDistance);
+            setGuideAngle(THREE.MathUtils.radToDeg(Math.atan2(anchor.position[0] - pose.x, -(anchor.position[2] - pose.z)) - yawRef.current));
+          }
           world.setGuidanceTarget(saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3
             ? new THREE.Vector3(anchor.position[0], 0, anchor.position[2])
-            : undefined);
+            : undefined, "subtle");
 
           const currentArea = resolveGameplayRegionForPoint({ x: pose.x, z: pose.z });
-          if (currentArea !== areaRef.current) { areaRef.current = currentArea; setArea(currentArea); }
+
           canvas.dataset.playerPose = `${pose.x.toFixed(2)},${pose.y.toFixed(2)},${pose.z.toFixed(2)}`;
           canvas.dataset.playerAvatarVisible = String(playerAvatar.root.visible && playerAvatar.root.parent !== null);
           canvas.dataset.gameplayArea = currentArea;
@@ -502,7 +647,8 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
           else requestPointerLock();
         }
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "无法初始化第三章北墙场景");
+        console.error("[missing-room] scene failed to appear", reason);
+        setError("北墙后的旧房没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
         setPhase("error");
       }
     };
@@ -514,6 +660,7 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
       const runtime = runtimeRef.current;
       runtime?.renderer.renderer.setAnimationLoop(null);
       runtime?.interaction.dispose();
+      runtime?.objectInspector.dispose();
       runtime?.cameraRig.dispose();
       runtime?.physics.dispose();
       runtime?.world.dispose();
@@ -525,7 +672,7 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (["ArrowLeft", "ArrowRight", "Tab", "Space", "KeyN"].includes(event.code)) event.preventDefault();
-      if (event.repeat || phaseRef.current !== "playing") return;
+      if (event.repeat || phaseRef.current !== "playing" || boxInspectionOpenRef.current) return;
       if (dialogueRef.current) return;
       if (event.code === "KeyN") {
         setCaseFileOpen(!caseFileOpenRef.current);
@@ -545,7 +692,7 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.code);
     const onMouseMove = (event: MouseEvent) => {
-      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || caseFileOpenRef.current || dialogueRef.current) return;
+      if (document.pointerLockElement !== canvasRef.current || phaseRef.current !== "playing" || caseFileOpenRef.current || dialogueRef.current || boxInspectionOpenRef.current) return;
       yawRef.current -= event.movementX * 0.0022;
       pitchRef.current = THREE.MathUtils.clamp(pitchRef.current - event.movementY * 0.0019, -1.12, 1.04);
     };
@@ -563,24 +710,31 @@ export function MissingRoomRuntime({ chapter, save, onSave, onExit, onContinue }
   }, [changeMemory, setCaseFileOpen]);
 
   const objective = objectiveFor(checkpoint);
+  const boxInspectionOpen = Boolean(boxInspectionController);
   return (
     <main className={`runtime runtime-${memory}`} data-renderer={backend}>
-      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="第三章不存在的房间" onClick={() => phase === "playing" && !showCaseFile && !activeDialogue && requestPointerLock()} />
+      <canvas ref={canvasRef} className="runtime-canvas" tabIndex={0} aria-label="第三章不存在的房间" onClick={() => phase === "playing" && !showCaseFile && !activeDialogue && !boxInspectionOpen && requestPointerLock()} />
       <div className="vignette" aria-hidden="true" />
       <div className="runtime-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>第三章</span><strong>不存在的房间</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> {area === "AREA_B" ? "主宅北墙" : "园中"}</div>
+
       </div>
-      {phase !== "complete" && !activeDialogue && <section className="objective-card"><span>当前问题</span><strong>{objective.title}</strong><p>{objective.detail}</p>{guidanceLevel >= 1 && <small>提示：{objective.hint}</small>}</section>}
-      {!activeDialogue && <section className="memory-card"><span>当前证词 · TAB 切换</span><strong>{memoryLabel[memory] ?? memory}</strong><small>没有一个人记得完整房间；先保留每份证词里能被查证的部分。</small></section>}
-      {prompt && phase === "playing" && !showCaseFile && !activeDialogue && <div className="interaction-prompt">{prompt}</div>}
-      {save.settings.subtitles && subtitle && phase === "playing" && !showCaseFile && !activeDialogue && <div className="bark-subtitle"><NarrativeInline kind="interaction" text={subtitle} /></div>}
-      {phase === "playing" && !showCaseFile && !activeDialogue && !hasPointerLock && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续重构<br /><small>从四份不完整认知拼出一间普通房间</small></button>}
+      <ExplorationHud
+        objective={phase !== "complete" && !activeDialogue ? { label: "当前问题", title: objective.title, detail: objective.detail } : undefined}
+        direction={guideDistance !== undefined && guidanceLevel >= 1 ? <div className="objective-direction"><i style={{ transform: `rotate(${guideAngle}deg)` }}>↑</i><span>{Math.max(1, Math.round(guideDistance))} m</span></div> : undefined}
+        prompt={phase === "playing" && !showCaseFile && !activeDialogue && !boxInspectionOpen ? prompt : undefined}
+        subtitle={save.settings.subtitles && subtitle && phase === "playing" && !showCaseFile && !activeDialogue && !boxInspectionOpen ? <NarrativeInline kind="interaction" text={subtitle} /> : undefined}
+      />
+
+
+
+      {phase === "playing" && !showCaseFile && !activeDialogue && !boxInspectionOpen && !hasPointerLock && <button type="button" className="pointer-lock-callout" onClick={requestPointerLock}>继续调查<br /><small>从四份残缺的记忆里找回那间房</small></button>}
       {activeDialogue && <DialogueRunner key={activeDialogue.id} sequence={activeDialogue} storyContent={MISSING_ROOM_STORY_CONTENT} settings={save.settings} restoredState={checkpoint.dialogueProgress?.sequenceId === activeDialogue.id ? checkpoint.dialogueProgress.inkStateJson : undefined} seenLineIds={checkpoint.seenDialogueLines} onCommand={() => undefined} onProgress={(inkStateJson) => commitCheckpoint((current) => ({ ...current, dialogueProgress: { sequenceId: activeDialogue.id, inkStateJson } }))} onSeen={(lineId) => commitCheckpoint((current) => ({ ...current, seenDialogueLines: unique([...current.seenDialogueLines, lineId]) }))} onComplete={() => completeDialogue(activeDialogue)} />}
       {showCaseFile && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="第三章 · 不存在的房间" onClose={() => setCaseFileOpen(false)} />}
+      {boxInspectionController && <ObjectInspector controller={boxInspectionController} contextLabel="第三章 · 不存在的房间" confirmLabel="用旧钥匙打开" onConfirm={completeBoxInspection} />}
       {phase === "complete" && <Modal eyebrow="第三章结束" title="为什么他们要把我删掉？"><img className="chapter-cg-inline" src="/media/cg/story-v1/cg-04-child-room-v1.png" alt="重新显现的儿童房与床板下的旧盒子" /><p>门、窗、边界和家具让这间普通旧房重新成立；床板下的校徽、生日卡与小时候的布鞋把第五人的身份指回赵映自己。</p><blockquote>沈夫人承认四个人都知道赵映七年前回来过，并留下新的问题：把她从房间、照片、账本和路里删掉，是沈老爷摔下去后提出的第一件事。</blockquote><button type="button" className="primary-button" onClick={onContinue ?? onExit}>进入第四章</button></Modal>}
-      {phase === "error" && <Modal eyebrow="可恢复错误" title="第三章场景未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
+      {phase === "error" && <Modal eyebrow="记忆中断" title="北墙旧房没有完整显现"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷目录</button></Modal>}
     </main>
   );
 }

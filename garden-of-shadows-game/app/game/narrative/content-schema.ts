@@ -58,11 +58,30 @@ export function narrativePresentationRole(kind: NarrativeNodeKind): NarrativePre
 export function narrativeDisplayLabel(kind: NarrativeNodeKind, spokenName?: string): string | undefined {
   switch (kind) {
     case "spoken": return spokenName;
+    case "inner": return "心声";
+    case "narration":
+    case "action":
+    case "choice":
+    case "cg":
+    case "interaction":
+      return undefined;
+  }
+}
+
+export function narrativeLogLabel(kind: NarrativeNodeKind, spokenName?: string): string {
+  switch (kind) {
+    case "spoken": return spokenName ?? "未知人物";
     case "inner": return "赵映 · 心声";
     case "narration": return "环境";
-    case "action": return "演出";
+    case "action": return "动作";
     case "choice": return "选择";
     case "cg": return "画面";
     case "interaction": return "交互";
   }
+}
+
+export const narrativeCanUseVoice = (kind: NarrativeNodeKind): boolean => kind === "spoken";
+
+export function isNarrativeNodeKind(value: string): value is NarrativeNodeKind {
+  return (NARRATIVE_NODE_KINDS as readonly string[]).includes(value);
 }

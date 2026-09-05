@@ -12,8 +12,7 @@ describe("TASK-001 baseline save fixtures", () => {
     expect(save.activeCheckpoint.anchorId).toBe("ROUTE_01_START");
     expect(save.completedChapters).toEqual([]);
     expect(save.unlockedChapters).toEqual(["prologue-rain"]);
-    expect(save.tutorial.controls.seen).toBe(false);
-    expect(save.tutorial.controls.autoShow).toBe(true);
+    expect(save.tutorial.controls).toEqual({ seen: false });
   });
 
   it("keeps the midpoint fixture inside chapter one without silently completing it", () => {

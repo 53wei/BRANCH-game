@@ -7,11 +7,12 @@ import process from "node:process";
 const projectRoot = path.resolve(import.meta.dirname, "../..");
 const mapAudit = process.argv.includes("--map-audit");
 const prologueSpawnAudit = process.argv.includes("--prologue-spawn");
+const prologueFrontHallAudit = process.argv.includes("--prologue-front-hall");
 const walkAuditOnly = process.argv.includes("--walk-only");
 const specialStructureAudit = process.argv.includes("--special-structures");
 const masterNodeAudit = process.argv.includes("--master-nodes");
 const acceptancePath = path.join(projectRoot, "docs", "visual-regression", "phase-one-acceptance.json");
-const outputRoot = prologueSpawnAudit
+const outputRoot = prologueSpawnAudit || prologueFrontHallAudit
   ? path.join(projectRoot, "docs", "development-records", "prologue-spawn-captures")
   : specialStructureAudit
     ? path.join(projectRoot, "docs", "development-records", "special-structure-captures")
@@ -68,6 +69,16 @@ const prologueSpawnShots = [
     expectedArea: "AREA_A",
     query: "?visualTest=1&visualChapter=prologue-rain&visualUi=1&debugGameplay=1&visualScenario=gameplay-camera&renderer=webgl",
   },
+  {
+    id: "front-hall-evidence",
+    expectedArea: "AREA_A",
+    query: "?visualTest=1&visualChapter=prologue-rain&visualUi=1&debugGameplay=1&visualScenario=front-hall-evidence&renderer=webgl",
+  },
+  {
+    id: "front-hall-record",
+    expectedArea: "AREA_A",
+    query: "?visualTest=1&visualChapter=prologue-rain&visualUi=1&debugGameplay=1&visualScenario=front-hall-record&renderer=webgl",
+  },
 ];
 const specialStructureShots = [
   {
@@ -104,7 +115,7 @@ const masterNodeShots = [
   expectedArea: area,
   query: `?visualTest=1&visualUi=1&debugGameplay=1&visualAnchor=ROUTE_01_START&visualX=${position[0]}&visualY=${position[1]}&visualZ=${position[2]}&visualYaw=${Math.PI / 2}&visualPitch=-0.08&auditMasterNode=${encodeURIComponent(nodeName)}&renderer=webgl`,
 }));
-const shots = walkAuditOnly ? [] : prologueSpawnAudit ? prologueSpawnShots : specialStructureAudit ? specialStructureShots : masterNodeAudit ? masterNodeShots : mapAudit ? routeAuditShots : acceptance.requiredShots;
+const shots = walkAuditOnly ? [] : prologueFrontHallAudit ? prologueSpawnShots.slice(-2) : prologueSpawnAudit ? prologueSpawnShots : specialStructureAudit ? specialStructureShots : masterNodeAudit ? masterNodeShots : mapAudit ? routeAuditShots : acceptance.requiredShots;
 fs.mkdirSync(outputRoot, { recursive: true });
 
 async function waitForHttp(url, timeoutMs = 90_000) {
@@ -324,9 +335,9 @@ async function captureShot(debugPort, shot) {
     // The formal runtime is first-person and PlayerAvatar is intentionally a
     // geometry-free transform anchor. Do not require a synthetic primitive body
     // merely to make a regression screenshot pass.
-    if (prologueSpawnAudit) {
-      if (telemetry.cameraPose[1] < 0.98 || telemetry.cameraPose[1] > 1.18) {
-        throw new Error(`${shot.id} camera must stay at the low exploration height, got y=${telemetry.cameraPose[1]}`);
+    if (prologueSpawnAudit || prologueFrontHallAudit) {
+      if (telemetry.cameraPose[1] < 1.62 || telemetry.cameraPose[1] > 1.82) {
+        throw new Error(`${shot.id} camera must stay at the calibrated adult eye height, got y=${telemetry.cameraPose[1]}`);
       }
       if (telemetry.cameraFov < 58 || telemetry.cameraFov > 65) {
         throw new Error(`${shot.id} FOV must stay in the 58–65 degree exploration range, got ${telemetry.cameraFov}`);
@@ -567,7 +578,7 @@ try {
     ...(specialStructureWalkAudit ? { specialStructureWalkAudit } : {}),
   };
   fs.writeFileSync(metricsPath, `${JSON.stringify(metrics, null, 2)}\n`);
-  if (!mapAudit && !prologueSpawnAudit && !walkAuditOnly) {
+  if (!mapAudit && !prologueSpawnAudit && !prologueFrontHallAudit && !walkAuditOnly && !specialStructureAudit && !masterNodeAudit) {
     fs.writeFileSync(acceptancePath, `${JSON.stringify({
       ...acceptance,
       status: "captured-pending-user-visual-acceptance",

@@ -21,7 +21,7 @@ type HomeMenuId = "01" | "02" | "03" | "04" | "05";
 export default function Home() {
   const [save, setSave] = useState<CampaignSave>(() => createDefaultSave());
   const [view, setView] = useState<View>("hub");
-  const [activeMenu, setActiveMenu] = useState<HomeMenuId>("02");
+  const [activeMenu, setActiveMenu] = useState<HomeMenuId>("01");
   const qaSessionRef = useRef(false);
 
   useEffect(() => {
@@ -59,6 +59,7 @@ export default function Home() {
         if (params.get("visualChapter") === "prologue-rain") {
           setSave({
             ...visualSave,
+            tutorial: { controls: { seen: true } },
             activeCheckpoint: { ...createCheckpoint("prologue-rain", "baseline"), anchorId: "ROUTE_01_START" },
             settings: visualSettings,
           });
@@ -84,6 +85,10 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.dataset.textScale = save.settings.textScale;
+  }, [save.settings.textScale]);
+
   const persist = (next: CampaignSave) => {
     setSave(next);
     if (!qaSessionRef.current) storeCampaignSave(next);
@@ -94,7 +99,7 @@ export default function Home() {
       const checkpoint = {
         ...inheritInvestigationState(save.activeCheckpoint, createCheckpoint("west-corridor-loop", "wife")),
         anchorId: "ROUTE_02_A_ENTRY",
-        earnedFlags: [...new Set([...save.activeCheckpoint.earnedFlags, "prologue.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"])],
+        earnedFlags: [...new Set([...save.activeCheckpoint.earnedFlags, "prologue-rain.complete", "prologue.dialogue.complete", "prologue.examiner-appointed"])],
         activeObjectiveId: "west-arrival",
         objectiveStepId: "follow-lantern",
       };
@@ -281,8 +286,9 @@ export default function Home() {
 
           <div className="case-directory-heading">
             <span className="case-kicker">CASE ARCHIVE · TING YU XUAN</span>
+            <span className="case-directory-genre">中式悬疑 · 第一人称 3D 调查 · 空间叙事解谜</span>
             <h1>案卷目录</h1>
-            <p>七年后，赵映回到自己长大的听雨轩，重查沈老爷雨夜死亡与一条不存在的路。</p>
+            <p className="case-directory-logline">七年后，赵映回到旧园听雨轩，重查沈老爷雨夜死亡。四份证词描述着同一座园子，却彼此无法重合。</p>
           </div>
 
           <HomeMenu
@@ -460,8 +466,9 @@ function SettingsPanel({ settings, onClose, onChange, onReset }: {
         <div className="setting-row"><span><label htmlFor="quality">画质</label><small>稳定与低画质会限制像素比和雨滴数量</small></span><select id="quality" value={settings.quality} onChange={(event) => update("quality", event.target.value as GameSettings["quality"])}><option value="high">高画质</option><option value="stable">稳定模式</option><option value="low">最低画质</option></select></div>
         <div className="setting-row"><span><label htmlFor="renderer">画面兼容模式</label><small>遇到黑屏或闪退时可改用兼容模式</small></span><select id="renderer" value={settings.renderer} onChange={(event) => update("renderer", event.target.value as GameSettings["renderer"])}><option value="auto">自动（推荐）</option><option value="webgl">兼容模式</option></select></div>
         <div className="setting-row"><span><label htmlFor="stable-camera">稳定镜头</label><small>降低快速转向与镜头晃动；不会影响调查内容</small></span><input id="stable-camera" type="checkbox" checked={settings.stableCamera} onChange={(event) => update("stableCamera", event.target.checked)} /></div>
-        <div className="setting-row"><span><label htmlFor="subtitles">字幕</label><small>显示对白、旁白与调查提示</small></span><input id="subtitles" type="checkbox" checked={settings.subtitles} onChange={(event) => update("subtitles", event.target.checked)} /></div>
+        <div className="setting-row"><span><label htmlFor="subtitles">行走字幕</label><small>显示探索时的环境短句与调查提示；主剧情文字始终保留</small></span><input id="subtitles" type="checkbox" checked={settings.subtitles} onChange={(event) => update("subtitles", event.target.checked)} /></div>
         <div className="setting-row"><span><label htmlFor="dialogue-speed">对话速度</label><small>控制剧情文字逐字显示速度</small></span><select id="dialogue-speed" value={settings.dialogueSpeed} onChange={(event) => update("dialogueSpeed", event.target.value as GameSettings["dialogueSpeed"])}><option value="slow">慢</option><option value="normal">标准</option><option value="fast">快</option><option value="instant">立即显示</option></select></div>
+        <div className="setting-row"><span><label htmlFor="text-scale">文字大小</label><small>放大对白、文书、案卷与调查提示</small></span><select id="text-scale" value={settings.textScale} onChange={(event) => update("textScale", event.target.value as GameSettings["textScale"])}><option value="normal">标准</option><option value="large">大字</option></select></div>
         <div className="setting-row"><span><label htmlFor="master-volume">主音量</label><small>{Math.round(settings.masterVolume * 100)}%</small></span><input id="master-volume" type="range" min="0" max="1" step="0.05" value={settings.masterVolume} onChange={(event) => update("masterVolume", Number(event.target.value))} /></div>
         <button type="button" className="reset-button" onClick={onReset}>仅清除《游园惊梦》存档</button>
         <p className="settings-note">此操作只会清除《游园惊梦》的本地进度与选择。</p>

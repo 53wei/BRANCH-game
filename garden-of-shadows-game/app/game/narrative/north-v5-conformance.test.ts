@@ -72,7 +72,9 @@ describe("TASK-009 second chapter V5 conformance", () => {
     ]);
     expect(runtime).toContain('setDepartureDocumentOpen(true)');
     expect(runtime).toContain('viewAlignedRef.current');
+    expect(runtime).toContain('setCaseFileOpen(true, "questions")');
     expect(runtime).toContain('startDialogue("north-completion")');
+    expect(runtime).not.toContain('"fifth-person-board"');
     expect(runtime).not.toContain('window.setTimeout(finishChapter, 350)');
   });
 
@@ -84,10 +86,11 @@ describe("TASK-009 second chapter V5 conformance", () => {
   });
 
   it("does not confirm the fifth person until the full V5 synthesis conversation completes", () => {
-    const handleStart = runtime.indexOf("const handleEvidence");
-    const handleEnd = runtime.indexOf("useEffect(() =>", handleStart);
-    const handleSource = runtime.slice(handleStart, handleEnd);
-    expect(handleSource).not.toContain('addFlag("north.fifth-person.confirmed")');
-    expect(handleSource).toContain('startDialogue("north-completion")');
+    const synthesisStart = runtime.indexOf("const synthesizeFifthPerson");
+    const synthesisEnd = runtime.indexOf("useEffect(() =>", synthesisStart);
+    const synthesisSource = runtime.slice(synthesisStart, synthesisEnd);
+    expect(synthesisSource).not.toContain('addFlag("north.fifth-person.confirmed")');
+    expect(synthesisSource).toContain("evidenceFlags.every");
+    expect(synthesisSource).toContain('startDialogue("north-completion")');
   });
 });

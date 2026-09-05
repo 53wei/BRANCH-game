@@ -3,6 +3,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three/webgpu";
+import { completeCampaignChapter } from "./campaign-progress";
+import { markTutorialSeen, shouldShowTutorial } from "./tutorial-state";
 import { createCheckpoint } from "./campaign-save";
 import type { CampaignSave, ChapterManifest, CheckpointState } from "./types";
 import { CameraRig } from "./mechanics/CameraRig";
@@ -20,7 +22,7 @@ import {
 import { AudioAtmosphere } from "./runtime/AudioAtmosphere";
 import { registerArchitectureCollisionCoverage } from "./runtime/architecture-collision-runtime";
 import { PROLOGUE_DEPARTURE_DOCUMENT } from "./runtime/document-content";
-import { guidanceLevelForElapsed } from "./runtime/guidance-config";
+import { guidanceLevelForElapsed, guidanceLevelForProximity } from "./runtime/guidance-config";
 import { PhysicsController, PLAYER_PHYSICS_CALIBRATION } from "./runtime/PhysicsController";
 import { PlayerAvatar } from "./runtime/PlayerAvatar";
 import { createRenderer, type RendererBackend } from "./runtime/RendererAdapter";
@@ -44,6 +46,7 @@ import { CaseFilePanel } from "./ui/CaseFilePanel";
 import { DocumentViewer } from "./ui/DocumentViewer";
 import { FullMap } from "./ui/FullMap";
 import { HelpPanel } from "./ui/HelpPanel";
+import { ExplorationHud } from "./ui/ExplorationHud";
 import { MiniMap, type RuntimeMapTarget } from "./ui/MiniMap";
 import { PauseMenu, RuntimeSettingsPanel } from "./ui/PauseMenu";
 import { TutorialGuide } from "./ui/TutorialGuide";
@@ -96,8 +99,8 @@ function resolvePrologueGuidance(checkpoint: CheckpointState, phase: ProloguePha
     const portrait = PROLOGUE_EVIDENCE.find((item) => item.id === "umbrella")!;
     return {
       key: "front-hall-portrait",
-      title: "先去前厅看看沈夫人收好的箱子。",
-      description: "老周说沈夫人等了你一下午。前厅还留着凉掉的茶点和一幅旧合影。",
+      title: "去前厅看看沈夫人留下的东西。",
+      description: "她等了你一下午。前厅的茶点已经凉了，墙上那幅旧合影却像刚被人动过。",
       target: { x: portrait.position[0], z: portrait.position[2], label: "前厅旧画像" },
       spokenHint: "画像就在前厅茶桌旁，画布像是后来补过。",
     };
@@ -107,9 +110,9 @@ function resolvePrologueGuidance(checkpoint: CheckpointState, phase: ProloguePha
     const record = PROLOGUE_EVIDENCE.find((item) => item.id === "ledger")!;
     return {
       key: "departure-record",
-      title: "翻看箱子里的离家记录。",
-      description: "七年前的时间写得很清楚，纸角却像留下过另一组数字。",
-      target: { x: record.position[0], z: record.position[2], label: "离家记录" },
+      title: "打开沈夫人收好的旧箱子。",
+      description: "钥匙、怀表和旧票据都还在里面。最上面压着一张七年前的离家登记。",
+      target: { x: record.position[0], z: record.position[2], label: "前厅旧箱" },
       spokenHint: "记录和钥匙、旧怀表放在同一只箱子里。",
     };
   }
@@ -118,8 +121,8 @@ function resolvePrologueGuidance(checkpoint: CheckpointState, phase: ProloguePha
     const baseline = getGameplayAnchor("A_BASELINE");
     return {
       key: "west-courtyard-intro",
-      title: "跟老周去西院走一遍。",
-      description: "画像和离家记录都看过了。沿窄回廊往西院走，先确认这里还是不是你记得的样子。",
+      title: "陪老周走一遍西院回廊。",
+      description: "沿着窄回廊往西院走。赵映还记得漏窗、水缸和转角那盏旧灯。",
       target: { x: baseline.position[0], z: baseline.position[2], label: "西院回廊" },
       spokenHint: "沿前厅外的回廊往西院走，老周会在那边等你。",
     };
@@ -130,8 +133,8 @@ function resolvePrologueGuidance(checkpoint: CheckpointState, phase: ProloguePha
     const target = PROLOGUE_LANDMARKS.find((item) => item.id === nextId);
     return {
       key: `west-courtyard-${nextId ?? "walk"}`,
-      title: "跟着回廊往水榭外走。",
-      description: "老周还记得你小时候数漏窗、藏灯笼的事。慢慢走一遍，看看这里是否还是你记得的家。",
+      title: "顺着回廊，找回从前的路。",
+      description: "老周还记得你小时候数漏窗、藏灯笼的事。沿途看看那些赵映没有忘记的地方。",
       target: target ? { x: target.position[0], z: target.position[2], label: target.label } : undefined,
       spokenHint: "沿回廊向前，经过六扇漏窗和有裂纹的转角灯。",
     };
@@ -166,15 +169,17 @@ const isInsideLegacyTreeSpawn = (position: readonly number[]) =>
 
 const unique = <T,>(values: T[]) => [...new Set(values)];
 
-type PrologueVisualScenario = "wall-scale" | "door-scale" | "gameplay-camera";
+type PrologueVisualScenario = "wall-scale" | "door-scale" | "gameplay-camera" | "front-hall-evidence" | "front-hall-record";
 
-const PROLOGUE_VISUAL_AUDIT_POSES: Record<PrologueVisualScenario, { position: readonly [number, number, number]; yaw: number }> = {
+const PROLOGUE_VISUAL_AUDIT_POSES: Record<PrologueVisualScenario, { position: readonly [number, number, number]; yaw: number; pitch?: number }> = {
   // TYX_MAIN_GATE_SOUTH is fixed around x=9.3/z=39.4 after the Master transform.
   // These two poses put a 1.69 m avatar next to the same wall/gate complex so
   // screenshots prove scale instead of relying on perspective alone.
   "wall-scale": { position: [13.15, GAMEPLAY_ANCHOR_REFERENCE_Y, 41.15], yaw: 0.08 },
   "door-scale": { position: [9.3, GAMEPLAY_ANCHOR_REFERENCE_Y, 42.0], yaw: 0.02 },
   "gameplay-camera": { position: [11.5, GAMEPLAY_ANCHOR_REFERENCE_Y, 52.2], yaw: 0.68 },
+  "front-hall-evidence": { position: [5.8, GAMEPLAY_ANCHOR_REFERENCE_Y, 40.0], yaw: 0 },
+  "front-hall-record": { position: [6.75, GAMEPLAY_ANCHOR_REFERENCE_Y, 39.45], yaw: 0, pitch: -0.22 },
 };
 
 interface PrologueVisuals {
@@ -196,16 +201,8 @@ async function buildPrologueVisuals(world: TingYuXuanScene): Promise<PrologueVis
   const steward = new THREE.Group();
   steward.name = "Prologue_Steward_FormalAssetAnchor";
   steward.position.set(PROLOGUE_STEWARD_POINT.position[0], 0, PROLOGUE_STEWARD_POINT.position[2]);
-  // No primitive human body fallback in formal play.
-  // Primitive cloth proxy removed.
-  // Primitive skin proxy removed.
-  // Primitive robe proxy removed.
-  // Primitive robe transform removed.
-  // Primitive shoulder proxy removed.
-  // Primitive shoulder transform removed.
-  // Primitive head proxy removed.
-  // Primitive head transform removed.
-  // Primitive steward meshes removed; keep only the formal asset anchor.
+  // No primitive or 2D standee fallback in formal play. ART-01 remains a
+  // release blocker until a licensed authored world-character asset is bound.
   const lantern = new THREE.PointLight("#d49855", 4.2, 4.8, 1.9);
   lantern.position.set(-0.42, 1.03, 0.13);
   steward.add(lantern);
@@ -217,12 +214,12 @@ async function buildPrologueVisuals(world: TingYuXuanScene): Promise<PrologueVis
   const umbrella = new THREE.Group();
   umbrella.name = "Prologue_FrontHallPortrait";
   const umbrellaPoint = PROLOGUE_EVIDENCE.find((item) => item.id === "umbrella")!;
-  umbrella.position.set(umbrellaPoint.position[0], 1.25, umbrellaPoint.position[2]);
-  umbrella.rotation.y = -0.5;
-  const portraitTexture = await new THREE.TextureLoader().loadAsync("/media/cg/story-v1/cg-02-family-portrait-v1.png");
+  umbrella.position.set(umbrellaPoint.position[0], 1.42, umbrellaPoint.position[2]);
+  umbrella.rotation.y = getGameplayAnchor("PROLOGUE_UMBRELLA").yaw;
+  const portraitTexture = await new THREE.TextureLoader().loadAsync("/media/evidence/prologue-family-portrait-v2.webp");
   portraitTexture.colorSpace = THREE.SRGBColorSpace;
   const portraitCanvas = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.08, 0.72),
+    new THREE.PlaneGeometry(0.72, 0.54),
     new THREE.MeshStandardMaterial({ map: portraitTexture, roughness: 0.78, metalness: 0, side: THREE.DoubleSide }),
   );
   portraitCanvas.name = "Prologue_FrontHallPortrait_Image";
@@ -233,22 +230,45 @@ async function buildPrologueVisuals(world: TingYuXuanScene): Promise<PrologueVis
   const ledger = new THREE.Group();
   ledger.name = "Prologue_DepartureRecord_FormalProp";
   const ledgerPoint = PROLOGUE_EVIDENCE.find((item) => item.id === "ledger")!;
-  ledger.position.set(ledgerPoint.position[0], 0, ledgerPoint.position[2]);
+  // The authored front-hall sill sits above gameplay Y=0. Seat the formal
+  // lacquer box on its visible top plane instead of burying it in the masonry.
+  ledger.position.set(ledgerPoint.position[0], 0.72, ledgerPoint.position[2]);
+  ledger.rotation.y = getGameplayAnchor("PROLOGUE_LEDGER").yaw;
   const oldBox = await world.cloneFormalAsset("tyx-arch-pavilion-a", "IncenseBox_LP");
   oldBox.name = "Prologue_OldStorageBox_CC_BY";
   const boxBounds = new THREE.Box3().setFromObject(oldBox);
   const boxSize = boxBounds.getSize(new THREE.Vector3());
-  const uniformScale = 0.72 / Math.max(boxSize.x, boxSize.z, 0.001);
+  const uniformScale = 0.68 / Math.max(boxSize.x, boxSize.z, 0.001);
   oldBox.scale.multiplyScalar(uniformScale);
   oldBox.updateMatrixWorld(true);
   const scaledBounds = new THREE.Box3().setFromObject(oldBox);
-  oldBox.position.y -= scaledBounds.min.y;
-  oldBox.rotation.y = -0.28;
+  const scaledCenter = scaledBounds.getCenter(new THREE.Vector3());
+  oldBox.position.add(new THREE.Vector3(
+    -scaledCenter.x,
+    0.02 - scaledBounds.min.y,
+    -scaledCenter.z,
+  ));
+  oldBox.rotation.y = 0.12;
+  oldBox.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const ageMaterial = (source: THREE.Material) => {
+      const material = source.clone() as THREE.Material & {
+        color?: THREE.Color;
+        emissive?: THREE.Color;
+        roughness?: number;
+        metalness?: number;
+      };
+      material.color?.multiply(new THREE.Color("#765847"));
+      material.emissive?.set("#090504");
+      if (typeof material.roughness === "number") material.roughness = Math.max(material.roughness, 0.78);
+      if (typeof material.metalness === "number") material.metalness = Math.min(material.metalness, 0.06);
+      return material;
+    };
+    child.material = Array.isArray(child.material)
+      ? child.material.map(ageMaterial)
+      : ageMaterial(child.material);
+  });
   ledger.add(oldBox);
-  const ledgerLight = new THREE.PointLight("#bd8b55", 2.3, 3.6, 1.8);
-  ledgerLight.position.y = 0.62;
-  ledger.add(ledgerLight);
-  world.registerRangeLimitedPointLight(ledgerLight);
   root.add(ledger);
   evidence.ledger = ledger;
 
@@ -287,7 +307,7 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
     return { ...createCheckpoint(chapter.id, "baseline"), anchorId: "ROUTE_01_START" };
   });
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const initialRuntimePanel: RuntimePanel | undefined = save.tutorial.controls.autoShow && !save.tutorial.controls.seen ? "tutorial" : undefined;
+  const initialRuntimePanel: RuntimePanel | undefined = shouldShowTutorial(save) ? "tutorial" : undefined;
   const runtimeRef = useRef<{
     renderer: Awaited<ReturnType<typeof createRenderer>>;
     world: TingYuXuanScene;
@@ -320,6 +340,7 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
   const [backend, setBackend] = useState<RendererBackend>();
   const [storyIndex, setStoryIndex] = useState(0);
   const [inspection, setInspection] = useState<EvidenceId>();
+  const [portraitDetailOpen, setPortraitDetailOpen] = useState(false);
   const [prompt, setPrompt] = useState<string>();
   const [ambientLine, setAmbientLine] = useState<string>();
   const [hasPointerLock, setHasPointerLock] = useState(false);
@@ -383,11 +404,8 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
     if (phaseRef.current === "explore" || phaseRef.current === "enter") requestPointerLock();
   }, [requestPointerLock]);
 
-  const finishTutorial = useCallback((dontShowAgain: boolean) => {
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      tutorial: { controls: { seen: true, autoShow: !dontShowAgain } },
-    };
+  const finishTutorial = useCallback(() => {
+    const nextSave = markTutorialSeen(saveRef.current);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     closeRuntimePanel();
@@ -452,13 +470,15 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
   }, [commitCheckpoint, setPhase]);
 
   const finishEvidenceDialogue = useCallback((id: EvidenceId) => {
-    cluesRef.current.add(id);
+    const observedIds: EvidenceId[] = id === "umbrella" ? ["umbrella", "shoes"] : [id];
+    observedIds.forEach((observedId) => cluesRef.current.add(observedId));
     inspectionRef.current = id;
     setInspection(id);
+    setPortraitDetailOpen(false);
     if (id === "ledger") runtimeRef.current?.audio.paperScratch(0.9);
     commitCheckpoint((current) => ({
       ...current,
-      earnedFlags: unique([...current.earnedFlags, `prologue.evidence.${id}`]),
+      earnedFlags: unique([...current.earnedFlags, ...observedIds.map((observedId) => `prologue.evidence.${observedId}`)]),
     }));
     setStoryIndex(0);
     setPhase("explore");
@@ -494,19 +514,15 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
       mechanics: { ...current.mechanics, safeAnchorId: "ROUTE_02_A_ENTRY" },
       activeObjectiveId: undefined,
       objectiveStepId: undefined,
-      earnedFlags: unique([...current.earnedFlags, ...chapter.completionFlags]),
     }));
-    const nextSave: CampaignSave = {
-      ...saveRef.current,
-      activeCheckpoint: finalCheckpoint,
-      completedChapters: unique([...saveRef.current.completedChapters, chapter.id]),
-      unlockedChapters: unique([...saveRef.current.unlockedChapters, "west-corridor-loop"]),
-    };
+    const nextSave = completeCampaignChapter(saveRef.current, chapter.id, finalCheckpoint);
+    checkpointRef.current = nextSave.activeCheckpoint;
+    setCheckpoint(nextSave.activeCheckpoint);
     saveRef.current = nextSave;
     onSaveRef.current(nextSave);
     setPhase("complete");
     window.setTimeout(onContinue, 550);
-  }, [chapter.completionFlags, chapter.id, commitCheckpoint, onContinue, setPhase]);
+  }, [chapter.id, commitCheckpoint, onContinue, setPhase]);
 
   useEffect(() => {
     if (phase !== "title" || titleSettled) return;
@@ -584,12 +600,12 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
             maxDistance: INTERACTION_RANGE_CALIBRATION.prologueEvidence,
             enabledWhen: () => phaseRef.current === "explore" && !cluesRef.current.has(evidenceId),
             onInteract: () => inspectEvidence(evidenceId),
-          }, new THREE.Vector3(item.position[0], GAMEPLAY_ANCHOR_REFERENCE_Y, item.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius);
+          }, new THREE.Vector3(item.position[0], GAMEPLAY_ANCHOR_REFERENCE_Y, item.position[2]), INTERACTION_RANGE_CALIBRATION.standardProxyRadius, visuals.evidence[evidenceId]);
         });
         interaction.registerPoint({
           id: "prologue-steward",
           type: "npc",
-          label: "[F] 和老周去水榭外看看",
+          label: "和老周去水榭外看看",
           maxDistance: INTERACTION_RANGE_CALIBRATION.npc,
           enabledWhen: () => phaseRef.current === "explore"
             && cluesRef.current.has("umbrella")
@@ -600,6 +616,7 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
         }, new THREE.Vector3(PROLOGUE_STEWARD_POINT.position[0], 1.0, PROLOGUE_STEWARD_POINT.position[2]), INTERACTION_RANGE_CALIBRATION.npcProxyRadius);
 
         yawRef.current = auditPose?.yaw ?? (restored ? (initialCheckpoint.yaw ?? anchor.yaw) : anchor.yaw);
+        if (auditPose?.pitch !== undefined) pitchRef.current = auditPose.pitch;
         cameraRig.syncExploration(new THREE.Vector3(spawn.x, spawn.y, spawn.z), yawRef.current, pitchRef.current, true);
         runtimeRef.current = { renderer, world, physics, audio, cameraRig, interaction, visuals };
         setBackend(renderer.backend);
@@ -621,7 +638,8 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
           })
           .catch((reason) => {
             if (cancelled) return;
-            setError(reason instanceof Error ? reason.message : "序章区域资产加载失败");
+            console.error("[prologue] area assets failed to appear", reason);
+            setError("园门后的回廊没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
             setPhase("error");
           });
 
@@ -748,11 +766,13 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
             setGuidanceLevel(0);
           } else if (playable && saveRef.current.settings.guidanceAssist && currentGuidance) {
             guidanceElapsedRef.current += delta;
-            const nextLevel = guidanceLevelForElapsed(guidanceElapsedRef.current);
-            if (nextLevel > guidanceLevelRef.current) {
+            const targetDistance = currentGuidance.target ? Math.hypot(pose.x - currentGuidance.target.x, pose.z - currentGuidance.target.z) : undefined;
+            const nextLevel = guidanceLevelForProximity(guidanceLevelForElapsed(guidanceElapsedRef.current), targetDistance);
+            if (nextLevel !== guidanceLevelRef.current) {
+              const previousLevel = guidanceLevelRef.current;
               guidanceLevelRef.current = nextLevel;
               setGuidanceLevel(nextLevel);
-              if (nextLevel === 2) {
+              if (nextLevel === 2 && previousLevel < 2) {
                 const hint = `老周：${currentGuidance.spokenHint}`;
                 setAmbientLine(hint);
                 window.setTimeout(() => setAmbientLine((line) => line === hint ? undefined : line), 5200);
@@ -805,14 +825,16 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
             interaction.clearFocus();
             setPrompt(undefined);
             world.setGuidanceTarget(undefined);
-          } else if (phaseRef.current === "explore" && !inspectionRef.current) {
+          } else if (phaseRef.current === "explore" && !inspectionRef.current && !panelRef.current) {
             const focus = interaction.focus(world.camera, world.camera.position);
-            setPrompt((current) => current === focus?.definition.label ? current : focus?.definition.label);
+            const nextPrompt = focus?.canInteract ? focus.definition.label : undefined;
+            setPrompt((current) => current === nextPrompt ? current : nextPrompt);
             const target = currentGuidance?.target;
             world.setGuidanceTarget(saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3 && target
               ? new THREE.Vector3(target.x, 0, target.z)
               : undefined, "subtle");
           } else if (phaseRef.current === "enter") {
+            interaction.clearFocus();
             setPrompt(undefined);
             const target = getGameplayAnchor("ROUTE_02_A_ENTRY");
             world.setGuidanceTarget(saveRef.current.settings.guidanceAssist && guidanceLevelRef.current >= 3
@@ -884,7 +906,8 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
                 : "gate";
         setPhase(restoredPhase);
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "序章场景初始化失败");
+        console.error("[prologue] scene failed to appear", reason);
+        setError("雨夜里的听雨轩没有完整显现。调查记录仍然保留，可以返回案卷后重新进入。");
         setPhase("error");
       }
     };
@@ -969,28 +992,17 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
     ? PROLOGUE_STORY_BY_PHASE[phase as PrologueNarrativePhase]
     : [];
   const currentStoryLine = story[storyIndex];
-  const currentStorySpeaker = currentStoryLine?.kind === "spoken"
-    ? currentStoryLine.speaker ?? "旁白"
-    : currentStoryLine?.kind === "inner"
-      ? "赵映 · 心声"
-      : currentStoryLine?.kind === "action"
-        ? "演出"
-        : "环境";
-  const activeStorySpeaker = currentStoryLine?.kind === "inner" ? "赵映" : currentStoryLine?.speaker;
-  const showStoryPortraits = currentStoryLine?.kind === "spoken" || currentStoryLine?.kind === "inner";
+  const currentStorySpeaker = currentStoryLine?.kind === "spoken" ? currentStoryLine.speaker : undefined;
+
+  const showStoryPortraits = currentStoryLine?.kind === "spoken";
   const zhaoyingProfile = speakerProfiles.zhaoying;
   const stewardProfile = speakerProfiles.steward;
   const zhaoyingStandee = zhaoyingProfile?.portraits[zhaoyingProfile.defaultPortrait] ?? "/media/portraits/zhaoying-calm.webp";
   const stewardStandee = stewardProfile?.portraits[stewardProfile.defaultPortrait] ?? "/media/portraits/steward-courteous.webp";
-  const renderedClues = new Set<EvidenceId>((["umbrella", "ledger"] as EvidenceId[])
-    .filter((id) => checkpoint.earnedFlags.includes(`prologue.evidence.${id}`)));
-  const clueCount = renderedClues.size;
   const currentGuidance = resolvePrologueGuidance(checkpoint, phase);
   const objective = currentGuidance?.title;
   const mapRegion = resolveGameplayRegionForPoint(mapPose);
-  const guidanceDistance = currentGuidance?.target
-    ? Math.hypot(mapPose.x - currentGuidance.target.x, mapPose.z - currentGuidance.target.z)
-    : undefined;
+
 
   const advanceStory = () => {
     if (storyIndex < story.length - 1) {
@@ -1030,13 +1042,15 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
       <header className="runtime-topbar prologue-topbar">
         <button type="button" className="text-button" onClick={onExit}>← 返回案卷</button>
         <div><span>序章</span><strong>回园</strong></div>
-        <div className="runtime-status"><i className="status-dot" /> 听雨轩园门</div>
+
       </header>
 
-      {objective && <aside className="objective-card prologue-objective"><span>当前任务</span><strong>{objective}</strong><p>{currentGuidance?.description}</p>{currentGuidance?.subtasks && <ul>{currentGuidance.subtasks.map((task) => <li key={task.id} className={task.complete ? "complete" : ""}><i>{task.complete ? "✓" : ""}</i>{task.label}</li>)}</ul>}{guidanceLevel >= 1 && guidanceDistance !== undefined && currentGuidance?.target && <small>{currentGuidance.target.label} · {Math.max(1, Math.round(guidanceDistance))}m</small>}</aside>}
-      {(phase === "explore" || phase === "enter") && <MiniMap pose={mapPose} regionId={mapRegion} target={guidanceLevel >= 1 ? currentGuidance?.target : undefined} onOpen={() => openRuntimePanel("map")} />}
-      {prompt && !inspection && <div className="interaction-prompt">{prompt}</div>}
-      {ambientLine && !inspection && !currentStoryLine && <div className="bark-subtitle"><NarrativeInline kind="narration" text={ambientLine} /></div>}
+      <ExplorationHud
+        objective={objective ? { label: "当前任务", title: objective, detail: currentGuidance?.description } : undefined}
+        map={(phase === "explore" || phase === "enter") ? <MiniMap pose={mapPose} regionId={mapRegion} target={guidanceLevel >= 1 ? currentGuidance?.target : undefined} onOpen={() => openRuntimePanel("map")} /> : undefined}
+        prompt={!inspection ? prompt : undefined}
+        subtitle={save.settings.subtitles && ambientLine && !inspection && !currentStoryLine ? <NarrativeInline kind="narration" text={ambientLine} /> : undefined}
+      />
       {(phase === "explore" || phase === "enter") && !hasPointerLock && !inspection && !runtimePanel && <button type="button" className="resume-control" onClick={requestPointerLock}><span>继续调查</span><small>点击后继续当前调查</small></button>}
 
       {isNarrativePhase && currentStoryLine && <div className="prologue-story-stage" data-story-kind={currentStoryLine.kind} onClick={advanceStory} onKeyDown={(event) => {
@@ -1045,25 +1059,29 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
         {phase === "gate" && <StoryBackdrop id="prologue.gate" label="雨夜园门与老周" />}
         {phase === "anomaly" && cinematicBackdrop && <StoryBackdrop id={cinematicBackdrop} label="第一次空间异常" />}
         {showStoryPortraits && <>
-          <div className={`portrait portrait-left prologue-standee ${activeStorySpeaker === "赵映" ? "active" : "inactive"}`}><img src={zhaoyingStandee} alt="赵映" /></div>
-          <div className={`portrait portrait-right prologue-standee ${activeStorySpeaker === "老周" ? "active" : "inactive"}`}><img src={stewardStandee} alt="老周" /></div>
+          <div className={`portrait portrait-left prologue-standee ${currentStorySpeaker === "赵映" ? "active" : "inactive"}`}><img src={zhaoyingStandee} alt="赵映" /></div>
+          <div className={`portrait portrait-right prologue-standee ${currentStorySpeaker === "老周" ? "active" : "inactive"}`}><img src={stewardStandee} alt="老周" /></div>
         </>}
         <div className="prologue-story-card">
-          <span>{currentStorySpeaker}</span>
-          <p>{currentStoryLine.text}</p>
+          <NarrativeInline kind={currentStoryLine.kind} text={currentStoryLine.text} speakerName={currentStorySpeaker} className="prologue-story-line" />
+
           <small>点击继续</small>
         </div>
       </div>}
 
-      {inspection === "ledger" && <DocumentViewer document={PROLOGUE_DEPARTURE_DOCUMENT} onClose={() => { inspectionRef.current = undefined; setInspection(undefined); requestPointerLock(); }} />}
+      {inspection === "ledger" && <DocumentViewer document={PROLOGUE_DEPARTURE_DOCUMENT} onPageTurn={() => runtimeRef.current?.audio.paperScratch(0.62)} onClose={() => { inspectionRef.current = undefined; setInspection(undefined); requestPointerLock(); }} />}
       {inspection && inspection !== "ledger" && inspectionContent && <section className="prologue-inspection-backdrop" role="dialog" aria-modal="true">
         <article className="prologue-inspection-card">
-          <span>前厅旧物 · {clueCount} / 2</span>
+          <span>前厅 · 沈家旧物</span>
           <h2>{inspectionContent.title}</h2>
-          {inspection === "umbrella" && <img className="chapter-cg-inline" src="/media/cg/story-v1/cg-02-family-portrait-v1.png" alt="听雨轩旧日合影，年少赵映站在沈家众人之间" />}
-          <p>{inspectionContent.body}</p>
-          <blockquote>{inspectionContent.note}</blockquote>
-          <button type="button" className="primary-button" onClick={() => { inspectionRef.current = undefined; setInspection(undefined); requestPointerLock(); }}>收起</button>
+          {inspection === "umbrella" && <button type="button" className={`portrait-inspection-view${portraitDetailOpen ? " detail-open" : ""}`} onClick={() => setPortraitDetailOpen((value) => !value)} aria-pressed={portraitDetailOpen}>
+            <span className="portrait-inspection-image"><img src="/media/evidence/prologue-family-portrait-v2.webp" alt="沈家旧画像，画布有修补痕迹" /></span>
+            <small>{portraitDetailOpen ? "退后看整幅画" : "靠近查看画布修补处"}</small>
+          </button>}
+          {inspection === "umbrella" && !portraitDetailOpen
+            ? <p>画布受过潮。离远看，五个人都还在原来的位置；只有沈夫人身旁的颜色接得不太自然。</p>
+            : <><p>{inspectionContent.body}</p><blockquote>{inspectionContent.note}</blockquote></>}
+          <button type="button" className="primary-button" onClick={() => { inspectionRef.current = undefined; setInspection(undefined); setPortraitDetailOpen(false); requestPointerLock(); }}>收起</button>
         </article>
       </section>}
 
@@ -1072,11 +1090,11 @@ export function PrologueRuntime({ chapter, save, onSave, onExit, onContinue }: P
       </section>}
 
       {phase === "loading" && <PrologueModal title="雨夜正在回到听雨轩"><p>园门、回廊与水声正在雨里显现。</p></PrologueModal>}
-      {phase === "error" && <PrologueModal title="序章未能启动"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷</button></PrologueModal>}
+      {phase === "error" && <PrologueModal title="雨夜画面中断"><p>{error}</p><button type="button" className="primary-button" onClick={onExit}>返回案卷</button></PrologueModal>}
 
       {runtimePanel === "case-file" && <CaseFilePanel checkpoint={checkpoint} completedChapters={save.completedChapters} chapterTitle="序章 · 回园" onClose={closeRuntimePanel} onOpenMap={() => openRuntimePanel("map", "case-file")} />}
       {runtimePanel === "tutorial" && <TutorialGuide onStart={finishTutorial} />}
-      {runtimePanel === "map" && <FullMap pose={mapPose} regionId={mapRegion} target={guidanceLevel >= 1 ? currentGuidance?.target : undefined} objective={objective ?? "确认当前空间"} openRegions={["AREA_A"]} onClose={closeRuntimePanel} />}
+      {runtimePanel === "map" && <FullMap pose={mapPose} regionId={mapRegion} target={guidanceLevel >= 1 ? currentGuidance?.target : undefined} objective={objective ?? "沿雨夜旧园继续走"} openRegions={["AREA_A"]} onClose={closeRuntimePanel} />}
       {runtimePanel === "pause" && <PauseMenu onResume={closeRuntimePanel} onMap={() => openRuntimePanel("map", "pause")} onHelp={() => openRuntimePanel("help", "pause")} onSettings={() => openRuntimePanel("settings", "pause")} onExit={onExit} />}
       {runtimePanel === "help" && <HelpPanel chapterTitle="序章 · 回园" onTutorial={() => openRuntimePanel("tutorial", "help")} onClose={closeRuntimePanel} />}
       {runtimePanel === "settings" && <RuntimeSettingsPanel settings={save.settings} onChange={updateRuntimeSettings} onClose={closeRuntimePanel} />}

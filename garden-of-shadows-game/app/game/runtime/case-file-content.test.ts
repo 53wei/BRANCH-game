@@ -12,7 +12,7 @@ import {
 
 describe("unified case file content", () => {
   it("keeps every evidence entry as structured observation data", () => {
-    expect(CASE_FILE_EVIDENCE.length).toBeGreaterThanOrEqual(12);
+    expect(CASE_FILE_EVIDENCE.length).toBeGreaterThanOrEqual(17);
     for (const item of CASE_FILE_EVIDENCE) {
       expect(item.title.trim().length).toBeGreaterThan(0);
       expect(item.discoveredFlag.trim().length).toBeGreaterThan(0);
@@ -48,6 +48,29 @@ describe("unified case file content", () => {
     expect(unlockedCasePeople(checkpoint).map((person) => person.id)).toEqual(["zhaoying"]);
     checkpoint.earnedFlags.push("prologue.dialogue.complete", "prologue.evidence.umbrella");
     expect(unlockedCasePeople(checkpoint).map((person) => person.id)).toEqual(expect.arrayContaining(["zhaoying", "steward", "painter"]));
+  });
+
+  it("keeps Chapter Four protection-plan evidence in the same case file", () => {
+    const checkpoint = createCheckpoint("deleted-person", "zhaoying");
+    checkpoint.earnedFlags.push(
+      "deleted-person.evidence.wife-boxes",
+      "deleted-person.evidence.gardener-route",
+      "deleted-person.evidence.accountant-packet",
+      "deleted-person.evidence.painter-original",
+      "deleted-person.unsent-letter",
+    );
+    expect(discoveredCaseEvidence(checkpoint).map((item) => item.id)).toEqual(expect.arrayContaining([
+      "deleted-wife-boxes",
+      "deleted-sealed-side-route",
+      "deleted-departure-packet",
+      "deleted-original-portrait",
+      "deleted-unsent-letter",
+    ]));
+    const whyErasure = CASE_FILE_QUESTIONS.find((item) => item.id === "why-erasure-plan")!;
+    expect(unlockedCaseQuestions(checkpoint).map((item) => item.id)).toContain("why-erasure-plan");
+    expect(isQuestionResolved(whyErasure, checkpoint)).toBe(false);
+    checkpoint.earnedFlags.push("deleted-person.complete");
+    expect(isQuestionResolved(whyErasure, checkpoint)).toBe(true);
   });
 
   it("EvidenceLedger returns defensive copies for the new source/person/question metadata", () => {

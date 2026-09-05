@@ -9,7 +9,7 @@ describe("campaign mechanic checkpoint integration", () => {
     expect(checkpoint.mechanics.safeAnchorId).toBe("ROUTE_02_A_ENTRY");
   });
 
-  it("migrates an older v2 checkpoint from its memory projection", () => {
+  it("repairs a malformed current checkpoint from its canonical memory projection", () => {
     const source = createDefaultSave() as unknown as Record<string, unknown>;
     const checkpoint = source.activeCheckpoint as Record<string, unknown>;
     checkpoint.memoryId = "gardener";

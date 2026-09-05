@@ -1,9 +1,9 @@
-import type { SpeakerProfile } from "../types";
+import type { SpeakerId, SpeakerProfile } from "../types";
 
-export const speakerProfiles: Record<string, SpeakerProfile> = {
+export const speakerProfiles: Record<SpeakerId, SpeakerProfile> = {
   narrator: {
     id: "narrator",
-    name: "听雨轩",
+    name: "环境",
     side: "none",
     themeColor: "#b9a87b",
     portraits: {},
@@ -52,10 +52,8 @@ export const speakerProfiles: Record<string, SpeakerProfile> = {
     portraits: {
       courteous: "/media/portraits/steward-courteous.webp",
       knowing: "/media/portraits/steward-knowing.webp",
+      guilty: "/media/portraits/gardener-guilty.webp",
       threatening: "/media/portraits/steward-threatening.webp",
-      // Authored ink uses mood "guilty"; the dedicated asset is still an asset
-      // BLOCK, so it resolves to the closest existing portrait for now.
-      guilty: "/media/portraits/steward-knowing.webp",
     },
     defaultPortrait: "courteous",
   },

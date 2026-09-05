@@ -45,10 +45,10 @@ const painterMemory: MemoryLayer = {
 };
 
 export const missingRoomDialogueSequences: DialogueSequence[] = [
-  { id: "room-opening", knotId: "room_opening", presentation: "stage", participants: ["zhaoying", "accountant"], defaultRightSpeaker: "accountant", completionFlag: "room.dialogue.opening-complete" },
-  { id: "room-wife-memory", knotId: "room_wife_memory", presentation: "stage", participants: ["zhaoying", "wife"], defaultRightSpeaker: "wife", completionFlag: "room.dialogue.wife-memory-complete" },
-  { id: "room-reconstructed", knotId: "room_reconstructed", presentation: "stage", participants: ["zhaoying", "wife"], defaultRightSpeaker: "wife", completionFlag: "room.dialogue.reconstructed-complete" },
-  { id: "room-identity", knotId: "room_identity", presentation: "stage", participants: ["zhaoying", "wife"], defaultRightSpeaker: "wife", completionFlag: "room.dialogue.identity-complete" },
+  { id: "room-opening", knotId: "room_opening", presentation: "stage", participants: ["zhaoying", "accountant"], completionFlag: "room.dialogue.opening-complete" },
+  { id: "room-wife-memory", knotId: "room_wife_memory", presentation: "stage", participants: ["zhaoying", "wife"], completionFlag: "room.dialogue.wife-memory-complete" },
+  { id: "room-reconstructed", knotId: "room_reconstructed", presentation: "stage", participants: ["zhaoying", "wife"], completionFlag: "room.dialogue.reconstructed-complete" },
+  { id: "room-identity", knotId: "room_identity", presentation: "stage", participants: ["zhaoying", "wife"], completionFlag: "room.dialogue.identity-complete" },
 ];
 
 export const missingRoomChapter: ChapterManifest = {

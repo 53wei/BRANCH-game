@@ -1,5 +1,6 @@
 import * as THREE from "three/webgpu";
 import type { TingYuXuanScene } from "./TingYuXuanScene";
+import { getGameplayAnchor } from "./tingyuxuan-gameplay-map";
 import {
   CH1_ANCHOR_TARGET,
   CH1_BORROWED_VIEW_POINT,
@@ -12,6 +13,7 @@ export interface ChapterOneSliceVisuals {
   root: THREE.Group;
   traceObjects: Map<string, THREE.Object3D>;
   rewardObjects: Map<string, THREE.Object3D>;
+  loopLandmark: THREE.Group;
   portalSurface: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
   borrowSource: THREE.Object3D;
   anchorMarker: THREE.Group;
@@ -111,6 +113,29 @@ export async function buildChapterOneSliceVisuals(world: Pick<TingYuXuanScene, "
     traceObjects.set(trace.id, object);
   });
 
+  // A cognition trace sits over the authored Master window only after the player
+  // has physically looped. It marks the broken lower-right lattice detail Zhao
+  // Ying names in V5, without replacing the actual window with a proxy model.
+  const loopLandmark = new THREE.Group();
+  loopLandmark.name = "LoopReturn_BrokenLattice_CognitionTrace";
+  const returnAnchor = getGameplayAnchor("A_BASELINE");
+  loopLandmark.position.set(returnAnchor.position[0], 1.08, returnAnchor.position[2]);
+  loopLandmark.rotation.y = returnAnchor.yaw;
+  const latticePoints = [
+    new THREE.Vector3(-0.46, -0.4, 0), new THREE.Vector3(-0.46, 0.4, 0),
+    new THREE.Vector3(-0.46, 0.4, 0), new THREE.Vector3(0.46, 0.4, 0),
+    new THREE.Vector3(0.46, 0.4, 0), new THREE.Vector3(0.46, -0.02, 0),
+    new THREE.Vector3(-0.46, -0.4, 0), new THREE.Vector3(0.04, -0.4, 0),
+    new THREE.Vector3(-0.15, -0.4, 0), new THREE.Vector3(-0.15, 0.4, 0),
+    new THREE.Vector3(0.15, 0.4, 0), new THREE.Vector3(0.15, -0.12, 0),
+  ];
+  loopLandmark.add(new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(latticePoints),
+    new THREE.LineBasicMaterial({ color: "#8b7958", transparent: true, opacity: 0.58 }),
+  ));
+  loopLandmark.visible = false;
+  root.add(loopLandmark);
+
   // Borrowed View is an intentional perception surface, not a substitute model.
   const portalSurface = new THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>(
     new THREE.PlaneGeometry(1.48, 1.78),
@@ -188,5 +213,5 @@ export async function buildChapterOneSliceVisuals(world: Pick<TingYuXuanScene, "
     rewardObjects.set(reward.id, group);
   });
 
-  return { root, traceObjects, rewardObjects, portalSurface, borrowSource, anchorMarker, borrowedStone };
+  return { root, traceObjects, rewardObjects, loopLandmark, portalSurface, borrowSource, anchorMarker, borrowedStone };
 }
